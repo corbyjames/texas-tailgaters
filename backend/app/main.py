@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import logging
 
-from app.api import images, species, identification, search
+from app.api import images, species, identification, search, feedback, lightroom
 from app.core.config import settings
 
 logging.basicConfig(level=logging.INFO)
@@ -34,6 +34,8 @@ app.include_router(images.router, prefix="/api/v1/images", tags=["images"])
 app.include_router(species.router, prefix="/api/v1/species", tags=["species"])
 app.include_router(identification.router, prefix="/api/v1/identify", tags=["identification"])
 app.include_router(search.router, prefix="/api/v1/search", tags=["search"])
+app.include_router(feedback.router, prefix="/api/v1/feedback", tags=["feedback"])
+app.include_router(lightroom.router, prefix="/api/v1/lightroom", tags=["lightroom"])
 
 @app.get("/")
 async def root():

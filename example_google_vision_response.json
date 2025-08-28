@@ -1,0 +1,203 @@
+{
+  "responses": [
+    {
+      "labelAnnotations": [
+        {
+          "mid": "/m/01c_cg",
+          "description": "Fish",
+          "score": 0.9876543,
+          "topicality": 0.9876543
+        },
+        {
+          "mid": "/m/0ch_cf",
+          "description": "Marine biology",
+          "score": 0.9234567,
+          "topicality": 0.9234567
+        },
+        {
+          "mid": "/m/0d8zb",
+          "description": "Clownfish",
+          "score": 0.8765432,
+          "topicality": 0.8765432
+        },
+        {
+          "mid": "/m/05_5t0l",
+          "description": "Underwater",
+          "score": 0.8543210,
+          "topicality": 0.8543210
+        },
+        {
+          "mid": "/m/0jyfg",
+          "description": "Orange",
+          "score": 0.8321098,
+          "topicality": 0.8321098
+        },
+        {
+          "mid": "/m/019jd",
+          "description": "Atlantic Ocean",
+          "score": 0.7654321,
+          "topicality": 0.7654321
+        },
+        {
+          "mid": "/m/03d443",
+          "description": "Coral reef",
+          "score": 0.7432109,
+          "topicality": 0.7432109
+        },
+        {
+          "mid": "/m/0c7fy",
+          "description": "Fin",
+          "score": 0.7210987,
+          "topicality": 0.7210987
+        },
+        {
+          "mid": "/m/025rp__",
+          "description": "Reef",
+          "score": 0.6987654,
+          "topicality": 0.6987654
+        },
+        {
+          "mid": "/m/09k_5",
+          "description": "Wildlife",
+          "score": 0.6543210,
+          "topicality": 0.6543210
+        }
+      ],
+      "webDetection": {
+        "webEntities": [
+          {
+            "entityId": "/m/0cyhj_",
+            "score": 8.456789,
+            "description": "Amphiprion ocellaris"
+          },
+          {
+            "entityId": "/m/088fh",
+            "score": 7.234567,
+            "description": "Clownfish"
+          },
+          {
+            "entityId": "/m/01c_cg",
+            "score": 6.543210,
+            "description": "Fish"
+          },
+          {
+            "entityId": "/m/0d8zb",
+            "score": 5.432109,
+            "description": "Anemonefish"
+          },
+          {
+            "entityId": "/m/03d443",
+            "score": 4.321098,
+            "description": "Coral reef fish"
+          }
+        ],
+        "bestGuessLabels": [
+          {
+            "label": "clownfish amphiprion ocellaris",
+            "languageCode": "en"
+          }
+        ],
+        "visuallySimilarImages": [
+          {
+            "url": "https://example.com/clownfish1.jpg"
+          },
+          {
+            "url": "https://example.com/clownfish2.jpg"
+          },
+          {
+            "url": "https://example.com/nemo.jpg"
+          }
+        ],
+        "pagesWithMatchingImages": [
+          {
+            "url": "https://en.wikipedia.org/wiki/Amphiprion_ocellaris",
+            "pageTitle": "Ocellaris clownfish - Wikipedia",
+            "partialMatchingImages": [
+              {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/clownfish.jpg"
+              }
+            ]
+          },
+          {
+            "url": "https://www.nationalgeographic.com/animals/fish/facts/clownfish",
+            "pageTitle": "Clownfish | National Geographic",
+            "fullMatchingImages": [
+              {
+                "url": "https://www.nationalgeographic.com/content/dam/animals/pictures/fish/clownfish.jpg"
+              }
+            ]
+          }
+        ]
+      },
+      "localizedObjectAnnotations": [
+        {
+          "mid": "/m/01c_cg",
+          "name": "Fish",
+          "score": 0.9234567,
+          "boundingPoly": {
+            "normalizedVertices": [
+              {"x": 0.375, "y": 0.416},
+              {"x": 0.625, "y": 0.416},
+              {"x": 0.625, "y": 0.583},
+              {"x": 0.375, "y": 0.583}
+            ]
+          }
+        },
+        {
+          "mid": "/m/0c7fy",
+          "name": "Fin",
+          "score": 0.8123456,
+          "boundingPoly": {
+            "normalizedVertices": [
+              {"x": 0.625, "y": 0.45},
+              {"x": 0.6875, "y": 0.45},
+              {"x": 0.6875, "y": 0.55},
+              {"x": 0.625, "y": 0.55}
+            ]
+          }
+        }
+      ],
+      "textAnnotations": [],
+      "safeSearchAnnotation": {
+        "adult": "VERY_UNLIKELY",
+        "spoof": "VERY_UNLIKELY",
+        "medical": "VERY_UNLIKELY",
+        "violence": "VERY_UNLIKELY",
+        "racy": "VERY_UNLIKELY"
+      },
+      "imagePropertiesAnnotation": {
+        "dominantColors": {
+          "colors": [
+            {
+              "color": {
+                "red": 255,
+                "green": 140,
+                "blue": 0
+              },
+              "score": 0.4567890,
+              "pixelFraction": 0.2345678
+            },
+            {
+              "color": {
+                "red": 30,
+                "green": 64,
+                "blue": 175
+              },
+              "score": 0.3456789,
+              "pixelFraction": 0.5432109
+            },
+            {
+              "color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255
+              },
+              "score": 0.1234567,
+              "pixelFraction": 0.0987654
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

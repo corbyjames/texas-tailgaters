@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Texas Tailgaters - App Screens</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F9FAFB;
+            color: #1F2937;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .screen-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+        }
+
+        .screen {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            overflow: hidden;
+            width: 375px;
+            height: 667px;
+            position: relative;
+            border: 1px solid #E5E7EB;
+        }
+
+        .screen-title {
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: #6B7280;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #BF5700 0%, #D97706 100%);
+            color: white;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-small:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* Content */
+        .content {
+            padding: 16px;
+            height: calc(100% - 120px);
+            overflow-y: auto;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1F2937;
+        }
+
+        .game-card {
+            background: #F9FAFB;
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+        }
+
+        .game-card:hover {
+            border-color: #BF5700;
+            box-shadow: 0 4px 12px rgba(191, 87, 0, 0.1);
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .game-title {
+            font-weight: 600;
+            font-size: 16px;
+            color: #1F2937;
+        }
+
+        .game-status {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .status-planned {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .status-unplanned {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .status-away {
+            background: #DBEAFE;
+            color: #1E40AF;
+        }
+
+        .game-details {
+            font-size: 14px;
+            color: #6B7280;
+            margin-bottom: 8px;
+        }
+
+        .game-theme {
+            font-size: 14px;
+            color: #BF5700;
+            font-weight: 500;
+        }
+
+        .game-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .btn {
+            background: #BF5700;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            flex: 1;
+        }
+
+        .btn:hover {
+            background: #A05200;
+        }
+
+        .btn-secondary {
+            background: #F3F4F6;
+            color: #374151;
+            border: 1px solid #D1D5DB;
+        }
+
+        .btn-secondary:hover {
+            background: #E5E7EB;
+        }
+
+        /* Stats */
+        .stats {
+            background: #F9FAFB;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+            text-align: center;
+        }
+
+        .stats-text {
+            font-size: 14px;
+            color: #6B7280;
+            font-weight: 500;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #E5E7EB;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .nav-item:hover {
+            color: #BF5700;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+        }
+
+        .nav-label {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Game Detail Screen */
+        .game-detail-header {
+            background: linear-gradient(135deg, #BF5700 0%, #D97706 100%);
+            color: white;
+            padding: 16px;
+            border-radius: 0 0 16px 16px;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 8px;
+        }
+
+        .game-detail-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .game-detail-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .theme-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-top: 12px;
+            font-weight: 500;
+        }
+
+        .info-card {
+            background: #F9FAFB;
+            border-radius: 12px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-label {
+            color: #6B7280;
+            font-size: 14px;
+        }
+
+        .info-value {
+            font-weight: 500;
+            color: #1F2937;
+        }
+
+        .potluck-section {
+            margin: 16px 0;
+        }
+
+        .potluck-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .potluck-title {
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .potluck-count {
+            font-size: 14px;
+            color: #6B7280;
+        }
+
+        .potluck-category {
+            margin-bottom: 16px;
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .category-title {
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .category-count {
+            font-size: 12px;
+            color: #6B7280;
+        }
+
+        .potluck-item {
+            background: white;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: 500;
+            color: #1F2937;
+            margin-bottom: 2px;
+        }
+
+        .item-assigned {
+            font-size: 12px;
+            color: #6B7280;
+        }
+
+        .item-status {
+            font-size: 16px;
+        }
+
+        .status-claimed {
+            color: #10B981;
+        }
+
+        .status-warning {
+            color: #F59E0B;
+        }
+
+        .add-item-btn {
+            background: #F3F4F6;
+            border: 2px dashed #D1D5DB;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            color: #6B7280;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .add-item-btn:hover {
+            border-color: #BF5700;
+            color: #BF5700;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #D1D5DB;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #BF5700;
+            box-shadow: 0 0 0 3px rgba(191, 87, 0, 0.1);
+        }
+
+        .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .warning-box {
+            background: #FEF3C7;
+            border: 1px solid #F59E0B;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 16px 0;
+            color: #92400E;
+            font-size: 14px;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn-full {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+        }
+
+        /* Desktop Styles */
+        .screen-desktop {
+            width: 800px;
+            height: 600px;
+        }
+
+        .desktop-header {
+            background: #1F2937;
+            color: white;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .desktop-nav {
+            display: flex;
+            gap: 24px;
+        }
+
+        .desktop-nav-item {
+            color: #D1D5DB;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .desktop-nav-item:hover,
+        .desktop-nav-item.active {
+            background: #374151;
+            color: white;
+        }
+
+        .desktop-content {
+            padding: 24px;
+            height: calc(100% - 80px);
+            overflow-y: auto;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .dashboard-card {
+            background: #F9FAFB;
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .dashboard-card h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1F2937;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 16px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #E5E7EB;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #BF5700;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #6B7280;
+            font-weight: 500;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .screen-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .screen {
+                width: 100%;
+                max-width: 375px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 style="text-align: center; margin-bottom: 40px; color: #BF5700; font-size: 32px;">
+            🔥 Texas Tailgaters - App Screens
+        </h1>
+        
+        <div class="screen-container">
+            <!-- Screen 1: Season Overview -->
+            <div>
+                <div class="screen-title">Season Overview (Mobile)</div>
+                <div class="screen">
+                    <div class="header">
+                        <h1>🔥 Texas Tailgaters</h1>
+                        <div class="header-actions">
+                            <button class="btn-small">Search</button>
+                            <button class="btn-small">Filter</button>
+                            <button class="btn-small">Admin</button>
+                        </div>
+                    </div>
+                    
+                    <div class="content">
+                        <div class="section-title">📅 2024 Season</div>
+                        
+                        <div class="game-card">
+                            <div class="game-header">
+                                <div class="game-title">🏈 Sept 7 • vs Colorado</div>
+                                <div class="game-status status-planned">Planned</div>
+                            </div>
+                            <div class="game-details">🕐 2:30 PM • Home</div>
+                            <div class="game-theme">🎨 Rocky Mountain BBQ Theme</div>
+                            <div class="game-actions">
+                                <button class="btn">View Details</button>
+                                <button class="btn btn-secondary">Send Invite</button>
+                            </div>
+                        </div>
+                        
+                        <div class="game-card">
+                            <div class="game-header">
+                                <div class="game-title">🏈 Sept 14 • vs UTSA</div>
+                                <div class="game-status status-unplanned">Unplanned</div>
+                            </div>
+                            <div class="game-details">🕐 7:00 PM • Home</div>
+                            <div class="game-theme">🎨 San Antonio Tex-Mex Theme</div>
+                            <div class="game-actions">
+                                <button class="btn">View Details</button>
+                                <button class="btn btn-secondary">Plan Now</button>
+                            </div>
+                        </div>
+                        
+                        <div class="game-card">
+                            <div class="game-header">
+                                <div class="game-title">🏈 Sept 21 • @ Michigan</div>
+                                <div class="game-status status-away">Watch Party</div>
+                            </div>
+                            <div class="game-details">🕐 11:00 AM • Away</div>
+                            <div class="game-theme">🎨 Big House Tailgate Theme</div>
+                            <div class="game-actions">
+                                <button class="btn">View Details</button>
+                                <button class="btn btn-secondary">Plan Watch</button>
+                            </div>
+                        </div>
+                        
+                        <div class="stats">
+                            <div class="stats-text">📊 Season Stats: 3/12 Planned</div>
+                        </div>
+                    </div>
+                    
+                    <div class="bottom-nav">
+                        <div class="nav-item">
+                            <div class="nav-icon">📱</div>
+                            <div class="nav-label">Home</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">🏈</div>
+                            <div class="nav-label">Games</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">👥</div>
+                            <div class="nav-label">Group</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">⚙️</div>
+                            <div class="nav-label">Settings</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen 2: Game Detail -->
+            <div>
+                <div class="screen-title">Game Detail (Mobile)</div>
+                <div class="screen">
+                    <div class="game-detail-header">
+                        <button class="back-btn">← Back</button>
+                        <div class="game-detail-title">Colorado vs Texas</div>
+                        <div class="game-detail-subtitle">🏈 Sept 7, 2024 • 2:30 PM</div>
+                        <div class="theme-badge">🎨 Rocky Mountain BBQ Theme</div>
+                    </div>
+                    
+                    <div class="content">
+                        <div class="info-card">
+                            <div class="info-row">
+                                <span class="info-label">📍 Location</span>
+                                <span class="info-value">Lot 38, Row 12</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">🕐 Setup</span>
+                                <span class="info-value">10:00 AM</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">👥 Expected</span>
+                                <span class="info-value">15 people</span>
+                            </div>
+                        </div>
+                        
+                        <div class="potluck-section">
+                            <div class="potluck-header">
+                                <div class="potluck-title">📋 Potluck Items</div>
+                                <div class="potluck-count">8/12 claimed</div>
+                            </div>
+                            
+                            <div class="potluck-category">
+                                <div class="category-header">
+                                    <div class="category-title">🍖 Main Dishes</div>
+                                    <div class="category-count">3/4</div>
+                                </div>
+                                <div class="potluck-item">
+                                    <div class="item-info">
+                                        <div class="item-name">BBQ Brisket</div>
+                                        <div class="item-assigned">John</div>
+                                    </div>
+                                    <div class="item-status status-claimed">✅</div>
+                                </div>
+                                <div class="potluck-item">
+                                    <div class="item-info">
+                                        <div class="item-name">Pulled Pork</div>
+                                        <div class="item-assigned">Sarah</div>
+                                    </div>
+                                    <div class="item-status status-claimed">✅</div>
+                                </div>
+                                <div class="potluck-item">
+                                    <div class="item-info">
+                                        <div class="item-name">BBQ Chicken</div>
+                                        <div class="item-assigned">Mike</div>
+                                    </div>
+                                    <div class="item-status status-warning">⚠️</div>
+                                </div>
+                                <div class="add-item-btn">+ Add Item</div>
+                            </div>
+                            
+                            <div class="potluck-category">
+                                <div class="category-header">
+                                    <div class="category-title">🥗 Sides</div>
+                                    <div class="category-count">2/3</div>
+                                </div>
+                                <div class="potluck-item">
+                                    <div class="item-info">
+                                        <div class="item-name">Coleslaw</div>
+                                        <div class="item-assigned">Lisa</div>
+                                    </div>
+                                    <div class="item-status status-claimed">✅</div>
+                                </div>
+                                <div class="potluck-item">
+                                    <div class="item-info">
+                                        <div class="item-name">Baked Beans</div>
+                                        <div class="item-assigned">Tom</div>
+                                    </div>
+                                    <div class="item-status status-claimed">✅</div>
+                                </div>
+                                <div class="add-item-btn">+ Add Item</div>
+                            </div>
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <button class="btn btn-full">📧 Send Invite</button>
+                            <button class="btn btn-secondary btn-full">📱 Text Group</button>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary btn-full">✏️ Edit Theme</button>
+                            <button class="btn btn-secondary btn-full">📊 View All</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen 3: Potluck Management -->
+            <div>
+                <div class="screen-title">Potluck Management (Mobile)</div>
+                <div class="screen">
+                    <div class="header">
+                        <button class="back-btn">← Back</button>
+                        <h1>🍖 Add Food Item</h1>
+                    </div>
+                    
+                    <div class="content">
+                        <div class="form-group">
+                            <label class="form-label">📝 Item Name</label>
+                            <input type="text" class="form-input" value="BBQ Brisket" placeholder="Enter item name">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">📂 Category</label>
+                            <div class="radio-group">
+                                <label class="radio-item">
+                                    <input type="radio" name="category" value="main">
+                                    <span>Main Dish</span>
+                                </label>
+                                <label class="radio-item">
+                                    <input type="radio" name="category" value="side" checked>
+                                    <span>Side</span>
+                                </label>
+                                <label class="radio-item">
+                                    <input type="radio" name="category" value="appetizer">
+                                    <span>Appetizer</span>
+                                </label>
+                                <label class="radio-item">
+                                    <input type="radio" name="category" value="dessert">
+                                    <span>Dessert</span>
+                                </label>
+                                <label class="radio-item">
+                                    <input type="radio" name="category" value="drink">
+                                    <span>Drink</span>
+                                </label>
+                                <label class="radio-item">
+                                    <input type="radio" name="category" value="condiment">
+                                    <span>Condiment</span>
+                                </label>
+                                <label class="radio-item">
+                                    <input type="radio" name="category" value="other">
+                                    <span>Other</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">📊 Quantity</label>
+                            <input type="text" class="form-input" value="Feeds 8-10 people" placeholder="Describe quantity">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">📄 Description</label>
+                            <input type="text" class="form-input" value="Slow-smoked brisket with..." placeholder="Describe your dish">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">⚠️ Dietary Flags</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-item">
+                                    <input type="checkbox" checked>
+                                    <span>Contains Gluten</span>
+                                </label>
+                                <label class="checkbox-item">
+                                    <input type="checkbox" checked>
+                                    <span>Contains Dairy</span>
+                                </label>
+                                <label class="checkbox-item">
+                                    <input type="checkbox">
+                                    <span>Vegetarian</span>
+                                </label>
+                                <label class="checkbox-item">
+                                    <input type="checkbox">
+                                    <span>Vegan</span>
+                                </label>
+                                <label class="checkbox-item">
+                                    <input type="checkbox">
+                                    <span>Nut-Free</span>
+                                </label>
+                                <button class="btn btn-secondary" style="margin-top: 8px;">+ Add Custom</button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">👤 Assigned To</label>
+                            <input type="text" class="form-input" value="John Smith" placeholder="Who's bringing this?">
+                        </div>
+                        
+                        <div class="warning-box">
+                            ⚠️ Warning: Similar item "BBQ Chicken" already claimed
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <button class="btn btn-full">✅ Add Item</button>
+                            <button class="btn btn-secondary btn-full">❌ Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen 4: User Profile -->
+            <div>
+                <div class="screen-title">User Profile (Mobile)</div>
+                <div class="screen">
+                    <div class="header">
+                        <button class="back-btn">← Back</button>
+                        <h1>👤 My Profile</h1>
+                    </div>
+                    
+                    <div class="content">
+                        <div class="form-group">
+                            <label class="form-label">📧 Email</label>
+                            <input type="email" class="form-input" value="john.smith@email.com">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">📱 Phone</label>
+                            <input type="tel" class="form-input" value="(512) 555-0123">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">⚠️ Dietary Restrictions</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-item">
+                                    <input type="checkbox" checked>
+                                    <span>Vegetarian</span>
+                                </label>
+                                <label class="checkbox-item">
+                                    <input type="checkbox">
+                                    <span>Vegan</span>
+                                </label>
+                                <label class="checkbox-item">
+                                    <input type="checkbox">
+                                    <span>Gluten-Free</span>
+                                </label>
+                                <label class="checkbox-item">
+                                    <input type="checkbox">
+                                    <span>Dairy-Free</span>
+                                </label>
+                                <label class="checkbox-item">
+                                    <input type="checkbox">
+                                    <span>Nut-Free</span>
+                                </label>
+                                <button class="btn btn-secondary" style="margin-top: 8px;">+ Add Custom Restriction</button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">🚫 Allergies</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-item">
+                                    <input type="checkbox" checked>
+                                    <span>Shellfish</span>
+                                </label>
+                                <label class="checkbox-item">
+                                    <input type="checkbox">
+                                    <span>Peanuts</span>
+                                </label>
+                                <label class="checkbox-item">
+                                    <input type="checkbox">
+                                    <span>Tree Nuts</span>
+                                </label>
+                                <button class="btn btn-secondary" style="margin-top: 8px;">+ Add Allergy</button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">⭐ Favorite Items to Bring</label>
+                            <div class="info-card">
+                                <div style="margin-bottom: 8px;">🍖 BBQ Brisket</div>
+                                <div style="margin-bottom: 8px;">🥗 Coleslaw</div>
+                                <div style="margin-bottom: 8px;">🍺 Craft Beer</div>
+                                <button class="btn btn-secondary" style="width: 100%;">+ Add Favorite Item</button>
+                            </div>
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <button class="btn btn-full">💾 Save Changes</button>
+                            <button class="btn btn-secondary btn-full">❌ Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen 5: Admin Dashboard (Desktop) -->
+            <div>
+                <div class="screen-title">Admin Dashboard (Desktop)</div>
+                <div class="screen screen-desktop">
+                    <div class="desktop-header">
+                        <h1>🔥 Texas Tailgaters - Admin Dashboard</h1>
+                        <div class="desktop-nav">
+                            <div class="desktop-nav-item active">Schedule</div>
+                            <div class="desktop-nav-item">Users</div>
+                            <div class="desktop-nav-item">Themes</div>
+                            <div class="desktop-nav-item">Analytics</div>
+                            <div class="desktop-nav-item">Settings</div>
+                        </div>
+                    </div>
+                    
+                    <div class="desktop-content">
+                        <div class="dashboard-grid">
+                            <div class="dashboard-card">
+                                <h3>📅 Schedule Management</h3>
+                                <div style="margin-bottom: 12px;">
+                                    <div style="font-size: 14px; color: #6B7280; margin-bottom: 8px;">Last Updated: 2 hours ago</div>
+                                    <div style="font-size: 14px; color: #10B981; margin-bottom: 4px;">✅ 12 games loaded from UT Athletics</div>
+                                    <div style="font-size: 14px; color: #F59E0B; margin-bottom: 4px;">⚠️ 3 games need theme assignment</div>
+                                    <div style="font-size: 14px; color: #6B7280; margin-bottom: 12px;">🔄 Next check: Tomorrow 9:00 AM</div>
+                                    <div style="display: flex; gap: 8px;">
+                                        <button class="btn btn-small">Refresh Now</button>
+                                        <button class="btn btn-secondary btn-small">Manual Import</button>
+                                        <button class="btn btn-secondary btn-small">Edit Schedule</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="dashboard-card">
+                                <h3>👥 User Management (15 active users)</h3>
+                                <div style="font-size: 14px; margin-bottom: 12px;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 500;">
+                                        <span>Name</span>
+                                        <span>Last Active</span>
+                                        <span>Status</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                        <span>John Smith</span>
+                                        <span>2 hours ago</span>
+                                        <span style="color: #10B981;">✅ Active</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                        <span>Sarah Jones</span>
+                                        <span>1 day ago</span>
+                                        <span style="color: #10B981;">✅ Active</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                                        <span>Mike Wilson</span>
+                                        <span>3 days ago</span>
+                                        <span style="color: #F59E0B;">⚠️ Inactive</span>
+                                    </div>
+                                    <div style="display: flex; gap: 8px;">
+                                        <button class="btn btn-small">View All Users</button>
+                                        <button class="btn btn-secondary btn-small">Add User</button>
+                                        <button class="btn btn-secondary btn-small">Send Reminder</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="dashboard-card">
+                            <h3>🎨 Theme Management</h3>
+                            <div style="font-size: 14px; margin-bottom: 12px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 500;">
+                                    <span>Opponent</span>
+                                    <span>Theme Name</span>
+                                    <span>Status</span>
+                                    <span>Actions</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                    <span>Colorado</span>
+                                    <span>Rocky Mountain</span>
+                                    <span style="color: #10B981;">✅ Active</span>
+                                    <span>
+                                        <button class="btn btn-small">Edit</button>
+                                        <button class="btn btn-secondary btn-small">Copy</button>
+                                    </span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                    <span>UTSA</span>
+                                    <span>San Antonio</span>
+                                    <span style="color: #F59E0B;">⚠️ Draft</span>
+                                    <span>
+                                        <button class="btn btn-small">Edit</button>
+                                        <button class="btn btn-secondary btn-small">Activate</button>
+                                    </span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                                    <span>Michigan</span>
+                                    <span>Big House</span>
+                                    <span style="color: #EF4444;">❌ Inactive</span>
+                                    <span>
+                                        <button class="btn btn-small">Edit</button>
+                                        <button class="btn btn-secondary btn-small">Activate</button>
+                                    </span>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn btn-small">Create New Theme</button>
+                                    <button class="btn btn-secondary btn-small">Import Themes</button>
+                                    <button class="btn btn-secondary btn-small">Export Themes</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="dashboard-card">
+                            <h3>📊 Quick Stats</h3>
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <div class="stat-number">12</div>
+                                    <div class="stat-label">Games This Season</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">15</div>
+                                    <div class="stat-label">Active Users</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">45</div>
+                                    <div class="stat-label">Invites Sent</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">78%</div>
+                                    <div class="stat-label">RSVP Rate</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">89</div>
+                                    <div class="stat-label">Potluck Items</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">8</div>
+                                    <div class="stat-label">Themes Created</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 8px; margin-top: 16px;">
+                                <button class="btn btn-small">View Detailed Analytics</button>
+                                <button class="btn btn-secondary btn-small">Export Report</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple interactivity for demonstration
+        document.addEventListener('DOMContentLoaded', function() {
+            // Navigation items
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    navItems.forEach(nav => nav.style.color = '#6B7280');
+                    this.style.color = '#BF5700';
+                });
+            });
+
+            // Desktop navigation
+            const desktopNavItems = document.querySelectorAll('.desktop-nav-item');
+            desktopNavItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    desktopNavItems.forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // Game cards
+            const gameCards = document.querySelectorAll('.game-card');
+            gameCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    console.log('Navigating to game detail...');
+                });
+            });
+
+            // Buttons
+            const buttons = document.querySelectorAll('.btn');
+            buttons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Button clicked:', this.textContent);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

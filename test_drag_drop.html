@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Drag & Drop - Marine Life ID</title>
+    <style>
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f3f4f6;
+        }
+        
+        h1 {
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+        
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .test-images {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .test-image {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            cursor: move;
+            transition: all 0.2s;
+        }
+        
+        .test-image:hover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+        
+        .test-image img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 4px;
+            pointer-events: none;
+        }
+        
+        .test-image p {
+            margin: 8px 0 0 0;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        .instructions {
+            background: #fef3c7;
+            border: 1px solid #fbbf24;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .instructions h3 {
+            margin-top: 0;
+            color: #92400e;
+        }
+        
+        .instructions ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin: 8px 0;
+            color: #78350f;
+        }
+        
+        .links {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .link-button {
+            display: inline-block;
+            background: #3b82f6;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        
+        .link-button:hover {
+            background: #2563eb;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #6ee7b7;
+        }
+        
+        .status.info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #93c5fd;
+        }
+    </style>
+</head>
+<body>
+    <h1>🐠 Marine Life ID - Drag & Drop Test</h1>
+    <p>Test the drag-and-drop functionality for image uploads</p>
+
+    <div class="instructions">
+        <h3>📋 Testing Instructions</h3>
+        <ol>
+            <li>Open the Marine Life ID app in another browser tab</li>
+            <li>Navigate to either the <strong>Identify</strong> or <strong>Gallery</strong> page</li>
+            <li>Drag any of the test images below to the upload area</li>
+            <li>You should see visual feedback when dragging over the drop zone</li>
+            <li>The image should load in the preview area when dropped</li>
+        </ol>
+    </div>
+
+    <div class="links">
+        <a href="http://localhost:3000" target="_blank" class="link-button">
+            Open Marine Life ID App
+        </a>
+        <button onclick="generateTestImage()" class="link-button" style="background: #10b981;">
+            Generate Test Image
+        </button>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Images (Drag these to the app)</h2>
+        <p class="status info">💡 Drag any image below to the Marine Life ID app's upload area</p>
+        
+        <div class="test-images" id="testImages">
+            <!-- Images will be generated here -->
+        </div>
+    </div>
+
+    <script>
+        // Generate test images on load
+        function generateTestImages() {
+            const container = document.getElementById('testImages');
+            const marineLife = [
+                { name: 'Clownfish', color: 'orange', emoji: '🐠' },
+                { name: 'Shark', color: 'gray', emoji: '🦈' },
+                { name: 'Turtle', color: 'green', emoji: '🐢' },
+                { name: 'Dolphin', color: 'lightblue', emoji: '🐬' },
+                { name: 'Octopus', color: 'purple', emoji: '🐙' },
+                { name: 'Whale', color: 'blue', emoji: '🐋' }
+            ];
+            
+            marineLife.forEach((creature, index) => {
+                const div = document.createElement('div');
+                div.className = 'test-image';
+                div.draggable = true;
+                
+                // Create canvas image
+                const canvas = document.createElement('canvas');
+                canvas.width = 200;
+                canvas.height = 150;
+                const ctx = canvas.getContext('2d');
+                
+                // Draw background
+                ctx.fillStyle = creature.color;
+                ctx.fillRect(0, 0, 200, 150);
+                
+                // Draw emoji
+                ctx.font = '60px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(creature.emoji, 100, 75);
+                
+                // Convert to image
+                const img = document.createElement('img');
+                img.src = canvas.toDataURL('image/jpeg');
+                img.alt = creature.name;
+                
+                const p = document.createElement('p');
+                p.textContent = creature.name;
+                
+                div.appendChild(img);
+                div.appendChild(p);
+                
+                // Add drag event
+                div.addEventListener('dragstart', (e) => {
+                    // Convert canvas to blob and create file
+                    canvas.toBlob((blob) => {
+                        const file = new File([blob], `test_${creature.name.toLowerCase()}.jpg`, {
+                            type: 'image/jpeg'
+                        });
+                        
+                        // Create DataTransfer with file
+                        const dt = new DataTransfer();
+                        dt.items.add(file);
+                        e.dataTransfer = dt;
+                        e.dataTransfer.effectAllowed = 'copy';
+                    }, 'image/jpeg');
+                });
+                
+                container.appendChild(div);
+            });
+        }
+        
+        function generateTestImage() {
+            // Create a new canvas with random marine scene
+            const canvas = document.createElement('canvas');
+            canvas.width = 800;
+            canvas.height = 600;
+            const ctx = canvas.getContext('2d');
+            
+            // Ocean gradient background
+            const gradient = ctx.createLinearGradient(0, 0, 0, 600);
+            gradient.addColorStop(0, '#1e40af');
+            gradient.addColorStop(1, '#1e3a8a');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 800, 600);
+            
+            // Add some fish shapes
+            ctx.fillStyle = 'orange';
+            ctx.beginPath();
+            ctx.ellipse(400, 300, 100, 50, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Add stripes
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 15;
+            ctx.beginPath();
+            ctx.moveTo(350, 280);
+            ctx.lineTo(350, 320);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(450, 280);
+            ctx.lineTo(450, 320);
+            ctx.stroke();
+            
+            // Save as file
+            canvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `marine_test_${Date.now()}.jpg`;
+                a.click();
+                
+                // Show success message
+                const status = document.createElement('div');
+                status.className = 'status success';
+                status.textContent = '✅ Test image downloaded! You can now drag it to the app.';
+                document.querySelector('.test-section').insertBefore(status, document.querySelector('.test-images'));
+                
+                setTimeout(() => status.remove(), 5000);
+            }, 'image/jpeg', 0.9);
+        }
+        
+        // Initialize on load
+        generateTestImages();
+    </script>
+</body>
+</html>

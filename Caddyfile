@@ -1,0 +1,15 @@
+# Caddy configuration for automatic HTTPS
+localhost {
+    # Automatic HTTPS with self-signed certificate for localhost
+    tls internal
+
+    # Reverse proxy to backend
+    handle /api/* {
+        reverse_proxy backend:8000
+    }
+
+    # Reverse proxy to frontend
+    handle {
+        reverse_proxy frontend:3000
+    }
+}

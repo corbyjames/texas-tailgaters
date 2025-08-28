@@ -60,6 +60,7 @@ services:
       - MINIO_BUCKET=marine-images
       - REDIS_URL=redis://redis:6379
       - PYTHONUNBUFFERED=1
+      - GOOGLE_VISION_API_KEY=AIzaSyCjvoQWmAStl6_GUWLu_adIlo3wUldpCWM
     depends_on:
       - neo4j
       - minio

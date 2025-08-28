@@ -24,6 +24,15 @@ class Settings(BaseSettings):
     INATURALIST_APP_ID: Optional[str] = os.getenv("INATURALIST_APP_ID")
     INATURALIST_APP_SECRET: Optional[str] = os.getenv("INATURALIST_APP_SECRET")
     
+    # Adobe Lightroom API settings
+    ADOBE_CLIENT_ID: str = os.getenv("ADOBE_CLIENT_ID", "")
+    ADOBE_CLIENT_SECRET: str = os.getenv("ADOBE_CLIENT_SECRET", "")
+    ADOBE_REDIRECT_URI: str = os.getenv("ADOBE_REDIRECT_URI", "https://localhost:8000/api/v1/lightroom/auth/callback")
+    
+    # Claude Vision API settings
+    ANTHROPIC_API_KEY: Optional[str] = os.getenv("ANTHROPIC_API_KEY")
+    FREE_MONTHLY_IDS: int = 50  # Free identifications per month
+    
     MAX_IMAGE_SIZE: int = 100 * 1024 * 1024
     THUMBNAIL_SIZE: tuple = (300, 300)
     PREVIEW_SIZE: tuple = (1200, 1200)

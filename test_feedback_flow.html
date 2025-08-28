@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Feedback System - Marine Life ID</title>
+    <style>
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f3f4f6;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #6ee7b7;
+        }
+        
+        .info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #93c5fd;
+        }
+        
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+        
+        button {
+            background: #3b82f6;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #2563eb;
+        }
+        
+        .test-results {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .test-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .test-item:last-child {
+            border-bottom: none;
+        }
+        
+        .test-item .label {
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .test-item .value {
+            color: #6b7280;
+            margin-left: 10px;
+        }
+        
+        pre {
+            background: #1f2937;
+            color: #f3f4f6;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🐠 Test Feedback System</h1>
+    <p>Test the identification feedback and correction functionality</p>
+
+    <div class="card">
+        <h2>📋 Test Instructions</h2>
+        <ol>
+            <li>Click "Run Identification Test" to simulate an identification</li>
+            <li>Test the feedback buttons (thumbs up/down)</li>
+            <li>Test the correction feature</li>
+            <li>Test the retry mechanism</li>
+            <li>View feedback statistics</li>
+        </ol>
+    </div>
+
+    <div class="card">
+        <h2>🔬 Test Controls</h2>
+        <button onclick="runIdentificationTest()">Run Identification Test</button>
+        <button onclick="testFeedbackSubmission('correct')">Test Correct Feedback</button>
+        <button onclick="testFeedbackSubmission('incorrect')">Test Incorrect Feedback</button>
+        <button onclick="testCorrection()">Test Species Correction</button>
+        <button onclick="getFeedbackStats()">Get Feedback Stats</button>
+        
+        <div id="testResults" class="test-results" style="display: none;">
+            <h3>Test Results</h3>
+            <div id="resultContent"></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>📊 Live System Status</h2>
+        <div id="systemStatus">
+            <div class="status info">Checking system status...</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>🔍 API Response Log</h2>
+        <pre id="apiLog">Waiting for API calls...</pre>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api/v1';
+        let lastObservationId = null;
+        let lastPrediction = null;
+        
+        async function logApi(message, data = null) {
+            const log = document.getElementById('apiLog');
+            const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
+            let logMessage = `[${timestamp}] ${message}`;
+            if (data) {
+                logMessage += '\n' + JSON.stringify(data, null, 2);
+            }
+            log.textContent = logMessage + '\n\n' + log.textContent;
+            
+            // Keep only last 500 lines
+            const lines = log.textContent.split('\n');
+            if (lines.length > 500) {
+                log.textContent = lines.slice(0, 500).join('\n');
+            }
+        }
+        
+        async function runIdentificationTest() {
+            try {
+                logApi('Starting identification test...');
+                
+                // Create test image
+                const canvas = document.createElement('canvas');
+                canvas.width = 400;
+                canvas.height = 300;
+                const ctx = canvas.getContext('2d');
+                
+                // Draw ocean background
+                ctx.fillStyle = '#1e40af';
+                ctx.fillRect(0, 0, 400, 300);
+                
+                // Draw fish
+                ctx.fillStyle = 'orange';
+                ctx.beginPath();
+                ctx.ellipse(200, 150, 80, 40, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Convert to blob
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg'));
+                const file = new File([blob], 'test_fish.jpg', { type: 'image/jpeg' });
+                
+                // Create form data
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('save_image', 'true');
+                
+                // Send request
+                const response = await fetch(`${API_BASE}/identify/`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                logApi('Identification result:', result);
+                
+                if (result.predictions && result.predictions.length > 0) {
+                    lastObservationId = result.observation_id;
+                    lastPrediction = result.predictions[0];
+                    
+                    showResult('success', 
+                        `✅ Identified as ${lastPrediction.common_name} (${(lastPrediction.confidence * 100).toFixed(1)}% confidence)`
+                    );
+                } else {
+                    showResult('error', 'No species identified');
+                }
+                
+            } catch (error) {
+                logApi('Error in identification test:', error.message);
+                showResult('error', `Error: ${error.message}`);
+            }
+        }
+        
+        async function testFeedbackSubmission(type) {
+            if (!lastPrediction) {
+                showResult('error', 'Please run identification test first');
+                return;
+            }
+            
+            try {
+                logApi(`Submitting ${type} feedback...`);
+                
+                const feedbackData = {
+                    observation_id: lastObservationId,
+                    prediction: lastPrediction,
+                    feedback_type: type,
+                    message: `Test ${type} feedback`
+                };
+                
+                const response = await fetch(`${API_BASE}/feedback/feedback`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(feedbackData)
+                });
+                
+                const result = await response.json();
+                logApi('Feedback submission result:', result);
+                
+                showResult('success', `✅ ${type} feedback submitted successfully`);
+                
+            } catch (error) {
+                logApi('Error submitting feedback:', error.message);
+                showResult('error', `Error: ${error.message}`);
+            }
+        }
+        
+        async function testCorrection() {
+            if (!lastPrediction) {
+                showResult('error', 'Please run identification test first');
+                return;
+            }
+            
+            try {
+                logApi('Submitting species correction...');
+                
+                const correctionData = {
+                    observation_id: lastObservationId,
+                    prediction: lastPrediction,
+                    feedback_type: 'correction',
+                    message: 'User provided correction',
+                    corrected_species: {
+                        common_name: 'Blue Tang',
+                        scientific_name: 'Paracanthurus hepatus'
+                    }
+                };
+                
+                const response = await fetch(`${API_BASE}/feedback/feedback`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(correctionData)
+                });
+                
+                const result = await response.json();
+                logApi('Correction submission result:', result);
+                
+                showResult('success', '✅ Species correction submitted: Blue Tang');
+                
+            } catch (error) {
+                logApi('Error submitting correction:', error.message);
+                showResult('error', `Error: ${error.message}`);
+            }
+        }
+        
+        async function getFeedbackStats() {
+            try {
+                logApi('Getting feedback statistics...');
+                
+                const response = await fetch(`${API_BASE}/feedback/stats`);
+                const stats = await response.json();
+                
+                logApi('Feedback statistics:', stats);
+                
+                const statsHtml = `
+                    <div class="test-item">
+                        <span class="label">Total Feedback:</span>
+                        <span class="value">${stats.total_feedback || 0}</span>
+                    </div>
+                    <div class="test-item">
+                        <span class="label">Correct Identifications:</span>
+                        <span class="value">${stats.correct_identifications || 0}</span>
+                    </div>
+                    <div class="test-item">
+                        <span class="label">Incorrect Identifications:</span>
+                        <span class="value">${stats.incorrect_identifications || 0}</span>
+                    </div>
+                    <div class="test-item">
+                        <span class="label">Corrections Provided:</span>
+                        <span class="value">${stats.corrections_provided || 0}</span>
+                    </div>
+                    <div class="test-item">
+                        <span class="label">Accuracy Rate:</span>
+                        <span class="value">${(stats.accuracy_rate || 0).toFixed(1)}%</span>
+                    </div>
+                `;
+                
+                document.getElementById('resultContent').innerHTML = statsHtml;
+                document.getElementById('testResults').style.display = 'block';
+                
+            } catch (error) {
+                logApi('Error getting stats:', error.message);
+                showResult('error', `Error: ${error.message}`);
+            }
+        }
+        
+        function showResult(type, message) {
+            const resultDiv = document.getElementById('resultContent');
+            resultDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+            document.getElementById('testResults').style.display = 'block';
+        }
+        
+        async function checkSystemStatus() {
+            const statusDiv = document.getElementById('systemStatus');
+            let statusHtml = '';
+            
+            // Check backend
+            try {
+                const response = await fetch(`${API_BASE.replace('/api/v1', '')}/health`);
+                if (response.ok) {
+                    statusHtml += '<div class="status success">✅ Backend API: Online</div>';
+                } else {
+                    statusHtml += '<div class="status error">❌ Backend API: Error</div>';
+                }
+            } catch {
+                statusHtml += '<div class="status error">❌ Backend API: Offline</div>';
+            }
+            
+            // Check frontend
+            try {
+                const response = await fetch('http://localhost:3000');
+                if (response.ok) {
+                    statusHtml += '<div class="status success">✅ Frontend: Online</div>';
+                } else {
+                    statusHtml += '<div class="status error">❌ Frontend: Error</div>';
+                }
+            } catch {
+                statusHtml += '<div class="status error">❌ Frontend: Offline</div>';
+            }
+            
+            // Check feedback endpoint
+            try {
+                const response = await fetch(`${API_BASE}/feedback/stats`);
+                if (response.ok) {
+                    statusHtml += '<div class="status success">✅ Feedback System: Active</div>';
+                } else {
+                    statusHtml += '<div class="status error">❌ Feedback System: Error</div>';
+                }
+            } catch {
+                statusHtml += '<div class="status error">❌ Feedback System: Offline</div>';
+            }
+            
+            statusDiv.innerHTML = statusHtml;
+        }
+        
+        // Check system status on load
+        checkSystemStatus();
+        setInterval(checkSystemStatus, 10000); // Check every 10 seconds
+    </script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+import { useState, useEffect, useCallback } from 'react';
+import { Game } from '../types/Game';
+import { GameService, CreateGameData, UpdateGameData } from '../services/gameService';
+
+export function useGames() {
+  const [games, setGames] = useState<Game[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch all games
+  const fetchGames = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await GameService.getGames();
+      setGames(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch games');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Fetch games on mount
+  useEffect(() => {
+    fetchGames();
+  }, [fetchGames]);
+
+  // Create a new game
+  const createGame = useCallback(async (gameData: CreateGameData) => {
+    try {
+      setError(null);
+      const newGame = await GameService.createGame(gameData);
+      setGames(prev => [...prev, newGame]);
+      return newGame;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create game');
+      throw err;
+    }
+  }, []);
+
+  // Update a game
+  const updateGame = useCallback(async (gameData: UpdateGameData) => {
+    try {
+      setError(null);
+      const updatedGame = await GameService.updateGame(gameData);
+      setGames(prev => prev.map(game => 
+        game.id === updatedGame.id ? updatedGame : game
+      ));
+      return updatedGame;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update game');
+      throw err;
+    }
+  }, []);
+
+  // Delete a game
+  const deleteGame = useCallback(async (id: string) => {
+    try {
+      setError(null);
+      await GameService.deleteGame(id);
+      setGames(prev => prev.filter(game => game.id !== id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete game');
+      throw err;
+    }
+  }, []);
+
+  // Get games by status
+  const getGamesByStatus = useCallback(async (status: string) => {
+    try {
+      setError(null);
+      return await GameService.getGamesByStatus(status);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch games by status');
+      throw err;
+    }
+  }, []);
+
+  // Get upcoming games
+  const getUpcomingGames = useCallback(async () => {
+    try {
+      setError(null);
+      return await GameService.getUpcomingGames();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch upcoming games');
+      throw err;
+    }
+  }, []);
+
+  // Sync from UT Athletics
+  const syncFromUTAthletics = useCallback(async () => {
+    try {
+      setError(null);
+      const result = await GameService.syncFromUTAthletics();
+      if (result.success) {
+        // Refresh games after sync
+        await fetchGames();
+      }
+      return result;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to sync schedule');
+      throw err;
+    }
+  }, [fetchGames]);
+
+  // Get game by ID
+  const getGame = useCallback(async (id: string) => {
+    try {
+      setError(null);
+      return await GameService.getGame(id);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch game');
+      throw err;
+    }
+  }, []);
+
+  return {
+    games,
+    loading,
+    error,
+    fetchGames,
+    createGame,
+    updateGame,
+    deleteGame,
+    getGamesByStatus,
+    getUpcomingGames,
+    syncFromUTAthletics,
+    getGame,
+  };
+}
+
