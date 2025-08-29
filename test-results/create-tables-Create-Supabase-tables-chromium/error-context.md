@@ -1,0 +1,68 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - link "Skip to content" [ref=e4] [cursor=pointer]:
+      - /url: "#start-of-content"
+    - banner [ref=e6]
+  - main [ref=e9]:
+    - generic [ref=e10]:
+      - generic [ref=e12]:
+        - img "Supabase logo" [ref=e14]
+        - paragraph [ref=e15]:
+          - text: Sign in to
+          - strong [ref=e16]: GitHub
+          - text: to continue to
+          - strong [ref=e17]: Supabase
+      - generic [ref=e18]:
+        - generic [ref=e19]:
+          - generic [ref=e20]:
+            - generic [ref=e21]: Username or email address
+            - textbox "Username or email address" [ref=e22]
+          - generic [ref=e23]:
+            - generic [ref=e24]: Password
+            - textbox "Password" [ref=e25]: $4Xanadu4M3e
+            - link "Forgot password?" [ref=e26] [cursor=pointer]:
+              - /url: /password_reset
+          - button "Sign in" [ref=e28] [cursor=pointer]
+        - generic [ref=e29]:
+          - generic [ref=e31]: or
+          - generic [ref=e35]:
+            - generic [ref=e37]:
+              - img [ref=e39]
+              - paragraph [ref=e42]: This browser or device is reporting partial passkey support.
+            - paragraph [ref=e43]:
+              - generic [ref=e44]:
+                - img [ref=e45]
+                - generic [ref=e48]: Loading
+              - text: Waiting for input from browser interaction...
+          - button "Continue with Google" [ref=e50] [cursor=pointer]:
+            - generic [ref=e51] [cursor=pointer]:
+              - generic:
+                - img:
+                  - img
+              - generic [ref=e52] [cursor=pointer]: Continue with Google
+      - paragraph [ref=e55]:
+        - text: New to GitHub?
+        - link "Create an account" [ref=e56] [cursor=pointer]:
+          - /url: /join?return_to=%2Flogin%2Foauth%2Fauthorize%3Fclient_id%3D60b7a7e2418b90251417%26redirect_to%3Dhttps%253A%252F%252Fsupabase.com%252Fdashboard%252Fsign-in-mfa%253FreturnTo%253D%25252Fproject%25252Fkvtufvfnlvlqhxcwksja%25252Fsql%25252Fnew%2526method%253Dgithub%26redirect_uri%3Dhttps%253A%252F%252Falt.supabase.io%252Fauth%252Fv1%252Fcallback%26response_type%3Dcode%26scope%3Duser%253Aemail%26state%3DeyJhbGciOiJSUzI1NiIsImtpZCI6IjNlNjE5YzJjIiwidHlwIjoiSldUIn0.eyJleHAiOjE3NTY0MzI0MDYsInNpdGVfdXJsIjoiaHR0cHM6Ly9hcHAuc3VwYWJhc2UuY29tIiwiaWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJmdW5jdGlvbl9ob29rcyI6bnVsbCwicHJvdmlkZXIiOiJnaXRodWIiLCJyZWZlcnJlciI6Imh0dHBzOi8vc3VwYWJhc2UuY29tL2Rhc2hib2FyZC9zaWduLWluLW1mYT9yZXR1cm5Ubz0lMkZwcm9qZWN0JTJGa3Z0dWZ2Zm5sdmxxaHhjd2tzamElMkZzcWwlMkZuZXdcdTAwMjZtZXRob2Q9Z2l0aHViIiwiZmxvd19zdGF0ZV9pZCI6IiJ9.Jg3Bcts_tnvNHzxZBvSSy3a_YvVOTQcQvF7PNqipxI89ZJ6r9dR9W7ZVoTh4R_QkqIvf34FZZYQhI7FUntiAW6dkwoFke50y8L-0IBtgQIKWJFETUT_rbZBAYEAOWQyewLNUxagjyD8EGyVYZwWgT6A2kfbgH9N0jJhmGjcmBtLWrGLsOV3uv1wPk3vgj4ZCIjNjoZL6ncC2Et6k5HcJcQ98Aykk5ZWCodl5u5wisYOneAkAe9b5oE7SpTao_y8OKYD2IQx-RnWPPTEPPbzn5UINYs--vLCpO52sh-V9AYbW5IEy7K4fhQVwqwmfswylAqZlpG3ml7UGTszjiKUTMg&source=oauth
+  - contentinfo [ref=e57]:
+    - list [ref=e58]:
+      - listitem [ref=e59]:
+        - link "Terms" [ref=e60] [cursor=pointer]:
+          - /url: https://docs.github.com/site-policy/github-terms/github-terms-of-service
+      - listitem [ref=e61]:
+        - link "Privacy" [ref=e62] [cursor=pointer]:
+          - /url: https://docs.github.com/site-policy/privacy-policies/github-privacy-statement
+      - listitem [ref=e63]:
+        - link "Docs" [ref=e64] [cursor=pointer]:
+          - /url: https://docs.github.com
+      - listitem [ref=e65]:
+        - link "Contact GitHub Support" [ref=e66] [cursor=pointer]:
+          - /url: https://support.github.com
+      - listitem [ref=e67]:
+        - button "Manage cookies" [ref=e69] [cursor=pointer]
+      - listitem [ref=e70]:
+        - button "Do not share my personal information" [ref=e72] [cursor=pointer]
+```

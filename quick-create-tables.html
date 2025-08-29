@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quick Create Tables</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .sql-box {
+            background: #1e293b;
+            color: #f1f5f9;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        .alert {
+            background: #fef2f2;
+            color: #991b1b;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+            border: 1px solid #fecaca;
+        }
+        .success {
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚨 Tables Not Created Yet!</h1>
+    
+    <div class="alert">
+        <strong>The tables don't exist in your Supabase database.</strong><br>
+        You must create them before the app can work.
+    </div>
+    
+    <h2>Quick Steps:</h2>
+    
+    <ol>
+        <li><strong>Click this button to open Supabase SQL Editor:</strong><br>
+            <button onclick="window.open('https://app.supabase.com/project/kvtufvfnlvlqhxcwksja/sql/new', '_blank')">
+                Open Supabase SQL Editor
+            </button>
+        </li>
+        
+        <li><strong>Copy ALL of this SQL:</strong>
+            <button onclick="copySQL()">Copy SQL to Clipboard</button>
+            <div class="sql-box" id="sql">-- Create themes table first (since games references it)
+CREATE TABLE IF NOT EXISTS themes (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT,
+    opponent TEXT,
+    colors TEXT[],
+    food_suggestions TEXT[],
+    is_custom BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
+);
+
+-- Create games table (references themes)
+CREATE TABLE IF NOT EXISTS games (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    date DATE NOT NULL,
+    time TEXT,
+    opponent TEXT NOT NULL,
+    location TEXT,
+    is_home BOOLEAN DEFAULT false,
+    theme_id UUID REFERENCES themes(id) ON DELETE SET NULL,
+    status TEXT DEFAULT 'unplanned',
+    setup_time TEXT,
+    expected_attendance INTEGER DEFAULT 0,
+    tv_network TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
+);
+
+-- Create potluck_items table
+CREATE TABLE IF NOT EXISTS potluck_items (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    game_id UUID REFERENCES games(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    category TEXT NOT NULL,
+    quantity TEXT,
+    description TEXT,
+    assigned_to TEXT,
+    is_admin_assigned BOOLEAN DEFAULT false,
+    dietary_flags TEXT[],
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
+);
+
+-- Create indexes
+CREATE INDEX IF NOT EXISTS idx_games_date ON games(date);
+CREATE INDEX IF NOT EXISTS idx_games_opponent ON games(opponent);
+CREATE INDEX IF NOT EXISTS idx_potluck_items_game_id ON potluck_items(game_id);
+
+-- Enable RLS
+ALTER TABLE games ENABLE ROW LEVEL SECURITY;
+ALTER TABLE themes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE potluck_items ENABLE ROW LEVEL SECURITY;
+
+-- Create policies
+CREATE POLICY "Games are viewable by everyone" ON games FOR SELECT USING (true);
+CREATE POLICY "Games can be inserted by authenticated users" ON games FOR INSERT WITH CHECK (true);
+CREATE POLICY "Games can be updated by authenticated users" ON games FOR UPDATE USING (true);
+CREATE POLICY "Games can be deleted by authenticated users" ON games FOR DELETE USING (true);
+
+CREATE POLICY "Themes are viewable by everyone" ON themes FOR SELECT USING (true);
+CREATE POLICY "Themes can be inserted by authenticated users" ON themes FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Potluck items are viewable by everyone" ON potluck_items FOR SELECT USING (true);
+CREATE POLICY "Potluck items can be inserted by authenticated users" ON potluck_items FOR INSERT WITH CHECK (true);
+CREATE POLICY "Potluck items can be updated by authenticated users" ON potluck_items FOR UPDATE USING (true);
+CREATE POLICY "Potluck items can be deleted by authenticated users" ON potluck_items FOR DELETE USING (true);</div>
+        </li>
+        
+        <li><strong>Paste the SQL in Supabase and click "RUN"</strong></li>
+        
+        <li><strong>Come back here and click this to verify:</strong><br>
+            <button onclick="verifyTables()">Verify Tables Were Created</button>
+        </li>
+    </ol>
+    
+    <div id="status"></div>
+    
+    <script>
+        function copySQL() {
+            const sql = document.getElementById('sql').innerText;
+            navigator.clipboard.writeText(sql).then(() => {
+                alert('SQL copied to clipboard! Now paste it in Supabase.');
+            });
+        }
+        
+        async function verifyTables() {
+            const status = document.getElementById('status');
+            status.innerHTML = '<div class="alert">Checking tables...</div>';
+            
+            // This would check the tables but we can't do it from static HTML
+            // Instead, direct them to run the test
+            status.innerHTML = `
+                <div class="alert">
+                    To verify the tables were created, run this command in your terminal:<br>
+                    <code style="background: #f3f4f6; padding: 5px; border-radius: 3px;">node test-persistence.js</code>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

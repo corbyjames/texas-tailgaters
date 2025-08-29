@@ -1,218 +1,150 @@
-# Marine Life ID - Development Session Context
+# Texas Tailgaters App - Session Context
 
-## Session Date: 2025-08-05
+## Current Status
+- **Date**: 2025-08-29
+- **Project**: Texas Tailgaters (Football tailgate planning app)
+- **Repository**: https://github.com/corbyjames/texas-tailgaters
+- **Dev Server**: Running on http://localhost:5174/
 
-## Project Overview
-Building a Marine Life Identification System with AI-powered image recognition for underwater photographers using Adobe Lightroom.
+## Database Setup Progress
+### Supabase Configuration
+- **URL**: https://kvtufvfnlvlqhxcwksja.supabase.co
+- **Project ID**: kvtufvfnlvlqhxcwksja
+- **Anon Key**: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2dHVmdmZubHZscWh4Y3drc2phIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0MTE3MDgsImV4cCI6MjA3MTk4NzcwOH0.TJk58Dk3rQ7iCF8kZgXy-lP-koVatAGatRibbccy_Lg
 
-## Primary User Persona
-- **Target User**: Underwater photographers using Adobe Lightroom (cloud version, not Classic)
-- **Main Pain Point**: Integration with Lightroom to pull images and identify marine species
-- **Value Proposition**: Pull photos from Lightroom, identify subjects using AI, tag in Lightroom, build global critter list
-- **Key Differentiator**: Lightroom integration
+### Tables Created
+✅ **themes** table - CREATED
+❌ **games** table - PENDING
+❌ **potluck_items** table - PENDING
 
-## Secondary Requirements
-- Import dive logs with locations for series of images
-- Show images in web-based critter list
-- Focus on science value over privacy
-- No user authentication in MVP
-- Cost-free identification approach
+## Main Issue
+The sync functionality is failing because database tables weren't created in Supabase. We're creating them step-by-step.
 
-## Technology Decisions Made
+## Test Credentials
+- **Email**: test@texastailgaters.com
+- **Password**: TestPassword123!
+- **Alternative**: corbyjames@gmail.com / $4Xanadu4M3e
 
-### AI Identification
-- **Primary**: Claude Vision API
-- **Strategy**: A/B testing with and without reference images
-- **Free Tier**: 50 free IDs per month
-- **Fallback**: Bring Your Own Key (BYOK) option
+## Next Steps to Complete
 
-### Storage Architecture
-- **Neo4j**: Graph database for species relationships and photo metadata
-- **MinIO**: S3-compatible storage for images
-- **Redis**: Caching layer
-- **Hybrid Approach**: Thumbnails cached permanently, full images on-demand
+### 1. Finish Creating Database Tables
+Run these in Supabase SQL Editor (https://app.supabase.com/project/kvtufvfnlvlqhxcwksja/sql/new):
 
-### Lightroom Integration
-- **Version**: Lightroom (cloud), NOT Lightroom Classic
-- **Method**: Web app with OAuth 2.0 API integration
-- **Sync**: Manual sync and real-time on-demand
-- **Storage**: Hybrid approach (cache thumbnails, fetch full on-demand)
-
-## Implementation Progress
-
-### ✅ Completed Components
-
-1. **Backend Infrastructure**
-   - FastAPI REST API structure
-   - Neo4j database integration
-   - MinIO storage service
-   - Redis caching service
-
-2. **Lightroom Integration Backend**
-   - OAuth 2.0 authentication service (`app/services/lightroom/auth.py`)
-   - Lightroom API client (`app/services/lightroom/api_client.py`)
-   - Sync service with Neo4j storage (`app/services/lightroom/sync_service.py`)
-   - REST API endpoints (`app/api/lightroom.py`)
-   - Configuration updates for Adobe API
-
-3. **Documentation**
-   - Setup guide (`LIGHTROOM_SETUP.md`)
-   - Session context (this file)
-   - Updated `.env.example` with required keys
-
-4. **HTTPS Setup Options**
-   - ngrok configuration (recommended)
-   - Self-signed certificate script
-   - Docker Compose with Caddy for auto-HTTPS
-
-### 🚧 Current Blockers
-
-1. **Adobe API Configuration**
-   - Adobe Console requires HTTPS for OAuth redirect URI
-   - Having issues saving API configuration in Adobe Console
-   - Need to get Adobe Client ID and Client Secret
-
-### 📋 Pending Tasks
-
-1. **Frontend Development**
-   - React gallery component for displaying synced photos
-   - Lightroom connection UI
-   - Photo identification interface
-   - Critter list visualization
-
-2. **Claude Vision Integration**
-   - Implement identification service
-   - A/B testing framework
-   - Reference image system
-   - Usage tracking and limits
-
-3. **Divelog Integration**
-   - Parser for dive computer exports
-   - Photo-to-dive matching by timestamp
-   - Location and depth metadata
-
-## Revised MVP Roadmap
-
-### Phase 1: Foundation (Current)
-- ✅ Lightroom OAuth integration
-- ✅ Photo sync to local storage
-- ⏳ Adobe API credentials setup
-- ⏳ Basic web gallery display
-
-### Phase 2: AI Identification
-- Claude Vision integration
-- A/B testing with reference images
-- Free tier management (50/month)
-- Review and confirmation interface
-
-### Phase 3: Science Features
-- Divelog integration
-- Location-based data
-- Species database (WoRMS)
-- Export capabilities
-
-### Phase 4: Community Features
-- Public galleries
-- Species distribution maps
-- Collaborative identification
-- Research data export
-
-## Environment Setup Required
-
-```bash
-# Adobe API (get from https://developer.adobe.com/console)
-ADOBE_CLIENT_ID=your_client_id_here
-ADOBE_CLIENT_SECRET=your_client_secret_here
-ADOBE_REDIRECT_URI=https://localhost:8000/api/v1/lightroom/auth/callback
-
-# Claude Vision (get from https://console.anthropic.com/)
-ANTHROPIC_API_KEY=your_api_key_here
-
-# Database connections (already configured)
-NEO4J_URI=bolt://neo4j:7687
-MINIO_ENDPOINT=minio:9000
-REDIS_URL=redis://redis:6379
+**Step 2 - Games Table** (run this next):
+```sql
+CREATE TABLE games (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    date DATE NOT NULL,
+    time TEXT,
+    opponent TEXT NOT NULL,
+    location TEXT,
+    is_home BOOLEAN DEFAULT false,
+    theme_id UUID REFERENCES themes(id) ON DELETE SET NULL,
+    status TEXT DEFAULT 'unplanned',
+    setup_time TEXT,
+    expected_attendance INTEGER DEFAULT 0,
+    tv_network TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 ```
 
-## Next Immediate Steps
+**Step 3 - Potluck Items Table** (run after games):
+```sql
+CREATE TABLE potluck_items (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    game_id UUID REFERENCES games(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    category TEXT NOT NULL,
+    quantity TEXT,
+    description TEXT,
+    assigned_to TEXT,
+    is_admin_assigned BOOLEAN DEFAULT false,
+    dietary_flags TEXT[],
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
 
-1. **Get Adobe API Credentials**
-   - Create app in Adobe Developer Console
-   - Configure OAuth with HTTPS redirect URI
-   - Options: ngrok, self-signed cert, or Caddy
+**Step 4 - Indexes**:
+```sql
+CREATE INDEX idx_games_date ON games(date);
+CREATE INDEX idx_games_opponent ON games(opponent);
+CREATE INDEX idx_potluck_items_game_id ON potluck_items(game_id);
+```
 
-2. **Test Lightroom Connection**
-   ```bash
-   # Start backend with HTTPS
-   cd backend
-   ./create_local_cert.sh  # if using self-signed
-   uvicorn app.main:app --ssl-keyfile=certs/key.pem --ssl-certfile=certs/cert.pem
-   
-   # Or use ngrok
-   ngrok http 8000
-   ```
+**Step 5 - Row Level Security**:
+```sql
+ALTER TABLE games ENABLE ROW LEVEL SECURITY;
+ALTER TABLE themes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE potluck_items ENABLE ROW LEVEL SECURITY;
 
-3. **Connect and Sync**
-   - Visit `/api/v1/lightroom/auth/connect`
-   - Authorize with Adobe
-   - Sync first album
-   - Verify photos in Neo4j
+CREATE POLICY "Anyone can view games" ON games FOR SELECT USING (true);
+CREATE POLICY "Anyone can insert games" ON games FOR INSERT WITH CHECK (true);
+CREATE POLICY "Anyone can update games" ON games FOR UPDATE USING (true);
+CREATE POLICY "Anyone can delete games" ON games FOR DELETE USING (true);
 
-## Key Design Decisions
+CREATE POLICY "Anyone can view themes" ON themes FOR SELECT USING (true);
+CREATE POLICY "Anyone can insert themes" ON themes FOR INSERT WITH CHECK (true);
 
-1. **No monetization initially** - Focus on working product first
-2. **Science value over privacy** - Open data by default
-3. **Cost-free identification** - Use free tier + BYOK + community
-4. **Lightroom cloud over Classic** - Modern API vs plugins
-5. **LLM over traditional CV** - Claude Vision for flexibility
-6. **Graph database** - Neo4j for relationships and future queries
+CREATE POLICY "Anyone can view potluck_items" ON potluck_items FOR SELECT USING (true);
+CREATE POLICY "Anyone can insert potluck_items" ON potluck_items FOR INSERT WITH CHECK (true);
+CREATE POLICY "Anyone can update potluck_items" ON potluck_items FOR UPDATE USING (true);
+CREATE POLICY "Anyone can delete potluck_items" ON potluck_items FOR DELETE USING (true);
+```
 
-## Technical Debt to Address
+### 2. Test Database Persistence
+After creating all tables, run:
+```bash
+node test-persistence.js
+```
 
-1. Token storage needs to move from cache to database
-2. Add proper user authentication (post-MVP)
-3. Implement rate limiting for API calls
-4. Add comprehensive error handling
-5. Create test suite for API endpoints
+### 3. Test Sync Functionality
+Run the Playwright test:
+```bash
+npx playwright test tests/debug-sync.spec.ts --headed
+```
 
-## Questions Resolved
+### 4. Fix Any Remaining Sync Issues
+The sync should work once all tables are created. If not, check:
+- `/src/services/scheduleSync.ts` - Main sync service
+- `/src/services/gameService.ts` - Game service integration
+- `/src/hooks/useGames.ts` - React hook for games
 
-- ✅ Target users: Underwater photographers
-- ✅ Lightroom version: Cloud (not Classic)
-- ✅ AI service: Claude Vision
-- ✅ Storage strategy: Hybrid with Neo4j + MinIO
-- ✅ Monetization: Not initially
-- ✅ Privacy: Science-first, open by default
+## Key Files Created During Session
+- `diagnose-supabase.js` - Diagnoses Supabase connection
+- `test-persistence.js` - Tests database CRUD operations
+- `create-tables-step-by-step.sql` - SQL to create tables one by one
+- `tests/debug-sync.spec.ts` - Playwright test for sync functionality
+- `verify-supabase-project.js` - Verifies Supabase project configuration
+- `quick-create-tables.html` - HTML helper for creating tables
 
-## Open Questions
+## Git Status
+- All changes committed with message: "Add Supabase integration and game management features"
+- Pushed to: https://github.com/corbyjames/texas-tailgaters
 
-1. Exact Adobe API configuration that will save
-2. Frontend framework preferences beyond React
-3. Deployment strategy (AWS, DigitalOcean, etc.)
-4. Backup and disaster recovery plans
-5. Long-term data retention policies
+## Common Commands
+```bash
+# Check if tables exist
+node diagnose-supabase.js
 
-## Files Modified/Created
+# Test database operations
+node test-persistence.js
 
-### New Files
-- `/backend/app/services/lightroom/__init__.py`
-- `/backend/app/services/lightroom/auth.py`
-- `/backend/app/services/lightroom/api_client.py`
-- `/backend/app/services/lightroom/sync_service.py`
-- `/backend/app/api/lightroom.py`
-- `/backend/create_local_cert.sh`
-- `/docker-compose.https.yml`
-- `/Caddyfile`
-- `/LIGHTROOM_SETUP.md`
-- `/SESSION_CONTEXT.md` (this file)
+# Run dev server
+npm run dev
 
-### Modified Files
-- `/backend/app/main.py` - Added lightroom router
-- `/backend/app/core/config.py` - Added Adobe & Anthropic settings
-- `/backend/.env.example` - Added API key templates
+# Run sync test
+npx playwright test tests/debug-sync.spec.ts --headed
 
-## Session Summary
+# Check git status
+git status
+```
 
-Successfully implemented a complete Lightroom integration backend with OAuth 2.0 authentication, photo syncing, and hybrid storage. The system uses Neo4j for metadata, MinIO for image caching, and is ready for Claude Vision AI identification. Currently blocked on Adobe API credential setup due to HTTPS redirect URI requirements. Multiple solutions provided (ngrok, self-signed cert, Caddy proxy).
+## Issues Encountered
+1. Initial confusion with marine-life-id project in CLAUDE.md (different project)
+2. Tables not existing in Supabase - needed manual creation
+3. Cannot create tables programmatically with anon key (requires admin access)
+4. Must create tables via Supabase Dashboard SQL editor
 
-The next critical step is obtaining Adobe API credentials and testing the OAuth flow. Once connected, the system can sync photos from Lightroom albums and prepare them for AI identification using Claude Vision with A/B testing for optimal accuracy.
+## Resume Point
+Continue from creating the games and potluck_items tables in Supabase, then test the sync functionality.

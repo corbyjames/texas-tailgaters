@@ -1,6 +1,5 @@
 import { Game } from '../types/Game';
 import { teamLogos } from './teamLogos';
-import { supabase } from './supabase';
 
 interface UTGame {
   date: string;

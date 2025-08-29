@@ -1,4 +1,5 @@
 import { PotluckItem } from '../types/Game';
+import firebaseService from './firebaseService';
 
 interface CreatePotluckItemData {
   gameId: string;
@@ -15,161 +16,170 @@ interface UpdatePotluckItemData extends Partial<CreatePotluckItemData> {
 }
 
 export class PotluckService {
-  private static STORAGE_KEY = 'texasTailgatersPotluckItems';
-
   // Get all potluck items for a specific game
   static async getPotluckItemsForGame(gameId: string): Promise<PotluckItem[]> {
-    const allItems = await this.getAllPotluckItems();
-    return allItems.filter(item => item.gameId === gameId);
+    try {
+      const items = await firebaseService.getPotluckItems(gameId);
+      
+      // Map to frontend format
+      return items.map(item => ({
+        id: item.id!,
+        gameId: item.game_id,
+        name: item.name,
+        category: item.category as PotluckItem['category'],
+        quantity: item.quantity,
+        description: item.description,
+        assignedTo: item.assigned_to,
+        isAdminAssigned: item.is_admin_assigned,
+        dietaryFlags: item.dietary_flags,
+        createdAt: item.created_at
+      }));
+    } catch (error) {
+      console.error('Error fetching potluck items:', error);
+      return [];
+    }
   }
 
   // Get all potluck items
   static async getAllPotluckItems(): Promise<PotluckItem[]> {
     try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      if (stored) {
-        return JSON.parse(stored);
-      }
-      return [];
+      const items = await firebaseService.getPotluckItems();
+      
+      // Map to frontend format
+      return items.map(item => ({
+        id: item.id!,
+        gameId: item.game_id,
+        name: item.name,
+        category: item.category as PotluckItem['category'],
+        quantity: item.quantity,
+        description: item.description,
+        assignedTo: item.assigned_to,
+        isAdminAssigned: item.is_admin_assigned,
+        dietaryFlags: item.dietary_flags,
+        createdAt: item.created_at
+      }));
     } catch (error) {
-      console.error('Error loading potluck items:', error);
+      console.error('Error fetching all potluck items:', error);
       return [];
     }
   }
 
   // Create a new potluck item
   static async createPotluckItem(data: CreatePotluckItemData): Promise<PotluckItem> {
-    const newItem: PotluckItem = {
-      id: `potluck-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      ...data,
-      isAdminAssigned: false,
-      createdAt: new Date().toISOString(),
-    };
+    try {
+      const insertData = {
+        game_id: data.gameId,
+        name: data.name,
+        category: data.category,
+        quantity: data.quantity,
+        description: data.description,
+        assigned_to: data.assignedTo,
+        is_admin_assigned: false,
+        dietary_flags: data.dietaryFlags || []
+      };
 
-    const items = await this.getAllPotluckItems();
-    items.push(newItem);
-    await this.savePotluckItems(items);
+      const newItem = await firebaseService.createPotluckItem(insertData);
 
-    // Trigger storage event for other components to update
-    window.dispatchEvent(new Event('potluckUpdate'));
-
-    return newItem;
+      return {
+        id: newItem.id!,
+        gameId: newItem.game_id,
+        name: newItem.name,
+        category: newItem.category as PotluckItem['category'],
+        quantity: newItem.quantity,
+        description: newItem.description,
+        assignedTo: newItem.assigned_to,
+        isAdminAssigned: newItem.is_admin_assigned,
+        dietaryFlags: newItem.dietary_flags,
+        createdAt: newItem.created_at
+      };
+    } catch (error) {
+      console.error('Error creating potluck item:', error);
+      throw error;
+    }
   }
 
   // Update a potluck item
-  static async updatePotluckItem(data: UpdatePotluckItemData): Promise<PotluckItem> {
-    const { id, ...updateData } = data;
-    const items = await this.getAllPotluckItems();
-    const index = items.findIndex(item => item.id === id);
+  static async updatePotluckItem(data: UpdatePotluckItemData): Promise<PotluckItem | null> {
+    try {
+      const { id, ...updateData } = data;
+      
+      // Map frontend fields to database fields
+      const dbUpdateData: any = {};
+      if (updateData.gameId !== undefined) dbUpdateData.game_id = updateData.gameId;
+      if (updateData.name !== undefined) dbUpdateData.name = updateData.name;
+      if (updateData.category !== undefined) dbUpdateData.category = updateData.category;
+      if (updateData.quantity !== undefined) dbUpdateData.quantity = updateData.quantity;
+      if (updateData.description !== undefined) dbUpdateData.description = updateData.description;
+      if (updateData.assignedTo !== undefined) dbUpdateData.assigned_to = updateData.assignedTo;
+      if (updateData.dietaryFlags !== undefined) dbUpdateData.dietary_flags = updateData.dietaryFlags;
 
-    if (index === -1) {
-      throw new Error('Potluck item not found');
+      const updatedItem = await firebaseService.updatePotluckItem(id, dbUpdateData);
+      
+      if (!updatedItem) return null;
+
+      return {
+        id: updatedItem.id!,
+        gameId: updatedItem.game_id,
+        name: updatedItem.name,
+        category: updatedItem.category as PotluckItem['category'],
+        quantity: updatedItem.quantity,
+        description: updatedItem.description,
+        assignedTo: updatedItem.assigned_to,
+        isAdminAssigned: updatedItem.is_admin_assigned,
+        dietaryFlags: updatedItem.dietary_flags,
+        createdAt: updatedItem.created_at
+      };
+    } catch (error) {
+      console.error('Error updating potluck item:', error);
+      return null;
     }
-
-    items[index] = {
-      ...items[index],
-      ...updateData,
-    };
-
-    await this.savePotluckItems(items);
-    window.dispatchEvent(new Event('potluckUpdate'));
-
-    return items[index];
   }
 
   // Delete a potluck item
-  static async deletePotluckItem(id: string): Promise<void> {
-    const items = await this.getAllPotluckItems();
-    const filteredItems = items.filter(item => item.id !== id);
-    
-    if (filteredItems.length === items.length) {
-      throw new Error('Potluck item not found');
-    }
-
-    await this.savePotluckItems(filteredItems);
-    window.dispatchEvent(new Event('potluckUpdate'));
-  }
-
-  // Assign a potluck item to a user
-  static async assignPotluckItem(itemId: string, userId: string, userName: string): Promise<PotluckItem> {
-    return this.updatePotluckItem({
-      id: itemId,
-      assignedTo: userName,
-    });
-  }
-
-  // Unassign a potluck item
-  static async unassignPotluckItem(itemId: string): Promise<PotluckItem> {
-    return this.updatePotluckItem({
-      id: itemId,
-      assignedTo: undefined,
-    });
-  }
-
-  // Get potluck items by category for a game
-  static async getPotluckItemsByCategory(gameId: string): Promise<Record<string, PotluckItem[]>> {
-    const items = await this.getPotluckItemsForGame(gameId);
-    const grouped: Record<string, PotluckItem[]> = {};
-
-    items.forEach(item => {
-      if (!grouped[item.category]) {
-        grouped[item.category] = [];
-      }
-      grouped[item.category].push(item);
-    });
-
-    return grouped;
-  }
-
-  // Get suggested items for a game based on theme
-  static getSuggestedItems(theme?: string): string[] {
-    const suggestions: Record<string, string[]> = {
-      'BBQ': ['Brisket', 'Pulled Pork', 'BBQ Sauce', 'Coleslaw', 'Baked Beans', 'Cornbread'],
-      'Tex-Mex': ['Fajitas', 'Queso', 'Guacamole', 'Salsa', 'Tortilla Chips', 'Margaritas'],
-      'Tailgate Classic': ['Burgers', 'Hot Dogs', 'Wings', 'Chips', 'Beer', 'Soda'],
-      'Southern': ['Fried Chicken', 'Mac & Cheese', 'Potato Salad', 'Sweet Tea', 'Pecan Pie'],
-      'default': ['Main Dish', 'Side Dish', 'Appetizer', 'Dessert', 'Drinks', 'Plates & Utensils'],
-    };
-
-    return suggestions[theme || 'default'] || suggestions.default;
-  }
-
-  // Clear all potluck items (admin only)
-  static async clearAllPotluckItems(): Promise<void> {
-    await this.savePotluckItems([]);
-    window.dispatchEvent(new Event('potluckUpdate'));
-  }
-
-  // Private helper to save items
-  private static async savePotluckItems(items: PotluckItem[]): Promise<void> {
+  static async deletePotluckItem(id: string): Promise<boolean> {
     try {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(items));
+      return await firebaseService.deletePotluckItem(id);
     } catch (error) {
-      console.error('Error saving potluck items:', error);
-      throw new Error('Failed to save potluck items');
+      console.error('Error deleting potluck item:', error);
+      return false;
     }
   }
 
-  // Get statistics for a game
-  static async getGamePotluckStats(gameId: string): Promise<{
-    totalItems: number;
-    assignedItems: number;
-    unassignedItems: number;
-    byCategory: Record<string, number>;
-  }> {
+  // Admin: Assign item to user
+  static async assignItemToUser(itemId: string, assignedTo: string): Promise<PotluckItem | null> {
+    try {
+      const updatedItem = await firebaseService.updatePotluckItem(itemId, {
+        assigned_to: assignedTo,
+        is_admin_assigned: true
+      });
+      
+      if (!updatedItem) return null;
+
+      return {
+        id: updatedItem.id!,
+        gameId: updatedItem.game_id,
+        name: updatedItem.name,
+        category: updatedItem.category as PotluckItem['category'],
+        quantity: updatedItem.quantity,
+        description: updatedItem.description,
+        assignedTo: updatedItem.assigned_to,
+        isAdminAssigned: updatedItem.is_admin_assigned,
+        dietaryFlags: updatedItem.dietary_flags,
+        createdAt: updatedItem.created_at
+      };
+    } catch (error) {
+      console.error('Error assigning item:', error);
+      return null;
+    }
+  }
+
+  // Check for duplicates
+  static async checkDuplicates(gameId: string, itemName: string): Promise<PotluckItem[]> {
     const items = await this.getPotluckItemsForGame(gameId);
-    const byCategory: Record<string, number> = {};
-
-    items.forEach(item => {
-      byCategory[item.category] = (byCategory[item.category] || 0) + 1;
-    });
-
-    return {
-      totalItems: items.length,
-      assignedItems: items.filter(item => item.assignedTo).length,
-      unassignedItems: items.filter(item => !item.assignedTo).length,
-      byCategory,
-    };
+    return items.filter(item => 
+      item.name.toLowerCase().includes(itemName.toLowerCase()) ||
+      itemName.toLowerCase().includes(item.name.toLowerCase())
+    );
   }
 }
 
