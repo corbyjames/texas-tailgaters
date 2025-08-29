@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Game Stats</title>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, get, update } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        
+        const firebaseConfig = {
+          apiKey: "AIzaSyBJascYs4rXD4uL5Z8F7RDkMOBhQtjehic",
+          authDomain: "texas-tailgaters.firebaseapp.com",
+          databaseURL: "https://texas-tailgaters-default-rtdb.firebaseio.com",
+          projectId: "texas-tailgaters",
+          storageBucket: "texas-tailgaters.appspot.com",
+          messagingSenderId: "517392756353",
+          appId: "1:517392756353:web:texas-tailgaters-web"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        
+        window.checkGameStats = async () => {
+          const results = document.getElementById('results');
+          results.innerHTML = '<h2>Checking Game Stats...</h2>';
+          
+          try {
+            // Get Ohio State game
+            const gamesRef = ref(database, 'games');
+            const gamesSnapshot = await get(gamesRef);
+            
+            if (gamesSnapshot.exists()) {
+              const games = gamesSnapshot.val();
+              const ohioStateGame = Object.entries(games).find(([id, game]) => 
+                game.opponent === 'Ohio State'
+              );
+              
+              if (ohioStateGame) {
+                const [gameId, gameData] = ohioStateGame;
+                results.innerHTML += '<h3>Ohio State Game:</h3>';
+                results.innerHTML += '<pre>' + JSON.stringify(gameData, null, 2) + '</pre>';
+                results.innerHTML += '<p>Game ID: ' + gameId + '</p>';
+                results.innerHTML += '<p>Expected Attendance: ' + (gameData.expected_attendance || 0) + '</p>';
+                
+                // Check potluck items for this game
+                const potluckRef = ref(database, 'potluck_items');
+                const potluckSnapshot = await get(potluckRef);
+                
+                if (potluckSnapshot.exists()) {
+                  const allItems = potluckSnapshot.val();
+                  const gameItems = Object.entries(allItems).filter(([id, item]) => 
+                    item.game_id === gameId
+                  );
+                  
+                  results.innerHTML += '<h3>Potluck Items for Ohio State Game:</h3>';
+                  results.innerHTML += '<p>Total Items: ' + gameItems.length + '</p>';
+                  
+                  if (gameItems.length > 0) {
+                    gameItems.forEach(([itemId, item]) => {
+                      results.innerHTML += '<div style="border: 1px solid #ddd; padding: 10px; margin: 5px 0;">';
+                      results.innerHTML += '<strong>' + item.name + '</strong><br>';
+                      results.innerHTML += 'Category: ' + item.category + '<br>';
+                      results.innerHTML += 'Assigned to: ' + (item.assigned_to || 'Nobody') + '<br>';
+                      results.innerHTML += '</div>';
+                    });
+                  }
+                  
+                  // Calculate sum
+                  const sum = gameItems.length + (gameData.expected_attendance || 0);
+                  results.innerHTML += '<h3 style="color: green;">Total (Items + Attendees): ' + sum + '</h3>';
+                } else {
+                  results.innerHTML += '<p>No potluck items found</p>';
+                }
+                
+                // Add button to set expected attendance
+                results.innerHTML += '<h3>Update Expected Attendance:</h3>';
+                results.innerHTML += '<input type="number" id="attendance" value="1" min="0">';
+                results.innerHTML += '<button onclick="updateAttendance(\'' + gameId + '\')">Update</button>';
+              } else {
+                results.innerHTML += '<p>Ohio State game not found!</p>';
+              }
+            } else {
+              results.innerHTML += '<p>No games found in database!</p>';
+            }
+          } catch (error) {
+            results.innerHTML += '<p style="color: red;">Error: ' + error.message + '</p>';
+          }
+        };
+        
+        window.updateAttendance = async (gameId) => {
+          const attendance = document.getElementById('attendance').value;
+          const gameRef = ref(database, 'games/' + gameId);
+          
+          try {
+            await update(gameRef, {
+              expected_attendance: parseInt(attendance),
+              updated_at: new Date().toISOString()
+            });
+            
+            alert('Updated expected attendance to ' + attendance);
+            window.checkGameStats(); // Refresh display
+          } catch (error) {
+            alert('Error updating: ' + error.message);
+          }
+        };
+        
+        window.addEventListener('load', () => {
+          window.checkGameStats();
+        });
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 { color: #BF5700; }
+        h2 { color: #333; }
+        h3 { color: #666; }
+        pre {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        button {
+            background: #BF5700;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        input {
+            padding: 5px 10px;
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🏈 Test Game Stats - Ohio State</h1>
+    <div id="results">Loading...</div>
+    <button onclick="checkGameStats()">Refresh Stats</button>
+</body>
+</html>

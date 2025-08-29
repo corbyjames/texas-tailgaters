@@ -4,15 +4,14 @@ import { getDatabase } from 'firebase/database';
 import { getAuth } from 'firebase/auth';
 
 // Firebase configuration
-// You'll need to replace these with your own Firebase project settings
 const firebaseConfig = {
-  apiKey: "AIzaSyBvQpzXZvL8qY5T9fKq6UfQH8M8EgB9yLo",
+  apiKey: "AIzaSyBJascYs4rXD4uL5Z8F7RDkMOBhQtjehic",
   authDomain: "texas-tailgaters.firebaseapp.com",
   databaseURL: "https://texas-tailgaters-default-rtdb.firebaseio.com",
   projectId: "texas-tailgaters",
   storageBucket: "texas-tailgaters.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdef123456789"
+  messagingSenderId: "517392756353",
+  appId: "1:517392756353:web:texas-tailgaters-web"
 };
 
 // Initialize Firebase

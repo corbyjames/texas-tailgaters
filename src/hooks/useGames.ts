@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Game } from '../types/Game';
 import { GameService, CreateGameData, UpdateGameData } from '../services/gameService';
-import { supabase } from '../services/supabase';
 
 export function useGames() {
   const [games, setGames] = useState<Game[]>([]);

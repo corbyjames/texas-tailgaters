@@ -7,7 +7,20 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:e2e": "playwright test -c e2e/playwright.config.ts",
+    "test:e2e:headed": "playwright test -c e2e/playwright.config.ts --headed",
+    "test:e2e:debug": "playwright test -c e2e/playwright.config.ts --debug",
+    "test:smoke": "playwright test -c e2e/playwright.config.ts --grep \"smoke\"",
+    "test:auth": "playwright test -c e2e/playwright.config.ts e2e/auth",
+    "test:games": "playwright test -c e2e/playwright.config.ts e2e/games",
+    "test:potluck": "playwright test -c e2e/playwright.config.ts e2e/potluck",
+    "test:admin": "playwright test -c e2e/playwright.config.ts e2e/admin",
+    "test:visual": "playwright test -c e2e/playwright.config.ts e2e/visual",
+    "test:mobile": "playwright test -c e2e/playwright.config.ts --project=mobile-chrome",
+    "test:update-snapshots": "playwright test -c e2e/playwright.config.ts --update-snapshots",
+    "test:report": "playwright show-report",
+    "test:install": "playwright install"
   },
   "dependencies": {
     "@emailjs/browser": "^4.3.3",

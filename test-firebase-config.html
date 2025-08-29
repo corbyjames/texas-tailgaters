@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Firebase Configuration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #BF5700;
+        }
+        .test {
+            margin: 20px 0;
+            padding: 15px;
+            border-left: 4px solid #ccc;
+            background: #f9f9f9;
+        }
+        .test.success {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+        .test.error {
+            border-color: #dc3545;
+            background: #f8d7da;
+        }
+        .test.warning {
+            border-color: #ffc107;
+            background: #fff3cd;
+        }
+        code {
+            background: #f1f1f1;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        button {
+            background: #BF5700;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #a04600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Firebase Configuration Test</h1>
+        <p>This page tests your Firebase configuration and helps identify any issues.</p>
+        
+        <button onclick="runAllTests()">Run All Tests</button>
+        <button onclick="enableDatabase()">Setup Database Rules</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getDatabase, ref, set, get, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBJascYs4rXD4uL5Z8F7RDkMOBhQtjehic",
+            authDomain: "texas-tailgaters.firebaseapp.com",
+            databaseURL: "https://texas-tailgaters-default-rtdb.firebaseio.com",
+            projectId: "texas-tailgaters",
+            storageBucket: "texas-tailgaters.appspot.com",
+            messagingSenderId: "517392756353",
+            appId: "1:517392756353:web:texas-tailgaters-web"
+        };
+
+        let app, auth, database;
+        const results = document.getElementById('results');
+
+        function addResult(title, message, status = 'warning') {
+            const div = document.createElement('div');
+            div.className = `test ${status}`;
+            div.innerHTML = `<strong>${title}</strong><br>${message}`;
+            results.appendChild(div);
+        }
+
+        window.runAllTests = async function() {
+            results.innerHTML = '';
+            
+            // Test 1: Firebase App Initialization
+            try {
+                app = initializeApp(firebaseConfig);
+                addResult('✅ Firebase App', 'Successfully initialized', 'success');
+            } catch (error) {
+                addResult('❌ Firebase App', `Failed to initialize: ${error.message}`, 'error');
+                return;
+            }
+
+            // Test 2: Authentication Service
+            try {
+                auth = getAuth(app);
+                addResult('✅ Authentication', 'Auth service initialized', 'success');
+            } catch (error) {
+                addResult('❌ Authentication', `Failed to initialize auth: ${error.message}`, 'error');
+            }
+
+            // Test 3: Database Service
+            try {
+                database = getDatabase(app);
+                addResult('✅ Database Service', 'Database service initialized', 'success');
+            } catch (error) {
+                addResult('❌ Database Service', `Failed to initialize database: ${error.message}`, 'error');
+                return;
+            }
+
+            // Test 4: Database Connection
+            try {
+                const testRef = ref(database, '.info/connected');
+                const snapshot = await get(testRef);
+                const connected = snapshot.val();
+                
+                if (connected) {
+                    addResult('✅ Database Connection', 'Connected to Realtime Database', 'success');
+                } else {
+                    addResult('⚠️ Database Connection', 'Not connected to database', 'warning');
+                }
+            } catch (error) {
+                addResult('❌ Database Connection', `Error: ${error.message}<br>
+                    <strong>Solution:</strong><br>
+                    1. Go to Firebase Console<br>
+                    2. Click "Realtime Database" in sidebar<br>
+                    3. Click "Create Database"<br>
+                    4. Choose "United States (us-central1)"<br>
+                    5. Select "Start in test mode"<br>
+                    6. Click "Enable"`, 'error');
+            }
+
+            // Test 5: Database Write
+            try {
+                const testRef = ref(database, 'test/config');
+                await set(testRef, {
+                    timestamp: new Date().toISOString(),
+                    test: 'Configuration test'
+                });
+                addResult('✅ Database Write', 'Successfully wrote to database', 'success');
+            } catch (error) {
+                addResult('❌ Database Write', `Write failed: ${error.message}<br>
+                    This usually means the database doesn't exist or rules are too restrictive.`, 'error');
+            }
+
+            // Test 6: Database Read
+            try {
+                const testRef = ref(database, 'test/config');
+                const snapshot = await get(testRef);
+                const data = snapshot.val();
+                
+                if (data) {
+                    addResult('✅ Database Read', `Successfully read data: ${JSON.stringify(data)}`, 'success');
+                } else {
+                    addResult('⚠️ Database Read', 'No data found (database might be empty)', 'warning');
+                }
+            } catch (error) {
+                addResult('❌ Database Read', `Read failed: ${error.message}`, 'error');
+            }
+
+            // Test 7: Test User Login
+            try {
+                const userCredential = await signInWithEmailAndPassword(
+                    auth,
+                    'test@texastailgaters.com',
+                    'TestPassword123!'
+                );
+                addResult('✅ Test User', `User authenticated: ${userCredential.user.email}`, 'success');
+            } catch (error) {
+                if (error.code === 'auth/user-not-found') {
+                    addResult('⚠️ Test User', `Test user doesn't exist. Create it using the "Create Test User" page.`, 'warning');
+                } else {
+                    addResult('❌ Test User', `Login failed: ${error.message}`, 'error');
+                }
+            }
+
+            // Summary
+            const allTests = results.querySelectorAll('.test');
+            const successCount = results.querySelectorAll('.test.success').length;
+            const errorCount = results.querySelectorAll('.test.error').length;
+            
+            if (errorCount === 0) {
+                addResult('🎉 All Tests Passed!', 'Your Firebase configuration is working correctly!', 'success');
+            } else {
+                addResult('⚠️ Issues Found', `${errorCount} test(s) failed. Please fix the issues above.`, 'warning');
+            }
+        };
+
+        window.enableDatabase = function() {
+            results.innerHTML = '';
+            addResult('📝 Database Setup Instructions', `
+                <strong>To enable Realtime Database:</strong><br><br>
+                1. Go to: <a href="https://console.firebase.google.com/project/texas-tailgaters/database" target="_blank">Firebase Console → Realtime Database</a><br>
+                2. Click <strong>"Create Database"</strong><br>
+                3. Choose location: <strong>"United States (us-central1)"</strong><br>
+                4. Select <strong>"Start in test mode"</strong> for development<br>
+                5. Click <strong>"Enable"</strong><br><br>
+                <strong>Test Mode Rules (for development):</strong><br>
+                <code>{
+  "rules": {
+    ".read": true,
+    ".write": true
+  }
+}</code><br><br>
+                After enabling, click "Run All Tests" again to verify.
+            `, 'warning');
+        };
+
+        // Run tests on load
+        window.addEventListener('load', () => {
+            setTimeout(runAllTests, 500);
+        });
+    </script>
+</body>
+</html>

@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useGames } from '../hooks/useGames';
 import { Trash2, Users, Calendar, Shield, AlertTriangle, RefreshCw, Activity } from 'lucide-react';
-import { runSupabaseDiagnostics } from '../utils/supabaseDiagnostics';
 
 const AdminPage: React.FC = () => {
   const { user, loading } = useAuth();

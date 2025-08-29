@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update TV Networks</title>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, remove, push, set, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        
+        const firebaseConfig = {
+          apiKey: "AIzaSyBJascYs4rXD4uL5Z8F7RDkMOBhQtjehic",
+          authDomain: "texas-tailgaters.firebaseapp.com",
+          databaseURL: "https://texas-tailgaters-default-rtdb.firebaseio.com",
+          projectId: "texas-tailgaters",
+          storageBucket: "texas-tailgaters.appspot.com",
+          messagingSenderId: "517392756353",
+          appId: "1:517392756353:web:texas-tailgaters-web"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        
+        // Updated 2025 schedule with proper TV networks
+        const UPDATED_2025_SCHEDULE = [
+          { date: '2025-08-30', opponent: 'Ohio State', location: 'Columbus, OH', time: '7:30 PM', tv_network: 'FOX', is_home: false },
+          { date: '2025-09-06', opponent: 'San Jose State', location: 'Austin, TX', time: 'TBD', tv_network: 'Longhorn Network', is_home: true },
+          { date: '2025-09-13', opponent: 'UTSA', location: 'Austin, TX', time: 'TBD', tv_network: 'ESPN+', is_home: true },
+          { date: '2025-09-20', opponent: 'Colorado State', location: 'Austin, TX', time: 'TBD', tv_network: 'SEC Network', is_home: true },
+          { date: '2025-10-04', opponent: 'Mississippi State', location: 'Austin, TX', time: 'TBD', tv_network: 'ESPN', is_home: true },
+          { date: '2025-10-11', opponent: 'Oklahoma', location: 'Dallas, TX', time: '2:30 PM', tv_network: 'ABC', is_home: false },
+          { date: '2025-10-18', opponent: 'Georgia', location: 'Austin, TX', time: 'TBD', tv_network: 'CBS', is_home: true },
+          { date: '2025-10-25', opponent: 'Vanderbilt', location: 'Nashville, TN', time: 'TBD', tv_network: 'SEC Network', is_home: false },
+          { date: '2025-11-01', opponent: 'Florida', location: 'Austin, TX', time: 'TBD', tv_network: 'ESPN', is_home: true },
+          { date: '2025-11-15', opponent: 'Arkansas', location: 'Fayetteville, AR', time: 'TBD', tv_network: 'ABC/ESPN', is_home: false },
+          { date: '2025-11-22', opponent: 'Kentucky', location: 'Austin, TX', time: 'TBD', tv_network: 'SEC Network', is_home: true },
+          { date: '2025-11-29', opponent: 'Texas A&M', location: 'College Station, TX', time: 'TBD', tv_network: 'ABC', is_home: false }
+        ];
+        
+        window.clearAndResync = async () => {
+          const results = document.getElementById('results');
+          results.innerHTML = '<h3>Clearing old games and resyncing...</h3>';
+          
+          try {
+            // Step 1: Clear existing games
+            const gamesRef = ref(database, 'games');
+            await remove(gamesRef);
+            results.innerHTML += '<p>✅ Cleared existing games</p>';
+            
+            // Step 2: Add updated games
+            let addedCount = 0;
+            for (const game of UPDATED_2025_SCHEDULE) {
+              const newGameRef = push(gamesRef);
+              await set(newGameRef, {
+                ...game,
+                status: 'unplanned',
+                expected_attendance: 0,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              });
+              addedCount++;
+            }
+            
+            results.innerHTML += `<p>✅ Added ${addedCount} games with updated TV networks</p>`;
+            
+            // Step 3: Display the games
+            await displayGames();
+            
+          } catch (error) {
+            results.innerHTML += `<p>❌ Error: ${error.message}</p>`;
+          }
+        };
+        
+        window.displayGames = async () => {
+          const results = document.getElementById('results');
+          const gamesRef = ref(database, 'games');
+          const snapshot = await get(gamesRef);
+          
+          if (snapshot.exists()) {
+            const games = snapshot.val();
+            const gameArray = Object.entries(games);
+            
+            results.innerHTML += '<h3>Current Games with TV Networks:</h3>';
+            results.innerHTML += '<div class="games-grid">';
+            
+            gameArray
+              .sort((a, b) => new Date(a[1].date).getTime() - new Date(b[1].date).getTime())
+              .forEach(([id, game]) => {
+                const tv = game.tv_network || game.tvNetwork || 'No TV';
+                const networkClass = tv === 'FOX' ? 'fox' : 
+                                   tv === 'ABC' ? 'abc' : 
+                                   tv === 'CBS' ? 'cbs' :
+                                   tv === 'ESPN' ? 'espn' :
+                                   tv.includes('SEC') ? 'sec' : 'other';
+                
+                results.innerHTML += `
+                  <div class="game-card">
+                    <h4>${game.opponent}</h4>
+                    <p>📅 ${new Date(game.date).toLocaleDateString()}</p>
+                    <p>⏰ ${game.time || 'TBD'}</p>
+                    <p>📍 ${game.is_home ? '🏠 Home' : '✈️ Away'}</p>
+                    <p class="tv-network ${networkClass}">📺 ${tv}</p>
+                  </div>
+                `;
+              });
+            
+            results.innerHTML += '</div>';
+            
+            // Summary
+            const networks = {};
+            gameArray.forEach(([id, game]) => {
+              const tv = game.tv_network || game.tvNetwork || 'No TV';
+              networks[tv] = (networks[tv] || 0) + 1;
+            });
+            
+            results.innerHTML += '<h3>TV Network Summary:</h3>';
+            results.innerHTML += '<ul>';
+            Object.entries(networks).forEach(([network, count]) => {
+              results.innerHTML += `<li>${network}: ${count} game${count > 1 ? 's' : ''}</li>`;
+            });
+            results.innerHTML += '</ul>';
+          }
+        };
+        
+        window.addEventListener('load', async () => {
+          await displayGames();
+        });
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #BF5700;
+        }
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .game-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .game-card h4 {
+            margin: 0 0 10px 0;
+            color: #BF5700;
+        }
+        .game-card p {
+            margin: 5px 0;
+        }
+        .tv-network {
+            font-weight: bold;
+            padding: 5px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        .tv-network.fox { background: #003366; color: white; }
+        .tv-network.abc { background: #FFD700; color: black; }
+        .tv-network.cbs { background: #033D6B; color: white; }
+        .tv-network.espn { background: #FF0033; color: white; }
+        .tv-network.sec { background: #1B4F8C; color: white; }
+        .tv-network.other { background: #666; color: white; }
+        button {
+            background: #BF5700;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #a04600;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🏈 Update TV Networks for 2025 Season</h1>
+    
+    <div class="warning">
+        <strong>⚠️ Warning:</strong> Clicking "Clear and Resync" will delete all existing games and replace them with the updated 2025 schedule including proper TV networks.
+    </div>
+    
+    <button onclick="clearAndResync()">🔄 Clear and Resync with Updated TV Networks</button>
+    <button onclick="displayGames()">👁️ Refresh Display</button>
+    
+    <div id="results">Loading current games...</div>
+</body>
+</html>

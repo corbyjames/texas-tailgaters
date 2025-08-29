@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Potluck Functionality</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #BF5700;
+        }
+        .step {
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .step h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        button {
+            background: #BF5700;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #a04600;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .info {
+            color: #17a2b8;
+        }
+        code {
+            background: #f1f1f1;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🍖 Test Potluck Functionality</h1>
+    
+    <div class="step">
+        <h3>Step 1: Open the App</h3>
+        <p>Click the button below to open the Texas Tailgaters app:</p>
+        <button onclick="window.open('http://localhost:5173', '_blank')">Open App</button>
+    </div>
+
+    <div class="step">
+        <h3>Step 2: Login</h3>
+        <p>Login with test credentials:</p>
+        <ul>
+            <li>Email: <code>test@texastailgaters.com</code></li>
+            <li>Password: <code>TestPassword123!</code></li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <h3>Step 3: Navigate to Potluck Page</h3>
+        <p>Click on the "Potluck" link in the navigation menu.</p>
+    </div>
+
+    <div class="step">
+        <h3>Step 4: Select a Game</h3>
+        <p>From the dropdown at the top, select a game (e.g., "8/29/2025 - vs Ohio State").</p>
+    </div>
+
+    <div class="step">
+        <h3>Step 5: Test "I'll bring this" Button</h3>
+        <ol>
+            <li>Find an unassigned item (like "Egg Casserole")</li>
+            <li>Click the <strong>"I'll bring this"</strong> button</li>
+            <li>The button should change to <strong>"I'm bringing this"</strong></li>
+            <li>The item should show your email as assigned</li>
+            <li>The "Assigned" count should increase by 1</li>
+        </ol>
+        <p class="info">💡 If the button doesn't work, check the browser console for errors (F12)</p>
+    </div>
+
+    <div class="step">
+        <h3>Step 6: Test Unassign</h3>
+        <ol>
+            <li>Click the <strong>"I'm bringing this"</strong> button on an item you're assigned to</li>
+            <li>The button should change back to <strong>"I'll bring this"</strong></li>
+            <li>The item should no longer show your email</li>
+            <li>The "Assigned" count should decrease by 1</li>
+        </ol>
+    </div>
+
+    <div class="step">
+        <h3>Step 7: Add a New Item</h3>
+        <ol>
+            <li>Click the <strong>"+ Add Item"</strong> button</li>
+            <li>Fill in the form:
+                <ul>
+                    <li>Name: <code>Test Chips</code></li>
+                    <li>Category: <code>Appetizer</code></li>
+                    <li>Quantity: <code>2 bags</code></li>
+                </ul>
+            </li>
+            <li>Click <strong>"Add Item"</strong></li>
+            <li>The new item should appear in the list</li>
+        </ol>
+    </div>
+
+    <div class="step" style="background: #d4edda; border: 2px solid #28a745;">
+        <h3 style="color: #155724;">Expected Results:</h3>
+        <ul>
+            <li class="success">✅ "I'll bring this" button assigns item to user</li>
+            <li class="success">✅ "I'm bringing this" button unassigns item from user</li>
+            <li class="success">✅ Add Item creates new potluck items</li>
+            <li class="success">✅ Items persist in Firebase</li>
+            <li class="success">✅ Stats update correctly</li>
+        </ul>
+    </div>
+
+    <div class="step" style="background: #f8d7da; border: 2px solid #dc3545;">
+        <h3 style="color: #721c24;">Troubleshooting:</h3>
+        <p><strong>If "I'll bring this" doesn't work:</strong></p>
+        <ol>
+            <li>Open browser console (F12)</li>
+            <li>Look for errors like:
+                <ul>
+                    <li><code>PotluckService.assignPotluckItem is not a function</code> - Method missing</li>
+                    <li><code>Cannot read property 'id' of null</code> - User not logged in</li>
+                    <li><code>Firebase permission denied</code> - Database rules issue</li>
+                </ul>
+            </li>
+            <li>Check Network tab for failed requests</li>
+            <li>Verify user is logged in (check for user menu in top-right)</li>
+        </ol>
+    </div>
+
+    <script>
+        console.log('Potluck Test Page Loaded');
+        console.log('After clicking "I\'ll bring this", check browser console for:');
+        console.log('1. Any error messages');
+        console.log('2. Network requests to Firebase');
+        console.log('3. Console logs from handleAssign function');
+    </script>
+</body>
+</html>
