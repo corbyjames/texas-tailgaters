@@ -243,6 +243,34 @@ export class PotluckService {
       itemName.toLowerCase().includes(item.name.toLowerCase())
     );
   }
+
+  // Get game potluck statistics
+  static async getGamePotluckStats(gameId: string): Promise<{
+    totalItems: number;
+    assignedItems: number;
+    unassignedItems: number;
+  }> {
+    try {
+      const items = await this.getPotluckItemsForGame(gameId);
+      
+      const totalItems = items.length;
+      const assignedItems = items.filter(item => item.assignedTo).length;
+      const unassignedItems = items.filter(item => !item.assignedTo).length;
+      
+      return {
+        totalItems,
+        assignedItems,
+        unassignedItems
+      };
+    } catch (error) {
+      console.error('Error getting game potluck stats:', error);
+      return {
+        totalItems: 0,
+        assignedItems: 0,
+        unassignedItems: 0
+      };
+    }
+  }
 }
 
 export default PotluckService;
