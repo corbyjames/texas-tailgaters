@@ -99,17 +99,27 @@ const GameCard: React.FC<GameCardProps> = ({ game, onGameClick }) => {
         </div>
       )}
 
-      {/* Potluck Stats */}
-      {potluckStats.totalItems > 0 && (
+      {/* Stats Row */}
+      {(potluckStats.totalItems > 0 || (game.expectedAttendance && game.expectedAttendance > 0)) && (
         <div className="mb-3 flex items-center gap-4 text-sm text-gray-600">
-          <div className="flex items-center gap-1">
-            <ShoppingBag className="w-4 h-4" />
-            <span>{potluckStats.totalItems} items</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Users className="w-4 h-4 text-green-600" />
-            <span className="text-green-600">{potluckStats.assignedItems} assigned</span>
-          </div>
+          {potluckStats.totalItems > 0 && (
+            <>
+              <div className="flex items-center gap-1">
+                <ShoppingBag className="w-4 h-4" />
+                <span>{potluckStats.totalItems} items</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Users className="w-4 h-4 text-green-600" />
+                <span className="text-green-600">{potluckStats.assignedItems} assigned</span>
+              </div>
+            </>
+          )}
+          {game.expectedAttendance && game.expectedAttendance > 0 && (
+            <div className="flex items-center gap-1">
+              <Users className="w-4 h-4 text-ut-orange" />
+              <span>{game.expectedAttendance} attendees</span>
+            </div>
+          )}
         </div>
       )}
 

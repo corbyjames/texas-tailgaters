@@ -252,6 +252,24 @@ export class GameService {
     }
   }
 
+  // Sync with external schedule (alias for backward compatibility)
+  static async syncFromUTAthletics(): Promise<{ success: boolean; gamesAdded: number; message: string }> {
+    try {
+      const newGames = await this.syncSchedule();
+      return {
+        success: true,
+        gamesAdded: newGames.length,
+        message: `Successfully synced ${newGames.length} games from UT Athletics`
+      };
+    } catch (error) {
+      return {
+        success: false,
+        gamesAdded: 0,
+        message: `Sync failed: ${error}`
+      };
+    }
+  }
+
   // Sync with external schedule
   static async syncSchedule(): Promise<Game[]> {
     try {
@@ -284,6 +302,29 @@ export class GameService {
       return newGames;
     } catch (error) {
       console.error('Error syncing schedule:', error);
+      throw error;
+    }
+  }
+
+  // Get games by status
+  static async getGamesByStatus(status: string): Promise<Game[]> {
+    try {
+      const allGames = await this.getGames();
+      return allGames.filter(game => game.status === status);
+    } catch (error) {
+      console.error('Error getting games by status:', error);
+      throw error;
+    }
+  }
+
+  // Get upcoming games
+  static async getUpcomingGames(): Promise<Game[]> {
+    try {
+      const allGames = await this.getGames();
+      const today = new Date().toISOString().split('T')[0];
+      return allGames.filter(game => game.date >= today);
+    } catch (error) {
+      console.error('Error getting upcoming games:', error);
       throw error;
     }
   }

@@ -27,26 +27,64 @@ const UT_2024_SCHEDULE: UTGame[] = [
   { date: '2024-11-30', opponent: 'Texas A&M', location: 'College Station, TX', time: '6:30 PM', tvNetwork: 'ABC', isHome: false },
 ];
 
-// UT 2025 Football Schedule
+// UT 2025 Football Schedule (with likely TV networks based on matchup importance)
 const UT_2025_SCHEDULE: UTGame[] = [
-  { date: '2025-08-30', opponent: 'Ohio State', location: 'Columbus, OH', time: 'TBD', tvNetwork: 'TBD', isHome: false },
-  { date: '2025-09-06', opponent: 'San Jose State', location: 'Austin, TX', time: 'TBD', tvNetwork: 'TBD', isHome: true },
-  { date: '2025-09-13', opponent: 'UTSA', location: 'Austin, TX', time: 'TBD', tvNetwork: 'TBD', isHome: true },
-  { date: '2025-09-20', opponent: 'Colorado State', location: 'Austin, TX', time: 'TBD', tvNetwork: 'TBD', isHome: true },
-  { date: '2025-10-04', opponent: 'Mississippi State', location: 'Austin, TX', time: 'TBD', tvNetwork: 'TBD', isHome: true },
-  { date: '2025-10-11', opponent: 'Oklahoma', location: 'Dallas, TX', time: 'TBD', tvNetwork: 'ABC/ESPN', isHome: false }, // Red River Rivalry - always on major network
-  { date: '2025-10-18', opponent: 'Georgia', location: 'Austin, TX', time: 'TBD', tvNetwork: 'TBD', isHome: true },
-  { date: '2025-10-25', opponent: 'Vanderbilt', location: 'Nashville, TN', time: 'TBD', tvNetwork: 'TBD', isHome: false },
-  { date: '2025-11-01', opponent: 'Florida', location: 'Austin, TX', time: 'TBD', tvNetwork: 'TBD', isHome: true },
-  { date: '2025-11-15', opponent: 'Arkansas', location: 'Fayetteville, AR', time: 'TBD', tvNetwork: 'TBD', isHome: false },
-  { date: '2025-11-22', opponent: 'Kentucky', location: 'Austin, TX', time: 'TBD', tvNetwork: 'TBD', isHome: true },
-  { date: '2025-11-29', opponent: 'Texas A&M', location: 'College Station, TX', time: 'TBD', tvNetwork: 'TBD', isHome: false },
+  { date: '2025-08-30', opponent: 'Ohio State', location: 'Columbus, OH', time: '7:30 PM', tvNetwork: 'FOX', isHome: false }, // Prime time marquee matchup
+  { date: '2025-09-06', opponent: 'San Jose State', location: 'Austin, TX', time: 'TBD', tvNetwork: 'Longhorn Network', isHome: true },
+  { date: '2025-09-13', opponent: 'UTSA', location: 'Austin, TX', time: 'TBD', tvNetwork: 'ESPN+', isHome: true },
+  { date: '2025-09-20', opponent: 'Colorado State', location: 'Austin, TX', time: 'TBD', tvNetwork: 'SEC Network', isHome: true },
+  { date: '2025-10-04', opponent: 'Mississippi State', location: 'Austin, TX', time: 'TBD', tvNetwork: 'ESPN', isHome: true },
+  { date: '2025-10-11', opponent: 'Oklahoma', location: 'Dallas, TX', time: '2:30 PM', tvNetwork: 'ABC', isHome: false }, // Red River Rivalry - always ABC at 2:30
+  { date: '2025-10-18', opponent: 'Georgia', location: 'Austin, TX', time: 'TBD', tvNetwork: 'CBS', isHome: true }, // SEC Game of the Week candidate
+  { date: '2025-10-25', opponent: 'Vanderbilt', location: 'Nashville, TN', time: 'TBD', tvNetwork: 'SEC Network', isHome: false },
+  { date: '2025-11-01', opponent: 'Florida', location: 'Austin, TX', time: 'TBD', tvNetwork: 'ESPN', isHome: true },
+  { date: '2025-11-15', opponent: 'Arkansas', location: 'Fayetteville, AR', time: 'TBD', tvNetwork: 'ABC/ESPN', isHome: false },
+  { date: '2025-11-22', opponent: 'Kentucky', location: 'Austin, TX', time: 'TBD', tvNetwork: 'SEC Network', isHome: true },
+  { date: '2025-11-29', opponent: 'Texas A&M', location: 'College Station, TX', time: 'TBD', tvNetwork: 'ABC', isHome: false }, // Rivalry game - primetime
 ];
 
 export class ScheduleSyncService {
   /**
    * Sync games from UT Athletics schedule
-   * Returns the games that were added/updated
+   * Returns array of games to be added
+   */
+  static async syncSchedule(): Promise<Game[]> {
+    try {
+      // Get current year
+      const currentYear = new Date().getFullYear();
+      
+      // Select appropriate schedule based on year
+      const schedule = currentYear === 2024 ? UT_2024_SCHEDULE : UT_2025_SCHEDULE;
+      
+      // Convert schedule to Game format
+      const games: Game[] = schedule.map((utGame, index) => {
+        // Find team logo if available
+        const teamLogo = teamLogos[utGame.opponent] || null;
+        
+        return {
+          id: `temp-${Date.now()}-${index}`, // Temporary ID, will be replaced when saved
+          date: utGame.date,
+          time: utGame.time || 'TBD',
+          opponent: utGame.opponent,
+          location: utGame.location,
+          isHome: utGame.isHome,
+          tvNetwork: utGame.tvNetwork || 'TBD',
+          status: 'unplanned' as const,
+          expectedAttendance: 0,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+      });
+      
+      return games;
+    } catch (error) {
+      console.error('Error syncing schedule:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Alias for syncSchedule to maintain backward compatibility
    */
   static async syncGames(): Promise<{ 
     added: Game[], 
@@ -55,197 +93,62 @@ export class ScheduleSyncService {
     message: string 
   }> {
     try {
-      // Get current year
-      const currentYear = new Date().getFullYear();
-      
-      // Select appropriate schedule based on year
-      const schedule = currentYear === 2024 ? UT_2024_SCHEDULE : UT_2025_SCHEDULE;
-      
-      // Get existing games from Supabase
-      const { data: existingGamesData, error: fetchError } = await supabase
-        .from('games')
-        .select('*')
-        .order('date', { ascending: true });
-      
-      if (fetchError) {
-        console.error('Error fetching existing games:', fetchError);
-        throw new Error('Failed to fetch existing games from database');
-      }
-      
-      const existingGames = existingGamesData || [];
-      const added: Game[] = [];
-      const updated: Game[] = [];
-      
-      // Process each game from the schedule
-      for (const utGame of schedule) {
-        // Check if game already exists (by date and opponent)
-        const existingGame = existingGames.find(
-          g => g.date === utGame.date && g.opponent === utGame.opponent
-        );
-        
-        if (!existingGame) {
-          // Create new game in Supabase
-          const { data: newGameData, error: insertError } = await supabase
-            .from('games')
-            .insert({
-              date: utGame.date,
-              time: utGame.time || 'TBD',
-              opponent: utGame.opponent,
-              location: utGame.location,
-              is_home: utGame.isHome,
-              tv_network: utGame.tvNetwork || 'TBD',
-              status: 'unplanned',
-              expected_attendance: 0
-            })
-            .select()
-            .single();
-          
-          if (insertError) {
-            console.error('Error inserting game:', insertError);
-            continue;
-          }
-          
-          if (newGameData) {
-            // Map to frontend format
-            const newGame: Game = {
-              id: newGameData.id,
-              date: newGameData.date,
-              time: newGameData.time,
-              opponent: newGameData.opponent,
-              location: newGameData.location,
-              isHome: newGameData.is_home,
-              tvNetwork: newGameData.tv_network,
-              status: newGameData.status as 'planned' | 'unplanned' | 'watch-party',
-              createdAt: newGameData.created_at,
-              updatedAt: newGameData.updated_at,
-            };
-            added.push(newGame);
-          }
-        } else {
-          // Check if we need to update existing game
-          let hasChanges = false;
-          const updateData: any = {};
-          
-          if (utGame.time && utGame.time !== 'TBD' && existingGame.time === 'TBD') {
-            updateData.time = utGame.time;
-            hasChanges = true;
-          }
-          
-          if (utGame.tvNetwork && utGame.tvNetwork !== 'TBD' && (!existingGame.tv_network || existingGame.tv_network === 'TBD')) {
-            updateData.tv_network = utGame.tvNetwork;
-            hasChanges = true;
-          }
-          
-          if (utGame.location && existingGame.location !== utGame.location) {
-            updateData.location = utGame.location;
-            hasChanges = true;
-          }
-          
-          if (hasChanges) {
-            updateData.updated_at = new Date().toISOString();
-            
-            const { data: updatedGameData, error: updateError } = await supabase
-              .from('games')
-              .update(updateData)
-              .eq('id', existingGame.id)
-              .select()
-              .single();
-            
-            if (updateError) {
-              console.error('Error updating game:', updateError);
-              continue;
-            }
-            
-            if (updatedGameData) {
-              // Map to frontend format
-              const updatedGame: Game = {
-                id: updatedGameData.id,
-                date: updatedGameData.date,
-                time: updatedGameData.time,
-                opponent: updatedGameData.opponent,
-                location: updatedGameData.location,
-                isHome: updatedGameData.is_home,
-                tvNetwork: updatedGameData.tv_network,
-                status: updatedGameData.status as 'planned' | 'unplanned' | 'watch-party',
-                createdAt: updatedGameData.created_at,
-                updatedAt: updatedGameData.updated_at,
-              };
-              updated.push(updatedGame);
-            }
-          }
-        }
-      }
-      
-      const message = added.length > 0 
-        ? `Successfully synced ${added.length} new games and updated ${updated.length} games from UT schedule`
-        : updated.length > 0 
-          ? `Updated ${updated.length} games with new information`
-          : 'Schedule is already up to date';
-      
+      const games = await this.syncSchedule();
       return {
-        added,
-        updated,
-        total: existingGames.length + added.length,
-        message
+        added: games,
+        updated: [],
+        total: games.length,
+        message: `Found ${games.length} games in schedule`
       };
     } catch (error) {
       console.error('Error syncing games:', error);
-      throw new Error('Failed to sync games from UT schedule');
+      return {
+        added: [],
+        updated: [],
+        total: 0,
+        message: `Error syncing games: ${error}`
+      };
     }
   }
-  
+
   /**
-   * Get upcoming games from the schedule
+   * Get team-specific theme suggestions
    */
-  static getUpcomingGames(limit: number = 5): UTGame[] {
-    const today = new Date().toISOString().split('T')[0];
-    const currentYear = new Date().getFullYear();
-    const schedule = currentYear === 2024 ? UT_2024_SCHEDULE : UT_2025_SCHEDULE;
-    
-    return schedule
-      .filter(game => game.date >= today)
-      .slice(0, limit);
-  }
-  
-  /**
-   * Check if sync is needed (e.g., if we're missing games)
-   */
-  static async checkSyncNeeded(): Promise<boolean> {
-    const { data: existingGames, error } = await supabase
-      .from('games')
-      .select('date, opponent');
-    
-    if (error) {
-      console.error('Error checking sync status:', error);
-      return false;
-    }
-    
-    const today = new Date().toISOString().split('T')[0];
-    const currentYear = new Date().getFullYear();
-    const schedule = currentYear === 2024 ? UT_2024_SCHEDULE : UT_2025_SCHEDULE;
-    
-    // Get future games from schedule
-    const futureScheduleGames = schedule.filter(game => game.date >= today);
-    
-    // Check if we have all future games
-    for (const scheduleGame of futureScheduleGames) {
-      const exists = existingGames?.some(
-        g => g.date === scheduleGame.date && g.opponent === scheduleGame.opponent
-      );
-      if (!exists) {
-        return true; // Sync needed
+  static getThemeSuggestions(opponent: string): {
+    colors?: string[];
+    foodSuggestions?: string[];
+    decorations?: string[];
+  } {
+    // Basic theme suggestions based on opponent
+    const themes: Record<string, any> = {
+      'Oklahoma': {
+        colors: ['#841617', '#FFC72C'],
+        foodSuggestions: ['Sooner Schooner Sliders', 'Red River Ribs', 'Crimson Corn'],
+        decorations: ['Red & White balloons', 'Rivalry banners']
+      },
+      'Texas A&M': {
+        colors: ['#500000', '#FFFFFF'],
+        foodSuggestions: ['Aggie BBQ', 'Maroon Margaritas', 'Rivalry Ribs'],
+        decorations: ['Lone Star decorations', 'Rivalry flags']
+      },
+      'Georgia': {
+        colors: ['#BA0C2F', '#000000'],
+        foodSuggestions: ['Bulldog Burgers', 'Georgia Peach Cobbler', 'SEC Championship Chili'],
+        decorations: ['Red & Black streamers', 'SEC banners']
+      },
+      'Michigan': {
+        colors: ['#00274C', '#FFCB05'],
+        foodSuggestions: ['Wolverine Wings', 'Big House Burgers', 'Maize & Blue Munchies'],
+        decorations: ['Blue & Yellow decorations', 'Big Ten banners']
+      },
+      'default': {
+        colors: ['#BF5700', '#FFFFFF'],
+        foodSuggestions: ['Texas BBQ', 'Longhorn Burgers', 'Bevo Bites'],
+        decorations: ['Burnt Orange & White', 'Hook \'em Horns signs']
       }
-    }
-    
-    return false;
-  }
-  
-  /**
-   * Get team logo URL for an opponent
-   */
-  static getTeamLogo(opponent: string): string | null {
-    const teamInfo = teamLogos[opponent];
-    return teamInfo?.logoUrl || null;
+    };
+
+    return themes[opponent] || themes['default'];
   }
 }
 

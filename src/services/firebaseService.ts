@@ -14,6 +14,7 @@ interface Game {
   setup_time?: string;
   expected_attendance: number;
   tv_network?: string;
+  tvNetwork?: string; // Support both formats for compatibility
   created_at?: string;
   updated_at?: string;
 }
@@ -50,10 +51,17 @@ class FirebaseService {
     
     if (snapshot.exists()) {
       const gamesData = snapshot.val();
-      return Object.keys(gamesData).map(key => ({
-        id: key,
-        ...gamesData[key]
-      }));
+      return Object.keys(gamesData).map(key => {
+        const game = gamesData[key];
+        // Ensure tv_network field is present for compatibility
+        if (game.tvNetwork && !game.tv_network) {
+          game.tv_network = game.tvNetwork;
+        }
+        return {
+          id: key,
+          ...game
+        };
+      });
     }
     return [];
   }
@@ -61,8 +69,23 @@ class FirebaseService {
   async createGame(game: Omit<Game, 'id'>): Promise<Game> {
     const gamesRef = ref(database, 'games');
     const newGameRef = push(gamesRef);
+    
+    // Clean data - remove undefined values (Firebase doesn't accept them)
+    const cleanData: any = {};
+    Object.keys(game).forEach(key => {
+      if ((game as any)[key] !== undefined) {
+        cleanData[key] = (game as any)[key];
+      }
+    });
+    
+    // Handle both tvNetwork and tv_network field names
+    if (cleanData.tvNetwork && !cleanData.tv_network) {
+      cleanData.tv_network = cleanData.tvNetwork;
+      delete cleanData.tvNetwork;
+    }
+    
     const gameData = {
-      ...game,
+      ...cleanData,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -73,8 +96,17 @@ class FirebaseService {
 
   async updateGame(id: string, updates: Partial<Game>): Promise<Game | null> {
     const gameRef = ref(database, `games/${id}`);
+    
+    // Clean data - remove undefined values
+    const cleanUpdates: any = {};
+    Object.keys(updates).forEach(key => {
+      if ((updates as any)[key] !== undefined) {
+        cleanUpdates[key] = (updates as any)[key];
+      }
+    });
+    
     const updateData = {
-      ...updates,
+      ...cleanUpdates,
       updated_at: new Date().toISOString()
     };
     
@@ -155,9 +187,18 @@ class FirebaseService {
   async createTheme(theme: Omit<Theme, 'id'>): Promise<Theme> {
     const themesRef = ref(database, 'themes');
     const newThemeRef = push(themesRef);
+    
+    // Clean data - remove undefined values
+    const cleanData: any = {};
+    Object.keys(theme).forEach(key => {
+      if ((theme as any)[key] !== undefined) {
+        cleanData[key] = (theme as any)[key];
+      }
+    });
+    
     const themeData = {
-      ...theme,
-      created_at: theme.created_at || new Date().toISOString()
+      ...cleanData,
+      created_at: cleanData.created_at || new Date().toISOString()
     };
     
     await set(newThemeRef, themeData);
@@ -186,8 +227,17 @@ class FirebaseService {
   async createPotluckItem(item: Omit<PotluckItem, 'id'>): Promise<PotluckItem> {
     const potluckRef = ref(database, 'potluck_items');
     const newItemRef = push(potluckRef);
+    
+    // Clean data - remove undefined values
+    const cleanData: any = {};
+    Object.keys(item).forEach(key => {
+      if ((item as any)[key] !== undefined) {
+        cleanData[key] = (item as any)[key];
+      }
+    });
+    
     const itemData = {
-      ...item,
+      ...cleanData,
       created_at: new Date().toISOString()
     };
     
@@ -197,7 +247,16 @@ class FirebaseService {
 
   async updatePotluckItem(id: string, updates: Partial<PotluckItem>): Promise<PotluckItem | null> {
     const itemRef = ref(database, `potluck_items/${id}`);
-    await update(itemRef, updates);
+    
+    // Clean data - remove undefined values
+    const cleanUpdates: any = {};
+    Object.keys(updates).forEach(key => {
+      if ((updates as any)[key] !== undefined) {
+        cleanUpdates[key] = (updates as any)[key];
+      }
+    });
+    
+    await update(itemRef, cleanUpdates);
     
     const snapshot = await get(itemRef);
     if (snapshot.exists()) {
