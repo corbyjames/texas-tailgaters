@@ -1,0 +1,15 @@
+node_modules
+dist
+.git
+.gitignore
+.env
+.env.local
+*.log
+.DS_Store
+test-results
+tests
+*.png
+*.html
+.vscode
+README.md
+docker-compose*.yml
