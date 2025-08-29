@@ -1,3 +1,5 @@
+export type UserRole = 'admin' | 'member';
+
 export interface User {
   id: string;
   email: string;
@@ -5,7 +7,8 @@ export interface User {
   phone?: string;
   dietaryRestrictions?: string[];
   allergies?: string[];
-  isAdmin: boolean;
+  role: UserRole;
+  isAdmin: boolean; // Deprecated, use role instead
   createdAt: string;
   updatedAt: string;
 }
@@ -14,7 +17,8 @@ export interface AuthUser {
   id: string;
   email: string;
   name?: string;
-  isAdmin: boolean;
+  role: UserRole;
+  isAdmin: boolean; // Deprecated, use role instead
 }
 
 export interface DietaryRestriction {

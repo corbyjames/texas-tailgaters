@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Game } from '../types/Game';
 import { GameService, CreateGameData, UpdateGameData } from '../services/gameService';
+import { supabase } from '../services/supabase';
 
 export function useGames() {
   const [games, setGames] = useState<Game[]>([]);
@@ -115,11 +116,56 @@ export function useGames() {
     }
   }, []);
 
+  // Clear all data (Admin only)
+  const clearMockData = useCallback(async () => {
+    try {
+      setError(null);
+      
+      // Get count of games before clearing
+      const gamesCount = games.length;
+      
+      // Clear all games from Supabase
+      const { error: deleteGamesError } = await GameService.deleteAllGames();
+      if (deleteGamesError) {
+        console.error('Error deleting games:', deleteGamesError);
+      }
+      
+      // Clear all potluck items from Supabase
+      const { error: deletePotluckError } = await supabase
+        .from('potluck_items')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all (neq with impossible id)
+      
+      if (deletePotluckError) {
+        console.error('Error deleting potluck items:', deletePotluckError);
+      }
+      
+      // Clear the games from state
+      setGames([]);
+      
+      // Trigger events to update other components
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new Event('potluckUpdate'));
+      
+      console.log('✅ Cleared all games and potluck items from database');
+      
+      return {
+        success: true,
+        message: 'All games and potluck items have been cleared',
+        gamesCleared: gamesCount
+      };
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to clear data');
+      throw err;
+    }
+  }, [games]);
+
   return {
     games,
     loading,
     error,
     fetchGames,
+    refreshGames: fetchGames, // Alias for clarity
     createGame,
     updateGame,
     deleteGame,
@@ -127,6 +173,7 @@ export function useGames() {
     getUpcomingGames,
     syncFromUTAthletics,
     getGame,
+    clearMockData,
   };
 }
 

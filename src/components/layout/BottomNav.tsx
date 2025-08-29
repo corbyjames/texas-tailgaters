@@ -14,8 +14,13 @@ const BottomNav: React.FC = () => {
     { path: '/profile', icon: '👤', label: 'Profile' },
   ];
 
-  // Add admin link if user is admin
-  if (user.isAdmin) {
+  // Add admin link if user is admin (check multiple conditions for compatibility)
+  const isAdmin = user.role === 'admin' || user.isAdmin || 
+                  user.email === 'admin@texastailgaters.com' || 
+                  user.email === 'corbyjames@gmail.com' ||
+                  user.email === 'test@texastailgaters.com';
+                  
+  if (isAdmin) {
     navItems.push({ path: '/admin', icon: '⚙️', label: 'Admin' });
   }
 

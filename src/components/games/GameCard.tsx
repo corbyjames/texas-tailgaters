@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { ShoppingBag, Users } from 'lucide-react';
 import { Game } from '../../types/Game';
+import { GameHeader } from './GameHeader';
+import PotluckService from '../../services/potluckService';
 
 interface GameCardProps {
   game: Game;
@@ -8,18 +11,32 @@ interface GameCardProps {
 }
 
 const GameCard: React.FC<GameCardProps> = ({ game, onGameClick }) => {
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric' 
-    });
-  };
+  const [potluckStats, setPotluckStats] = useState<{
+    totalItems: number;
+    assignedItems: number;
+  }>({ totalItems: 0, assignedItems: 0 });
 
-  const formatTime = (timeString?: string) => {
-    if (!timeString) return '';
-    return timeString;
-  };
+  useEffect(() => {
+    const fetchPotluckStats = async () => {
+      const stats = await PotluckService.getGamePotluckStats(game.id);
+      setPotluckStats({
+        totalItems: stats.totalItems,
+        assignedItems: stats.assignedItems,
+      });
+    };
+
+    fetchPotluckStats();
+
+    // Listen for potluck updates
+    const handleUpdate = () => {
+      fetchPotluckStats();
+    };
+
+    window.addEventListener('potluckUpdate', handleUpdate);
+    return () => {
+      window.removeEventListener('potluckUpdate', handleUpdate);
+    };
+  }, [game.id]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -59,18 +76,17 @@ const GameCard: React.FC<GameCardProps> = ({ game, onGameClick }) => {
       onClick={handleClick}
     >
       <div className="flex justify-between items-start mb-3">
-        <div className="flex items-center space-x-2">
-          <span className="text-xl">🏈</span>
-          <div>
-            <h3 className="font-semibold text-ut-text">
-              {formatDate(game.date)} • vs {game.opponent}
-            </h3>
-            <p className="text-sm text-gray-600">
-              {formatTime(game.time)} • {game.isHome ? 'Home' : 'Away'}
-            </p>
-          </div>
+        <div className="flex-grow">
+          <GameHeader 
+            opponent={game.opponent}
+            date={game.date}
+            time={game.time}
+            tvNetwork={game.tvNetwork}
+            isHome={game.isHome}
+            size="sm"
+          />
         </div>
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(game.status)}`}>
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(game.status)} ml-3`}>
           {getStatusText(game.status)}
         </span>
       </div>
@@ -80,6 +96,20 @@ const GameCard: React.FC<GameCardProps> = ({ game, onGameClick }) => {
           <p className="text-sm text-ut-orange font-medium">
             🎨 {game.theme.name}
           </p>
+        </div>
+      )}
+
+      {/* Potluck Stats */}
+      {potluckStats.totalItems > 0 && (
+        <div className="mb-3 flex items-center gap-4 text-sm text-gray-600">
+          <div className="flex items-center gap-1">
+            <ShoppingBag className="w-4 h-4" />
+            <span>{potluckStats.totalItems} items</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Users className="w-4 h-4 text-green-600" />
+            <span className="text-green-600">{potluckStats.assignedItems} assigned</span>
+          </div>
         </div>
       )}
 

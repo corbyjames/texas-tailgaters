@@ -59,7 +59,7 @@ const GamesPage: React.FC = () => {
       {/* Header */}
       <div className="mb-6">
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold text-ut-text">🏈 2024 Season</h1>
+          <h1 className="text-2xl font-bold text-ut-text">🏈 {new Date().getFullYear()} Season</h1>
           <button
             onClick={handleSync}
             className="btn-secondary text-sm"

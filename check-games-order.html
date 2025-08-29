@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check Games Order</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .game {
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            background: white;
+        }
+        .error { background-color: #ffcccc; }
+        .correct { background-color: #ccffcc; }
+        .warning { background-color: #ffffcc; }
+    </style>
+</head>
+<body>
+    <h1>Check Games Order</h1>
+    
+    <button onclick="checkCurrentGames()">Check Current Games</button>
+    <button onclick="clearAndFixOrder()">Clear & Fix Order</button>
+    <button onclick="justClearGames()">Just Clear All Games</button>
+    
+    <div id="output"></div>
+
+    <script>
+        function checkCurrentGames() {
+            const output = document.getElementById('output');
+            const storedGames = localStorage.getItem('texasTailgatersGames');
+            
+            if (!storedGames) {
+                output.innerHTML = '<p class="warning">No games in storage</p>';
+                return;
+            }
+            
+            const games = JSON.parse(storedGames);
+            let html = '<h2>Current Games in Storage (' + games.length + ' total)</h2>';
+            
+            // Sort games by date to see actual order
+            const sortedGames = [...games].sort((a, b) => a.date.localeCompare(b.date));
+            
+            html += '<h3>Games in Date Order:</h3>';
+            sortedGames.forEach((game, index) => {
+                const isFirstGame = index === 0 && game.date.startsWith('2025');
+                const isOhioState = game.opponent === 'Ohio State';
+                const isSanJoseState = game.opponent === 'San Jose State';
+                
+                let className = '';
+                if (isFirstGame && isOhioState) {
+                    className = 'correct';
+                } else if (isFirstGame && !isOhioState) {
+                    className = 'error';
+                }
+                
+                html += `<div class="game ${className}">
+                    <strong>${index + 1}. ${game.date}</strong> - 
+                    ${game.isHome ? 'vs' : '@'} ${game.opponent}<br>
+                    Time: ${game.time} | TV: ${game.tvNetwork || 'TBD'}<br>
+                    Location: ${game.location}<br>
+                    ID: ${game.id}
+                    ${isFirstGame ? ' <strong>← FIRST 2025 GAME</strong>' : ''}
+                </div>`;
+            });
+            
+            // Check for duplicates
+            const dateOpponentPairs = games.map(g => `${g.date}-${g.opponent}`);
+            const duplicates = dateOpponentPairs.filter((item, index) => dateOpponentPairs.indexOf(item) !== index);
+            
+            if (duplicates.length > 0) {
+                html += '<h3 class="error">⚠️ Duplicate Games Found:</h3>';
+                duplicates.forEach(dup => {
+                    html += `<div class="error">${dup}</div>`;
+                });
+            }
+            
+            // Check specific issue
+            const ohioStateGames = games.filter(g => g.opponent === 'Ohio State');
+            const sanJoseStateGames = games.filter(g => g.opponent === 'San Jose State');
+            
+            html += '<h3>Diagnostic Info:</h3>';
+            html += `<p>Ohio State games: ${ohioStateGames.length} (dates: ${ohioStateGames.map(g => g.date).join(', ')})</p>`;
+            html += `<p>San Jose State games: ${sanJoseStateGames.length} (dates: ${sanJoseStateGames.map(g => g.date).join(', ')})</p>`;
+            
+            output.innerHTML = html;
+        }
+
+        function clearAndFixOrder() {
+            const output = document.getElementById('output');
+            
+            // Clear existing games
+            localStorage.removeItem('texasTailgatersGames');
+            
+            // Create correct 2025 schedule
+            const UT_2025_SCHEDULE = [
+                { date: '2025-08-30', opponent: 'Ohio State', location: 'Columbus, OH', time: 'TBD', tvNetwork: 'TBD', isHome: false },
+                { date: '2025-09-06', opponent: 'San Jose State', location: 'Austin, TX', time: 'TBD', tvNetwork: 'TBD', isHome: true },
+                { date: '2025-09-13', opponent: 'UTSA', location: 'Austin, TX', time: 'TBD', tvNetwork: 'TBD', isHome: true },
+                { date: '2025-09-20', opponent: 'Colorado State', location: 'Austin, TX', time: 'TBD', tvNetwork: 'TBD', isHome: true },
+                { date: '2025-10-04', opponent: 'Mississippi State', location: 'Austin, TX', time: 'TBD', tvNetwork: 'TBD', isHome: true },
+                { date: '2025-10-11', opponent: 'Oklahoma', location: 'Dallas, TX', time: 'TBD', tvNetwork: 'ABC/ESPN', isHome: false },
+                { date: '2025-10-18', opponent: 'Georgia', location: 'Austin, TX', time: 'TBD', tvNetwork: 'TBD', isHome: true },
+                { date: '2025-10-25', opponent: 'Vanderbilt', location: 'Nashville, TN', time: 'TBD', tvNetwork: 'TBD', isHome: false },
+                { date: '2025-11-01', opponent: 'Florida', location: 'Austin, TX', time: 'TBD', tvNetwork: 'TBD', isHome: true },
+                { date: '2025-11-15', opponent: 'Arkansas', location: 'Fayetteville, AR', time: 'TBD', tvNetwork: 'TBD', isHome: false },
+                { date: '2025-11-22', opponent: 'Kentucky', location: 'Austin, TX', time: 'TBD', tvNetwork: 'TBD', isHome: true },
+                { date: '2025-11-29', opponent: 'Texas A&M', location: 'College Station, TX', time: 'TBD', tvNetwork: 'TBD', isHome: false },
+            ];
+
+            const games = [];
+            
+            UT_2025_SCHEDULE.forEach((utGame, index) => {
+                const newGame = {
+                    id: `game-2025-${index}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                    date: utGame.date,
+                    time: utGame.time || 'TBD',
+                    opponent: utGame.opponent,
+                    location: utGame.location,
+                    isHome: utGame.isHome,
+                    tvNetwork: utGame.tvNetwork || 'TBD',
+                    status: 'unplanned',
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                };
+                games.push(newGame);
+            });
+
+            // Sort by date to ensure correct order
+            games.sort((a, b) => a.date.localeCompare(b.date));
+
+            // Save to localStorage
+            localStorage.setItem('texasTailgatersGames', JSON.stringify(games));
+            
+            // Trigger storage event
+            window.dispatchEvent(new Event('storage'));
+            
+            output.innerHTML = '<h2 class="correct">✅ Fixed! Games cleared and reloaded in correct order.</h2>';
+            output.innerHTML += '<p>First game is now: ' + games[0].date + ' - @ ' + games[0].opponent + '</p>';
+            
+            // Show the new list
+            setTimeout(() => checkCurrentGames(), 500);
+        }
+
+        function justClearGames() {
+            localStorage.removeItem('texasTailgatersGames');
+            window.dispatchEvent(new Event('storage'));
+            document.getElementById('output').innerHTML = '<p class="warning">All games cleared from storage</p>';
+        }
+
+        // Check on load
+        checkCurrentGames();
+    </script>
+</body>
+</html>

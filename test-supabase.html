@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Supabase Connection</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .success { background-color: #4CAF50; color: white; }
+        .error { background-color: #f44336; color: white; }
+        .output {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            background-color: #f5f5f5;
+            white-space: pre-wrap;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Supabase Connection & Sync</h1>
+    
+    <button onclick="testConnection()">Test Connection</button>
+    <button onclick="listGames()">List Current Games</button>
+    <button onclick="testInsertGame()">Test Insert Game</button>
+    <button onclick="syncSingleGame()">Sync First 2025 Game</button>
+    <button onclick="clearAllGames()">Clear All Games</button>
+    
+    <div id="output" class="output"></div>
+
+    <script>
+        // Initialize Supabase client
+        const supabaseUrl = 'https://kvtufvfnlvlqhxcwksja.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2dHVmdmZubHZscWh4Y3drc2phIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0MTE3MDgsImV4cCI6MjA3MTk4NzcwOH0.TJk58Dk3rQ7iCF8kZgXy-lP-koVatAGatRibbccy_Lg';
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        function log(message, isError = false) {
+            const output = document.getElementById('output');
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = isError ? '❌' : '✅';
+            output.innerHTML += `${prefix} [${timestamp}] ${message}\n`;
+            output.scrollTop = output.scrollHeight;
+            console.log(message);
+        }
+
+        async function testConnection() {
+            log('Testing Supabase connection...');
+            try {
+                const { data, error } = await supabase
+                    .from('games')
+                    .select('count')
+                    .limit(1);
+                
+                if (error) {
+                    log(`Connection error: ${JSON.stringify(error)}`, true);
+                } else {
+                    log(`Connection successful! Response: ${JSON.stringify(data)}`);
+                }
+            } catch (err) {
+                log(`Exception: ${err.message}`, true);
+            }
+        }
+
+        async function listGames() {
+            log('Fetching games from database...');
+            try {
+                const { data, error } = await supabase
+                    .from('games')
+                    .select('*')
+                    .order('date', { ascending: true });
+                
+                if (error) {
+                    log(`Error fetching games: ${JSON.stringify(error)}`, true);
+                } else {
+                    log(`Found ${data.length} games:`);
+                    data.forEach(game => {
+                        log(`  ${game.date} - ${game.opponent} (${game.is_home ? 'Home' : 'Away'})`);
+                    });
+                }
+            } catch (err) {
+                log(`Exception: ${err.message}`, true);
+            }
+        }
+
+        async function testInsertGame() {
+            log('Testing game insertion...');
+            const testGame = {
+                date: '2025-12-31',
+                time: 'TEST TIME',
+                opponent: 'Test Team',
+                location: 'Test Location',
+                is_home: true,
+                tv_network: 'TEST TV',
+                status: 'unplanned',
+                expected_attendance: 0
+            };
+            
+            try {
+                log(`Inserting test game: ${JSON.stringify(testGame)}`);
+                
+                const { data, error } = await supabase
+                    .from('games')
+                    .insert([testGame])
+                    .select();
+                
+                if (error) {
+                    log(`Insert error: ${JSON.stringify(error)}`, true);
+                    log(`Error details: ${error.message}`, true);
+                    log(`Error code: ${error.code}`, true);
+                } else {
+                    log(`Insert successful! Created game: ${JSON.stringify(data)}`);
+                    
+                    // Clean up - delete the test game
+                    if (data && data[0]) {
+                        const { error: deleteError } = await supabase
+                            .from('games')
+                            .delete()
+                            .eq('id', data[0].id);
+                        
+                        if (deleteError) {
+                            log(`Cleanup error: ${JSON.stringify(deleteError)}`, true);
+                        } else {
+                            log('Test game cleaned up successfully');
+                        }
+                    }
+                }
+            } catch (err) {
+                log(`Exception: ${err.message}`, true);
+                log(`Stack: ${err.stack}`, true);
+            }
+        }
+
+        async function syncSingleGame() {
+            log('Syncing first 2025 game (Ohio State)...');
+            const game = {
+                date: '2025-08-30',
+                time: 'TBD',
+                opponent: 'Ohio State',
+                location: 'Columbus, OH',
+                is_home: false,
+                tv_network: 'TBD',
+                status: 'unplanned',
+                expected_attendance: 0
+            };
+            
+            try {
+                // Check if game already exists
+                const { data: existing, error: checkError } = await supabase
+                    .from('games')
+                    .select('*')
+                    .eq('date', game.date)
+                    .eq('opponent', game.opponent);
+                
+                if (checkError) {
+                    log(`Check error: ${JSON.stringify(checkError)}`, true);
+                    return;
+                }
+                
+                if (existing && existing.length > 0) {
+                    log('Game already exists in database');
+                    return;
+                }
+                
+                // Insert the game
+                const { data, error } = await supabase
+                    .from('games')
+                    .insert([game])
+                    .select();
+                
+                if (error) {
+                    log(`Insert error: ${JSON.stringify(error)}`, true);
+                } else {
+                    log(`Successfully synced Ohio State game: ${JSON.stringify(data)}`);
+                }
+            } catch (err) {
+                log(`Exception: ${err.message}`, true);
+            }
+        }
+
+        async function clearAllGames() {
+            if (!confirm('Are you sure you want to delete all games?')) {
+                return;
+            }
+            
+            log('Clearing all games from database...');
+            try {
+                const { error } = await supabase
+                    .from('games')
+                    .delete()
+                    .neq('id', '00000000-0000-0000-0000-000000000000');
+                
+                if (error) {
+                    log(`Delete error: ${JSON.stringify(error)}`, true);
+                } else {
+                    log('All games cleared successfully');
+                }
+            } catch (err) {
+                log(`Exception: ${err.message}`, true);
+            }
+        }
+
+        // Test connection on load
+        window.addEventListener('load', () => {
+            log('Page loaded. Click buttons to test Supabase operations.');
+        });
+    </script>
+</body>
+</html>

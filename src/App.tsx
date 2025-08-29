@@ -5,11 +5,12 @@ import Layout from './components/layout/Layout';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import GamesPage from './pages/GamesPage';
+import AdminPage from './pages/AdminPage';
+import PotluckPage from './pages/PotluckPage';
+import GameDetailsPage from './pages/GameDetailsPage';
 
 // Placeholder components for other pages
-const PotluckPage = () => <div className="p-4">Potluck Page - Coming Soon</div>;
 const ProfilePage = () => <div className="p-4">Profile Page - Coming Soon</div>;
-const AdminPage = () => <div className="p-4">Admin Page - Coming Soon</div>;
 
 // Protected Route component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -59,6 +60,17 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <GamesPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="/games/:id"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <GameDetailsPage />
                 </Layout>
               </ProtectedRoute>
             }

@@ -9,6 +9,7 @@ export interface Game {
   status: 'planned' | 'unplanned' | 'watch-party';
   setupTime?: string;
   expectedAttendance?: number;
+  tvNetwork?: string;
   createdAt: string;
   updatedAt: string;
   theme?: Theme;

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear and Resync Schedule</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .clear { background-color: #ff4444; color: white; }
+        .sync { background-color: #44ff44; color: black; }
+        .output {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            background-color: #f5f5f5;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .game-list {
+            margin-top: 20px;
+        }
+        .game {
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Clear and Resync Texas Tailgaters Schedule</h1>
+    
+    <button onclick="clearSchedule()" class="clear">Clear All Games</button>
+    <button onclick="syncSchedule()" class="sync">Sync 2025 Schedule</button>
+    <button onclick="viewGames()">View Current Games</button>
+    
+    <div id="output" class="output"></div>
+    <div id="games" class="game-list"></div>
+
+    <script>
+        function log(message) {
+            const output = document.getElementById('output');
+            output.textContent += message + '\n';
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function clearSchedule() {
+            log('Clearing all games from localStorage...');
+            localStorage.removeItem('texasTailgatersGames');
+            log('✅ All games cleared!');
+            viewGames();
+        }
+
+        async function syncSchedule() {
+            log('Starting schedule sync...');
+            
+            // UT 2025 Football Schedule with TV Networks
+            const UT_2025_SCHEDULE = [
+                { date: '2025-08-30', opponent: 'Ohio State', location: 'Columbus, OH', time: 'TBD', tvNetwork: 'TBD', isHome: false },
+                { date: '2025-09-06', opponent: 'San Jose State', location: 'Austin, TX', time: 'TBD', tvNetwork: 'TBD', isHome: true },
+                { date: '2025-09-13', opponent: 'UTSA', location: 'Austin, TX', time: 'TBD', tvNetwork: 'TBD', isHome: true },
+                { date: '2025-09-20', opponent: 'Colorado State', location: 'Austin, TX', time: 'TBD', tvNetwork: 'TBD', isHome: true },
+                { date: '2025-10-04', opponent: 'Mississippi State', location: 'Austin, TX', time: 'TBD', tvNetwork: 'TBD', isHome: true },
+                { date: '2025-10-11', opponent: 'Oklahoma', location: 'Dallas, TX', time: 'TBD', tvNetwork: 'ABC/ESPN', isHome: false },
+                { date: '2025-10-18', opponent: 'Georgia', location: 'Austin, TX', time: 'TBD', tvNetwork: 'TBD', isHome: true },
+                { date: '2025-10-25', opponent: 'Vanderbilt', location: 'Nashville, TN', time: 'TBD', tvNetwork: 'TBD', isHome: false },
+                { date: '2025-11-01', opponent: 'Florida', location: 'Austin, TX', time: 'TBD', tvNetwork: 'TBD', isHome: true },
+                { date: '2025-11-15', opponent: 'Arkansas', location: 'Fayetteville, AR', time: 'TBD', tvNetwork: 'TBD', isHome: false },
+                { date: '2025-11-22', opponent: 'Kentucky', location: 'Austin, TX', time: 'TBD', tvNetwork: 'TBD', isHome: true },
+                { date: '2025-11-29', opponent: 'Texas A&M', location: 'College Station, TX', time: 'TBD', tvNetwork: 'TBD', isHome: false },
+            ];
+
+            const games = [];
+            
+            UT_2025_SCHEDULE.forEach((utGame) => {
+                const newGame = {
+                    id: `game-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                    date: utGame.date,
+                    time: utGame.time || 'TBD',
+                    opponent: utGame.opponent,
+                    location: utGame.location,
+                    isHome: utGame.isHome,
+                    tvNetwork: utGame.tvNetwork || 'TBD',
+                    status: 'unplanned',
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                };
+                games.push(newGame);
+                log(`Added: ${utGame.date} - ${utGame.opponent} (${utGame.tvNetwork})`);
+            });
+
+            // Save to localStorage
+            localStorage.setItem('texasTailgatersGames', JSON.stringify(games));
+            
+            // Trigger storage event
+            window.dispatchEvent(new Event('storage'));
+            
+            log(`\n✅ Successfully synced ${games.length} games for 2025 season!`);
+            viewGames();
+        }
+
+        function viewGames() {
+            const gamesDiv = document.getElementById('games');
+            const storedGames = localStorage.getItem('texasTailgatersGames');
+            
+            if (!storedGames) {
+                gamesDiv.innerHTML = '<p>No games in storage</p>';
+                return;
+            }
+            
+            const games = JSON.parse(storedGames);
+            gamesDiv.innerHTML = '<h2>Current Games (' + games.length + ' total)</h2>';
+            
+            games.forEach(game => {
+                const gameDiv = document.createElement('div');
+                gameDiv.className = 'game';
+                gameDiv.innerHTML = `
+                    <strong>${game.date}</strong> - 
+                    ${game.isHome ? 'vs' : '@'} ${game.opponent}<br>
+                    Time: ${game.time} | TV: ${game.tvNetwork || 'TBD'}<br>
+                    Location: ${game.location}<br>
+                    Status: ${game.status}
+                `;
+                gamesDiv.appendChild(gameDiv);
+            });
+        }
+
+        // Load games on page load
+        viewGames();
+    </script>
+</body>
+</html>

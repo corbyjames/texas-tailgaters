@@ -1,39 +1,21 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Create a mock client for development
-const createMockClient = () => {
-  return {
-    auth: {
-      signIn: async () => ({ error: null }),
-      signUp: async () => ({ error: null }),
-      signOut: async () => ({ error: null }),
-      onAuthStateChange: (callback: any) => {
-        // Mock auth state
-        callback('SIGNED_OUT', null);
-        return { data: { subscription: { unsubscribe: () => {} } } };
-      },
-      getSession: async () => ({ data: { session: null }, error: null }),
-    },
-    from: () => ({
-      select: () => ({
-        order: () => Promise.resolve({ data: [], error: null }),
-        eq: () => Promise.resolve({ data: null, error: null }),
-        single: () => Promise.resolve({ data: null, error: null }),
-      }),
-      insert: () => Promise.resolve({ data: null, error: null }),
-      update: () => Promise.resolve({ data: null, error: null }),
-      delete: () => Promise.resolve({ error: null }),
-    }),
-  };
-};
+// Only log in development if variables are missing
+if (!supabaseUrl || !supabaseAnonKey) {
+  if (import.meta.env.DEV) {
+    console.warn('⚠️ Supabase environment variables are not set!');
+    console.warn('Make sure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are in your .env file');
+    console.warn('Using hardcoded values as fallback...');
+  }
+}
 
-// Use mock client if environment variables are not set
-export const supabase = supabaseUrl === 'https://placeholder.supabase.co' 
-  ? createMockClient() 
-  : createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(
+  supabaseUrl || 'https://kvtufvfnlvlqhxcwksja.supabase.co',
+  supabaseAnonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2dHVmdmZubHZscWh4Y3drc2phIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0MTE3MDgsImV4cCI6MjA3MTk4NzcwOH0.TJk58Dk3rQ7iCF8kZgXy-lP-koVatAGatRibbccy_Lg'
+);
 
 // Database type definitions
 export interface Database {
@@ -86,6 +68,7 @@ export interface Database {
           status: string;
           setup_time?: string;
           expected_attendance?: number;
+          tv_network?: string;
           created_at: string;
           updated_at: string;
         };
@@ -100,6 +83,7 @@ export interface Database {
           status?: string;
           setup_time?: string;
           expected_attendance?: number;
+          tv_network?: string;
           created_at?: string;
           updated_at?: string;
         };
@@ -114,6 +98,7 @@ export interface Database {
           status?: string;
           setup_time?: string;
           expected_attendance?: number;
+          tv_network?: string;
           created_at?: string;
           updated_at?: string;
         };
