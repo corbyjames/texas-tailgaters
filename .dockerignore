@@ -9,7 +9,16 @@ dist
 test-results
 tests
 *.png
-*.html
 .vscode
 README.md
 docker-compose*.yml
+# Keep index.html
+!index.html
+# Exclude test HTML files
+test-*.html
+create-*.html
+update-*.html
+manual-*.html
+quick-*.html
+clear-*.html
+check-*.html
