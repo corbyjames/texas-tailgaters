@@ -173,6 +173,68 @@ export class PotluckService {
     }
   }
 
+  // User: Assign item to themselves
+  static async assignPotluckItem(itemId: string, userId: string, userName: string): Promise<PotluckItem | null> {
+    try {
+      const updatedItem = await firebaseService.updatePotluckItem(itemId, {
+        assigned_to: userName || userId,
+        is_admin_assigned: false
+      });
+      
+      if (!updatedItem) return null;
+
+      // Trigger update event
+      window.dispatchEvent(new CustomEvent('potluckUpdate'));
+
+      return {
+        id: updatedItem.id!,
+        gameId: updatedItem.game_id,
+        name: updatedItem.name,
+        category: updatedItem.category as PotluckItem['category'],
+        quantity: updatedItem.quantity,
+        description: updatedItem.description,
+        assignedTo: updatedItem.assigned_to,
+        isAdminAssigned: updatedItem.is_admin_assigned,
+        dietaryFlags: updatedItem.dietary_flags,
+        createdAt: updatedItem.created_at
+      };
+    } catch (error) {
+      console.error('Error assigning potluck item:', error);
+      return null;
+    }
+  }
+
+  // User: Unassign item from themselves
+  static async unassignPotluckItem(itemId: string): Promise<PotluckItem | null> {
+    try {
+      const updatedItem = await firebaseService.updatePotluckItem(itemId, {
+        assigned_to: null,
+        is_admin_assigned: false
+      });
+      
+      if (!updatedItem) return null;
+
+      // Trigger update event
+      window.dispatchEvent(new CustomEvent('potluckUpdate'));
+
+      return {
+        id: updatedItem.id!,
+        gameId: updatedItem.game_id,
+        name: updatedItem.name,
+        category: updatedItem.category as PotluckItem['category'],
+        quantity: updatedItem.quantity,
+        description: updatedItem.description,
+        assignedTo: updatedItem.assigned_to,
+        isAdminAssigned: updatedItem.is_admin_assigned,
+        dietaryFlags: updatedItem.dietary_flags,
+        createdAt: updatedItem.created_at
+      };
+    } catch (error) {
+      console.error('Error unassigning potluck item:', error);
+      return null;
+    }
+  }
+
   // Check for duplicates
   static async checkDuplicates(gameId: string, itemName: string): Promise<PotluckItem[]> {
     const items = await this.getPotluckItemsForGame(gameId);
