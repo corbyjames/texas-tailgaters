@@ -11,7 +11,7 @@ interface InvitationModalProps {
 
 export function InvitationModal({ game, isOpen, onClose }: InvitationModalProps) {
   const [recipients, setRecipients] = useState('');
-  const convst [customMessage, setCustomMessage] = useState('');
+  const [customMessage, setCustomMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
 

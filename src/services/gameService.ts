@@ -1,5 +1,5 @@
 import firebaseService from './firebaseService';
-import { Game, Theme } from '../types/Game';
+import { Game, Theme, PotluckItem } from '../types/Game';
 import ScheduleSyncService from './scheduleSync';
 
 export interface CreateGameData {
@@ -97,7 +97,7 @@ export class GameService {
           isCustom: theme.is_custom,
           createdAt: theme.created_at
         } : undefined,
-        potluckItems
+        potluckItems: potluckItems as unknown as PotluckItem[]
       };
     } catch (error) {
       console.error('Error fetching game:', error);

@@ -123,21 +123,23 @@ export function useGames() {
       // Get count of games before clearing
       const gamesCount = games.length;
       
-      // Clear all games from Supabase
-      const { error: deleteGamesError } = await GameService.deleteAllGames();
-      if (deleteGamesError) {
-        console.error('Error deleting games:', deleteGamesError);
-      }
+      // Clear all games from Firebase
+      // TODO: Implement deleteAllGames in GameService if needed
+      // const { error: deleteGamesError } = await GameService.deleteAllGames();
+      // if (deleteGamesError) {
+      //   console.error('Error deleting games:', deleteGamesError);
+      // }
       
-      // Clear all potluck items from Supabase
-      const { error: deletePotluckError } = await supabase
-        .from('potluck_items')
-        .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all (neq with impossible id)
+      // Clear all potluck items from Firebase
+      // TODO: Implement bulk delete for potluck items if needed
+      // const { error: deletePotluckError } = await supabase
+      //   .from('potluck_items')
+      //   .delete()
+      //   .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all (neq with impossible id)
       
-      if (deletePotluckError) {
-        console.error('Error deleting potluck items:', deletePotluckError);
-      }
+      // if (deletePotluckError) {
+      //   console.error('Error deleting potluck items:', deletePotluckError);
+      // }
       
       // Clear the games from state
       setGames([]);
@@ -175,4 +177,5 @@ export function useGames() {
     clearMockData,
   };
 }
+
 

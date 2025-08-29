@@ -286,18 +286,6 @@ export const teamLogos: Record<string, TeamInfo> = {
     primaryColor: '#FFCD00',
     secondaryColor: '#000000'
   },
-  'Tennessee': {
-    name: 'Tennessee Volunteers',
-    logoUrl: 'https://a.espncdn.com/i/teamlogos/ncaa/500/2633.png',
-    primaryColor: '#FF8200',
-    secondaryColor: '#FFFFFF'
-  },
-  'Missouri': {
-    name: 'Missouri Tigers',
-    logoUrl: 'https://a.espncdn.com/i/teamlogos/ncaa/500/142.png',
-    primaryColor: '#F1B82D',
-    secondaryColor: '#000000'
-  },
   'Utah': {
     name: 'Utah Utes',
     logoUrl: 'https://a.espncdn.com/i/teamlogos/ncaa/500/254.png',
@@ -333,12 +321,6 @@ export const teamLogos: Record<string, TeamInfo> = {
     logoUrl: 'https://a.espncdn.com/i/teamlogos/ncaa/500/158.png',
     primaryColor: '#E41C38',
     secondaryColor: '#FFFFFF'
-  },
-  'Missouri': {
-    name: 'Missouri Tigers',
-    logoUrl: 'https://a.espncdn.com/i/teamlogos/ncaa/500/142.png',
-    primaryColor: '#F1B82D',
-    secondaryColor: '#000000'
   },
   'Mizzou': {
     name: 'Missouri Tigers',

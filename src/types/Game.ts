@@ -27,6 +27,13 @@ export interface Theme {
   createdAt: string;
 }
 
+export interface User {
+  id: string;
+  email: string;
+  name?: string;
+  role?: 'admin' | 'member';
+}
+
 export interface PotluckItem {
   id: string;
   gameId: string;
