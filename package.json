@@ -20,7 +20,10 @@
     "test:mobile": "playwright test -c e2e/playwright.config.ts --project=mobile-chrome",
     "test:update-snapshots": "playwright test -c e2e/playwright.config.ts --update-snapshots",
     "test:report": "playwright show-report",
-    "test:install": "playwright install"
+    "test:install": "playwright install",
+    "test:production": "playwright test --config=playwright.production.config.ts",
+    "test:production:ui": "playwright test --config=playwright.production.config.ts --ui",
+    "test:production:quick": "node test-production.js"
   },
   "dependencies": {
     "@emailjs/browser": "^4.3.3",

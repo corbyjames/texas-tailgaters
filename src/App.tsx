@@ -8,6 +8,7 @@ import GamesPage from './pages/GamesPage';
 import AdminPage from './pages/AdminPage';
 import PotluckPage from './pages/PotluckPage';
 import GameDetailsPage from './pages/GameDetailsPage';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Placeholder components for other pages
 const ProfilePage = () => <div className="p-4">Profile Page - Coming Soon</div>;
@@ -81,7 +82,9 @@ function App() {
             element={
               <ProtectedRoute>
                 <Layout>
-                  <PotluckPage />
+                  <ErrorBoundary>
+                    <PotluckPage />
+                  </ErrorBoundary>
                 </Layout>
               </ProtectedRoute>
             }
