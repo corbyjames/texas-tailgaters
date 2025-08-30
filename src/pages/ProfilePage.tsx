@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import rsvpService, { RSVP } from '../services/rsvpService';
 import { useGames } from '../hooks/useGames';
+import { isGameUpcoming } from '../utils/dateUtils';
 
 export default function ProfilePage() {
   const { user, signOut } = useAuth();
@@ -87,7 +88,7 @@ export default function ProfilePage() {
 
   const upcomingRSVPs = userRSVPs.filter(rsvp => {
     const game = games.find(g => g.id === rsvp.gameId);
-    return game && new Date(game.date) >= new Date() && rsvp.status === 'yes';
+    return game && isGameUpcoming(game.date) && rsvp.status === 'yes';
   });
 
   const getUserBadge = () => {

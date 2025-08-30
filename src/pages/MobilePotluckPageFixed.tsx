@@ -4,6 +4,7 @@ import { useGames } from '../hooks/useGames';
 import { usePotluck } from '../hooks/usePotluck';
 import { useAuth } from '../hooks/useAuth';
 import { PotluckItem } from '../types/Game';
+import { isGameUpcoming } from '../utils/dateUtils';
 
 const POTLUCK_CATEGORIES = [
   { value: 'main', label: 'Main', icon: '🍖', color: 'bg-red-100 text-red-800' },
@@ -52,7 +53,7 @@ export default function MobilePotluckPageFixed() {
         // Clear it after using
         sessionStorage.removeItem('selectedGameId');
       } else {
-        const nextGame = games.find(g => new Date(g.date) >= new Date()) || games[0];
+        const nextGame = games.find(g => isGameUpcoming(g.date)) || games[0];
         setSelectedGameId(nextGame.id);
       }
     }

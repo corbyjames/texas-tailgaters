@@ -7,6 +7,7 @@ import { Game, PotluckItem } from '../types/Game';
 import { teamLogos } from '../services/teamLogos';
 import MobilePotluckPage from './MobilePotluckPageFixed';
 import { PotluckSignupModal } from '../components/potluck/PotluckSignupModal';
+import { isGameUpcoming } from '../utils/dateUtils';
 
 const POTLUCK_CATEGORIES = [
   { value: 'main', label: 'Main Dish', icon: '🍖', color: 'bg-red-100 text-red-800' },
@@ -65,7 +66,7 @@ export default function PotluckPage() {
   // Set default game on load
   useEffect(() => {
     if (games.length > 0 && !selectedGameId) {
-      const nextGame = games.find(g => new Date(g.date) >= new Date()) || games[0];
+      const nextGame = games.find(g => isGameUpcoming(g.date)) || games[0];
       setSelectedGameId(nextGame.id);
     }
   }, [games, selectedGameId]);
