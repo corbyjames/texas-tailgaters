@@ -137,16 +137,29 @@ export default function PotluckPage() {
   };
 
   const handleAssign = async (item: PotluckItem) => {
-    if (!user) return;
+    if (!user) {
+      console.error('No user logged in');
+      alert('Please log in to sign up for items');
+      return;
+    }
     
     try {
-      if (item.assignedTo === user.email) {
+      console.log('Handling assign for item:', item.name, 'Current assignedTo:', item.assignedTo);
+      
+      if (item.assignedTo === user.email || item.assignedTo === user.name) {
+        console.log('Unassigning item from user');
         await unassignItem(item.id);
       } else {
-        await assignItem(item.id, user.id, user.email || 'Anonymous');
+        console.log('Assigning item to user:', user.email || user.name);
+        const userName = user.name || user.email?.split('@')[0] || 'Anonymous';
+        await assignItem(item.id, user.id, userName);
       }
+      
+      // Trigger a refresh
+      window.dispatchEvent(new CustomEvent('potluckUpdate'));
     } catch (error) {
       console.error('Error assigning item:', error);
+      alert('Failed to update item. Please try again.');
     }
   };
 
@@ -443,31 +456,73 @@ export default function PotluckPage() {
                             
                             <div className="flex items-center gap-2 ml-4">
                               {/* Check if item is fully assigned */}
-                              {item.quantityNeeded && (item.quantityBrought || 0) >= item.quantityNeeded ? (
-                                <span className="px-3 py-1 text-sm bg-gray-100 text-gray-500 rounded">
-                                  Fully Claimed
-                                </span>
-                              ) : !item.assignedTo || (item.quantityNeeded && item.quantityNeeded > 1) ? (
-                                <button
-                                  onClick={() => {
-                                    if (item.quantityNeeded && item.quantityNeeded > 1) {
-                                      setSignupItem(item);
-                                    } else {
-                                      handleAssign(item);
-                                    }
-                                  }}
-                                  className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200"
-                                >
-                                  I'll bring this
-                                </button>
-                              ) : item.assignedTo === user?.email ? (
-                                <button
-                                  onClick={() => handleAssign(item)}
-                                  className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
-                                >
-                                  Cancel
-                                </button>
-                              ) : null}
+                              {(() => {
+                                // Check if item is fully claimed
+                                const isFullyClaimed = item.quantityNeeded && 
+                                  item.quantityNeeded > 1 && 
+                                  (item.quantityBrought || 0) >= item.quantityNeeded;
+                                
+                                if (isFullyClaimed) {
+                                  return (
+                                    <span className="px-3 py-1 text-sm bg-gray-100 text-gray-500 rounded">
+                                      Fully Claimed
+                                    </span>
+                                  );
+                                }
+                                
+                                // Check if current user has already assigned this item (legacy single assignment)
+                                const isAssignedToCurrentUser = item.assignedTo === user?.email || 
+                                  item.assignedTo === user?.name;
+                                
+                                // Check if item has quantity tracking (more than 1 needed)
+                                const hasQuantityTracking = item.quantityNeeded && item.quantityNeeded > 1;
+                                
+                                // For items without quantityNeeded set, treat as single items
+                                const treatAsSingleItem = !item.quantityNeeded || item.quantityNeeded === 1;
+                                
+                                // If user already has it assigned (single item mode)
+                                if (isAssignedToCurrentUser && treatAsSingleItem) {
+                                  return (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleAssign(item);
+                                      }}
+                                      className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                                    >
+                                      Cancel
+                                    </button>
+                                  );
+                                }
+                                
+                                // If item is available for signup
+                                if (!item.assignedTo || hasQuantityTracking) {
+                                  return (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        console.log('Button clicked for item:', item.name, 'with quantity:', item.quantityNeeded);
+                                        
+                                        // If quantity tracking enabled and more than 1 needed, show modal
+                                        if (hasQuantityTracking) {
+                                          console.log('Opening signup modal for quantity selection');
+                                          setSignupItem(item);
+                                        } else {
+                                          // Direct assignment for single items
+                                          console.log('Direct assignment for single item');
+                                          handleAssign(item);
+                                        }
+                                      }}
+                                      className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
+                                    >
+                                      I'll bring this
+                                    </button>
+                                  );
+                                }
+                                
+                                // Item is assigned to someone else (legacy mode)
+                                return null;
+                              })()}
                               
                               <button
                                 onClick={() => {
