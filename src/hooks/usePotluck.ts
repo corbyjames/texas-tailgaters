@@ -51,6 +51,7 @@ export function usePotluck(gameId?: string) {
     name: string;
     category: PotluckItem['category'];
     quantity?: string;
+    quantityNeeded?: number;
     description?: string;
     assignedTo?: string;
     dietaryFlags?: string[];
@@ -72,6 +73,7 @@ export function usePotluck(gameId?: string) {
     name?: string;
     category?: PotluckItem['category'];
     quantity?: string;
+    quantityNeeded?: number;
     description?: string;
     assignedTo?: string;
     dietaryFlags?: string[];

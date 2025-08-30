@@ -129,6 +129,7 @@ export class PotluckService {
       if (updateData.name !== undefined) dbUpdateData.name = updateData.name;
       if (updateData.category !== undefined) dbUpdateData.category = updateData.category;
       if (updateData.quantity !== undefined) dbUpdateData.quantity = updateData.quantity;
+      if (updateData.quantityNeeded !== undefined) dbUpdateData.quantity_needed = updateData.quantityNeeded;
       if (updateData.description !== undefined) dbUpdateData.description = updateData.description;
       if (updateData.assignedTo !== undefined) dbUpdateData.assigned_to = updateData.assignedTo;
       if (updateData.dietaryFlags !== undefined) dbUpdateData.dietary_flags = updateData.dietaryFlags;

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Potluck Quantity System</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #bf5700;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .step {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #bf5700;
+            border-radius: 4px;
+        }
+        .instructions {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        code {
+            background: #e9ecef;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        .highlight {
+            background: #d4edda;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .warning {
+            background: #f8d7da;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .button-example {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #bf5700;
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🍖 Test Potluck Quantity Management System</h1>
+    
+    <div class="instructions">
+        <h2>📋 Testing Instructions</h2>
+        <p>This guide will help you test the new potluck quantity management features.</p>
+        <p>Open the app at: <a href="http://localhost:5173/potluck" target="_blank">http://localhost:5173/potluck</a></p>
+    </div>
+
+    <div class="section">
+        <h2>Test Scenario 1: Create Item with Quantity</h2>
+        <div class="step">
+            <h3>Step 1: Add New Item</h3>
+            <p>1. Click the <code>➕</code> button next to any category (e.g., Main Dish)</p>
+            <p>2. Fill in the form:</p>
+            <ul>
+                <li><strong>Item Name:</strong> "BBQ Brisket"</li>
+                <li><strong>Quantity Needed:</strong> 5</li>
+                <li><strong>Serving Info:</strong> "Serves 10-12 people"</li>
+            </ul>
+            <p>3. Click "Add Item"</p>
+        </div>
+        
+        <div class="highlight">
+            <strong>Expected Result:</strong> Item appears with progress bar showing 0/5
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Test Scenario 2: Multiple People Sign Up</h2>
+        <div class="step">
+            <h3>Step 1: First Person Signs Up</h3>
+            <p>1. Click "I'll bring this" on the BBQ Brisket item</p>
+            <p>2. In the modal, select quantity: 2</p>
+            <p>3. Click "I'll bring 2"</p>
+            
+            <div class="highlight">
+                <strong>Expected:</strong> Progress bar shows 2/5, your name appears with "bringing 2"
+            </div>
+        </div>
+        
+        <div class="step">
+            <h3>Step 2: Test with Different User</h3>
+            <p>1. Open an incognito/private browser window</p>
+            <p>2. Login as a different user</p>
+            <p>3. Navigate to the same potluck page</p>
+            <p>4. Click "I'll bring this" on the same item</p>
+            <p>5. Select quantity: 2</p>
+            
+            <div class="highlight">
+                <strong>Expected:</strong> Progress bar shows 4/5, both users listed
+            </div>
+        </div>
+        
+        <div class="step">
+            <h3>Step 3: Complete the Item</h3>
+            <p>1. Have another user bring 1 more</p>
+            
+            <div class="highlight">
+                <strong>Expected:</strong> 
+                <ul>
+                    <li>Progress bar shows 5/5 (green)</li>
+                    <li>Button changes to "Fully Claimed"</li>
+                    <li>All contributors listed below item</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Test Scenario 3: Edge Cases</h2>
+        
+        <div class="step">
+            <h3>Overage Prevention</h3>
+            <p>1. Try to sign up for a fully claimed item</p>
+            <div class="warning">
+                <strong>Expected:</strong> "Fully Claimed" badge shown, no signup button
+            </div>
+        </div>
+        
+        <div class="step">
+            <h3>Quantity Limits</h3>
+            <p>1. Create item needing 3</p>
+            <p>2. Try to sign up for 5</p>
+            <div class="warning">
+                <strong>Expected:</strong> Modal limits selection to 3 maximum
+            </div>
+        </div>
+        
+        <div class="step">
+            <h3>Single Quantity Items</h3>
+            <p>1. Create item with quantity = 1</p>
+            <p>2. Click "I'll bring this"</p>
+            <div class="highlight">
+                <strong>Expected:</strong> Direct assignment without modal (legacy behavior)
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Visual Features to Verify</h2>
+        <ul>
+            <li>✅ Progress bars appear for items with quantity > 1</li>
+            <li>✅ Assignment details show: "John bringing 2"</li>
+            <li>✅ Multiple assignments stack vertically</li>
+            <li>✅ Green progress bar when complete</li>
+            <li>✅ Orange progress bar when partial</li>
+            <li>✅ "Fully Claimed" badge replaces button</li>
+            <li>✅ Plus buttons on each category header</li>
+            <li>✅ Quantity selector in signup modal</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>Test Users</h2>
+        <p>You can test with these accounts or create new ones:</p>
+        <ul>
+            <li>User 1: Your primary account</li>
+            <li>User 2: Open incognito window, sign up with different email</li>
+            <li>User 3: Another browser or device</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>Troubleshooting</h2>
+        <ul>
+            <li><strong>Progress bar not updating?</strong> Refresh the page - real-time updates via Firebase</li>
+            <li><strong>Can't see assignments?</strong> Check if item has quantityNeeded > 1</li>
+            <li><strong>Modal not appearing?</strong> Only shows for items with quantity > 1</li>
+        </ul>
+    </div>
+
+    <script>
+        console.log('%c🍖 Potluck Quantity Test Guide Loaded', 'color: #bf5700; font-size: 16px; font-weight: bold;');
+        console.log('Open the app and follow the test scenarios above');
+    </script>
+</body>
+</html>
