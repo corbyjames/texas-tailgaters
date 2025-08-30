@@ -16,10 +16,12 @@
 @layer components {
   .btn-primary {
     @apply bg-ut-orange text-ut-white px-4 py-2 rounded-lg font-medium hover:bg-orange-700 transition-colors duration-200;
+    @apply active:bg-orange-800 active:scale-95;
   }
   
   .btn-secondary {
     @apply bg-gray-100 text-ut-text px-4 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors duration-200 border border-gray-300;
+    @apply active:bg-gray-300 active:scale-95;
   }
   
   .card {
@@ -28,6 +30,43 @@
   
   .input-field {
     @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ut-orange focus:border-transparent;
+  }
+  
+  /* Mobile-specific touch feedback */
+  @media (max-width: 768px) {
+    .btn-primary,
+    .btn-secondary {
+      @apply transition-all duration-100;
+    }
+    
+    .card {
+      @apply shadow-sm;
+    }
+    
+    /* Prevent text selection on mobile */
+    .no-select {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    
+    /* Better touch targets */
+    button,
+    a {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
+  
+  /* Scrollbar styling for mobile */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }
 

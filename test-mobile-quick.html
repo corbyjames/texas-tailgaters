@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Layout Test - Texas Tailgaters</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f3f4f6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #BF5700;
+            margin-bottom: 20px;
+        }
+        .test-frame {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .device-selector {
+            margin-bottom: 20px;
+        }
+        select {
+            padding: 8px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .iframe-container {
+            position: relative;
+            background: #000;
+            padding: 20px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        iframe {
+            border: none;
+            background: white;
+            display: block;
+        }
+        .device-info {
+            color: #666;
+            margin-top: 10px;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            margin-right: 10px;
+            background: #BF5700;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #8B3A00;
+        }
+        .screenshot-btn {
+            background: #4CAF50;
+        }
+        .screenshot-btn:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏈 Texas Tailgaters - Mobile Layout Test</h1>
+        
+        <div class="test-frame">
+            <h2>Device Simulator</h2>
+            
+            <div class="device-selector">
+                <label for="device">Select Device: </label>
+                <select id="device" onchange="changeDevice()">
+                    <option value="iphone12">iPhone 12/13/14 (390x844)</option>
+                    <option value="iphonese">iPhone SE (375x667)</option>
+                    <option value="iphonex">iPhone X/XS/11 Pro (375x812)</option>
+                    <option value="pixel5">Pixel 5 (393x851)</option>
+                    <option value="galaxys20">Galaxy S20 (360x800)</option>
+                    <option value="ipadmini">iPad Mini (768x1024)</option>
+                    <option value="ipad">iPad (810x1080)</option>
+                </select>
+                
+                <label for="orientation" style="margin-left: 20px;">Orientation: </label>
+                <select id="orientation" onchange="changeDevice()">
+                    <option value="portrait">Portrait</option>
+                    <option value="landscape">Landscape</option>
+                </select>
+            </div>
+            
+            <div class="controls">
+                <button onclick="navigate('/')">Home</button>
+                <button onclick="navigate('/login')">Login</button>
+                <button onclick="navigate('/games')">Games</button>
+                <button onclick="navigate('/admin')">Admin</button>
+                <button class="screenshot-btn" onclick="takeScreenshot()">📸 Take Screenshot</button>
+            </div>
+            
+            <div class="iframe-container">
+                <iframe id="mobile-frame" src="http://localhost:5173"></iframe>
+            </div>
+            
+            <div class="device-info" id="device-info"></div>
+        </div>
+        
+        <div class="test-frame">
+            <h2>Testing Notes</h2>
+            <ul>
+                <li>Test login with: test@texastailgaters.com / TestPassword123!</li>
+                <li>Check navigation menu behavior on mobile</li>
+                <li>Verify game cards are properly stacked on narrow screens</li>
+                <li>Test potluck forms and buttons are accessible</li>
+                <li>Ensure text is readable without horizontal scrolling</li>
+                <li>Check that modals and overlays work on mobile</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const devices = {
+            iphone12: { width: 390, height: 844, name: 'iPhone 12/13/14' },
+            iphonese: { width: 375, height: 667, name: 'iPhone SE' },
+            iphonex: { width: 375, height: 812, name: 'iPhone X/XS/11 Pro' },
+            pixel5: { width: 393, height: 851, name: 'Pixel 5' },
+            galaxys20: { width: 360, height: 800, name: 'Galaxy S20' },
+            ipadmini: { width: 768, height: 1024, name: 'iPad Mini' },
+            ipad: { width: 810, height: 1080, name: 'iPad' }
+        };
+
+        function changeDevice() {
+            const deviceSelect = document.getElementById('device');
+            const orientationSelect = document.getElementById('orientation');
+            const frame = document.getElementById('mobile-frame');
+            const info = document.getElementById('device-info');
+            
+            const device = devices[deviceSelect.value];
+            const isLandscape = orientationSelect.value === 'landscape';
+            
+            const width = isLandscape ? device.height : device.width;
+            const height = isLandscape ? device.width : device.height;
+            
+            frame.style.width = width + 'px';
+            frame.style.height = height + 'px';
+            
+            info.innerHTML = `Device: ${device.name} | Viewport: ${width}x${height}px | DPR: ${window.devicePixelRatio}`;
+        }
+
+        function navigate(path) {
+            const frame = document.getElementById('mobile-frame');
+            frame.src = 'http://localhost:5173' + path;
+        }
+
+        function takeScreenshot() {
+            // This would need a backend service or browser extension to actually capture
+            alert('To take screenshots:\n\n1. Use browser DevTools (F12)\n2. Toggle device toolbar (Ctrl+Shift+M)\n3. Use the capture screenshot option\n\nOr use the Playwright tests for automated screenshots.');
+        }
+
+        // Initialize
+        changeDevice();
+        
+        // Auto-refresh every 5 seconds to catch any live changes
+        let autoRefresh = false;
+        function toggleAutoRefresh() {
+            autoRefresh = !autoRefresh;
+            if (autoRefresh) {
+                setInterval(() => {
+                    const frame = document.getElementById('mobile-frame');
+                    frame.src = frame.src;
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>

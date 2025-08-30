@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Times Verification</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6 text-orange-600">Texas Tailgaters - Game Times Test</h1>
+        
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Testing Game Schedule Times</h2>
+            <p class="text-gray-600 mb-4">This page loads the schedule data directly to verify times are correct.</p>
+        </div>
+
+        <div id="games-container" class="space-y-4">
+            <div class="text-center py-8">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto"></div>
+                <p class="mt-4 text-gray-600">Loading games...</p>
+            </div>
+        </div>
+
+        <div id="test-results" class="mt-8 bg-blue-50 rounded-lg p-6 hidden">
+            <h3 class="text-lg font-semibold mb-4">Test Results</h3>
+            <div id="results-content"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import the schedule data directly
+        import ScheduleSyncService from './src/services/scheduleSync.ts';
+        
+        async function loadAndTestGames() {
+            const container = document.getElementById('games-container');
+            const resultsDiv = document.getElementById('test-results');
+            const resultsContent = document.getElementById('results-content');
+            
+            try {
+                // Get the games from the sync service
+                const result = await ScheduleSyncService.syncGames();
+                const games = result.added;
+                
+                // Clear loading state
+                container.innerHTML = '';
+                
+                // Test results
+                let testsPassed = 0;
+                let testsFailed = 0;
+                let testResults = [];
+                
+                // Critical tests
+                const criticalTests = [
+                    {
+                        opponent: 'Ohio State',
+                        expectedTime: '11:00 AM',
+                        expectedDate: '2025-08-30'
+                    },
+                    {
+                        opponent: 'Oklahoma',
+                        expectedTime: '2:30 PM',
+                        expectedDate: '2025-10-11'
+                    }
+                ];
+                
+                // Display all games
+                games.forEach(game => {
+                    const gameCard = document.createElement('div');
+                    gameCard.className = 'bg-white rounded-lg shadow p-4';
+                    
+                    // Check if this is a critical test game
+                    const test = criticalTests.find(t => t.opponent === game.opponent);
+                    let testStatus = '';
+                    
+                    if (test) {
+                        const timeCorrect = game.time === test.expectedTime;
+                        const dateCorrect = game.date === test.expectedDate;
+                        
+                        if (timeCorrect && dateCorrect) {
+                            testsPassed++;
+                            testStatus = '✅ PASS';
+                            testResults.push(`✅ ${game.opponent}: Time correct (${game.time})`);
+                        } else {
+                            testsFailed++;
+                            testStatus = '❌ FAIL';
+                            if (!timeCorrect) {
+                                testResults.push(`❌ ${game.opponent}: Time incorrect - Expected ${test.expectedTime}, got ${game.time}`);
+                            }
+                            if (!dateCorrect) {
+                                testResults.push(`❌ ${game.opponent}: Date incorrect - Expected ${test.expectedDate}, got ${game.date}`);
+                            }
+                        }
+                    }
+                    
+                    gameCard.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-bold text-lg ${test ? (testStatus.includes('PASS') ? 'text-green-600' : 'text-red-600') : ''}"}>
+                                    ${game.opponent} ${testStatus}
+                                </h3>
+                                <p class="text-gray-600">Date: ${game.date}</p>
+                                <p class="text-gray-600">Time: <span class="font-semibold">${game.time || 'TBD'}</span></p>
+                                <p class="text-gray-600">Location: ${game.location}</p>
+                                <p class="text-gray-600">TV: ${game.tvNetwork || 'TBD'}</p>
+                                <p class="text-gray-500 text-sm mt-2">Home: ${game.isHome ? 'Yes' : 'No'}</p>
+                            </div>
+                            ${test ? `
+                                <div class="text-sm ${testStatus.includes('PASS') ? 'text-green-600' : 'text-red-600'}">
+                                    <p>Expected: ${test.expectedTime}</p>
+                                    <p>Actual: ${game.time}</p>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                    
+                    container.appendChild(gameCard);
+                });
+                
+                // Show test results
+                resultsDiv.classList.remove('hidden');
+                resultsContent.innerHTML = `
+                    <div class="space-y-2">
+                        <div class="font-semibold text-lg ${testsFailed === 0 ? 'text-green-600' : 'text-red-600'}">
+                            Tests Passed: ${testsPassed} / ${criticalTests.length}
+                        </div>
+                        <div class="space-y-1">
+                            ${testResults.map(r => `<p>${r}</p>`).join('')}
+                        </div>
+                        <div class="mt-4 p-4 bg-gray-100 rounded">
+                            <p class="font-semibold">Key Findings:</p>
+                            <ul class="mt-2 space-y-1 text-sm">
+                                <li>• Total games loaded: ${games.length}</li>
+                                <li>• Ohio State game should be at 11:00 AM (not 7:30 PM)</li>
+                                <li>• Oklahoma game should be at 2:30 PM</li>
+                                <li>• Most 2025 games show TBD for time (this is correct)</li>
+                            </ul>
+                        </div>
+                    </div>
+                `;
+                
+                // Log to console for Playwright to capture
+                console.log('=== GAME TIMES TEST RESULTS ===');
+                console.log(`Tests Passed: ${testsPassed}/${criticalTests.length}`);
+                testResults.forEach(r => console.log(r));
+                
+                // Special check for Ohio State
+                const ohioState = games.find(g => g.opponent === 'Ohio State');
+                if (ohioState) {
+                    console.log(`\nOhio State Game Details:`);
+                    console.log(`  Date: ${ohioState.date}`);
+                    console.log(`  Time: ${ohioState.time}`);
+                    console.log(`  TV: ${ohioState.tvNetwork}`);
+                    
+                    if (ohioState.time === '11:00 AM') {
+                        console.log('  ✅ TIME IS CORRECT!');
+                    } else {
+                        console.log(`  ❌ TIME IS WRONG! Should be 11:00 AM, not ${ohioState.time}`);
+                    }
+                }
+                
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <h3 class="font-semibold text-red-900">Error Loading Games</h3>
+                        <p class="text-red-700 mt-2">${error.message}</p>
+                    </div>
+                `;
+                console.error('Error loading games:', error);
+            }
+        }
+        
+        // Load games on page load
+        loadAndTestGames();
+    </script>
+</body>
+</html>

@@ -5,6 +5,7 @@ import { usePotluck } from '../hooks/usePotluck';
 import { useAuth } from '../hooks/useAuth';
 import { Game, PotluckItem } from '../types/Game';
 import { teamLogos } from '../services/teamLogos';
+import MobilePotluckPage from './MobilePotluckPage';
 
 const POTLUCK_CATEGORIES = [
   { value: 'main', label: 'Main Dish', icon: '🍖', color: 'bg-red-100 text-red-800' },
@@ -26,6 +27,22 @@ const DIETARY_FLAGS = [
 ];
 
 export default function PotluckPage() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Use mobile version on small screens
+  if (isMobile) {
+    return <MobilePotluckPage />;
+  }
+
   const { games, loading: gamesLoading } = useGames();
   const { user } = useAuth();
   const [selectedGameId, setSelectedGameId] = useState<string>('');

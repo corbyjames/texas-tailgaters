@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Users } from 'lucide-react';
+import { ShoppingBag, Users, Trophy, CheckCircle, XCircle } from 'lucide-react';
 import { Game } from '../../types/Game';
 import { GameHeader } from './GameHeader';
 import PotluckService from '../../services/potluckService';
@@ -46,6 +46,8 @@ const GameCard: React.FC<GameCardProps> = ({ game, onGameClick }) => {
         return 'bg-yellow-100 text-yellow-800';
       case 'watch-party':
         return 'bg-blue-100 text-blue-800';
+      case 'completed':
+        return 'bg-gray-100 text-gray-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -59,6 +61,8 @@ const GameCard: React.FC<GameCardProps> = ({ game, onGameClick }) => {
         return 'Unplanned';
       case 'watch-party':
         return 'Watch Party';
+      case 'completed':
+        return 'Final';
       default:
         return status;
     }
@@ -97,6 +101,43 @@ const GameCard: React.FC<GameCardProps> = ({ game, onGameClick }) => {
                 isHome={game.isHome}
                 size="sm"
               />
+              
+              {/* Score Display for Completed Games */}
+              {game.status === 'completed' && game.homeScore !== undefined && game.awayScore !== undefined && (
+                <div className="mt-2 flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    {game.result === 'W' && <CheckCircle className="w-5 h-5 text-green-600" />}
+                    {game.result === 'L' && <XCircle className="w-5 h-5 text-red-600" />}
+                    {game.result === 'T' && <Trophy className="w-5 h-5 text-yellow-600" />}
+                    <span className={`font-bold text-lg ${
+                      game.result === 'W' ? 'text-green-600' : 
+                      game.result === 'L' ? 'text-red-600' : 
+                      'text-yellow-600'
+                    }`}>
+                      {game.result}
+                    </span>
+                  </div>
+                  <div className="text-lg font-semibold">
+                    {game.isHome ? (
+                      <span>
+                        Texas {game.homeScore} - {game.awayScore} {game.opponent}
+                      </span>
+                    ) : (
+                      <span>
+                        {game.opponent} {game.homeScore} - {game.awayScore} Texas
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {/* Bowl Game Badge */}
+              {game.isBowlGame && (
+                <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
+                  <Trophy className="w-3 h-3" />
+                  {game.bowlName || 'Bowl Game'}
+                </div>
+              )}
             </div>
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(game.status)} ml-3`}>
               {getStatusText(game.status)}
@@ -161,4 +202,5 @@ const GameCard: React.FC<GameCardProps> = ({ game, onGameClick }) => {
 };
 
 export default GameCard;
+
 

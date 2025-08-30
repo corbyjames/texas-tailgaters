@@ -6,7 +6,7 @@ export interface Game {
   location?: string;
   isHome: boolean;
   themeId?: string;
-  status: 'planned' | 'unplanned' | 'watch-party';
+  status: 'planned' | 'unplanned' | 'watch-party' | 'completed';
   setupTime?: string;
   expectedAttendance?: number;
   tvNetwork?: string;
@@ -14,6 +14,16 @@ export interface Game {
   updatedAt: string;
   theme?: Theme;
   potluckItems?: PotluckItem[];
+  // Game result fields
+  homeScore?: number;
+  awayScore?: number;
+  result?: 'W' | 'L' | 'T';
+  isConferenceGame?: boolean;
+  isBowlGame?: boolean;
+  bowlName?: string;
+  gameNotes?: string;
+  espnGameId?: string;
+  lastSyncedAt?: string;
 }
 
 export interface Theme {

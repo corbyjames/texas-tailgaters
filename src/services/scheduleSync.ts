@@ -29,7 +29,7 @@ const UT_2024_SCHEDULE: UTGame[] = [
 
 // UT 2025 Football Schedule (with likely TV networks based on matchup importance)
 const UT_2025_SCHEDULE: UTGame[] = [
-  { date: '2025-08-30', opponent: 'Ohio State', location: 'Columbus, OH', time: '7:30 PM', tvNetwork: 'FOX', isHome: false }, // Prime time marquee matchup
+  { date: '2025-08-30', opponent: 'Ohio State', location: 'Columbus, OH', time: '11:00 AM', tvNetwork: 'FOX', isHome: false }, // Big Noon Kickoff marquee matchup
   { date: '2025-09-06', opponent: 'San Jose State', location: 'Austin, TX', time: 'TBD', tvNetwork: 'Longhorn Network', isHome: true },
   { date: '2025-09-13', opponent: 'UTSA', location: 'Austin, TX', time: 'TBD', tvNetwork: 'ESPN+', isHome: true },
   { date: '2025-09-20', opponent: 'Colorado State', location: 'Austin, TX', time: 'TBD', tvNetwork: 'SEC Network', isHome: true },
