@@ -39,11 +39,19 @@ export default function MobilePotluckPageFixed() {
     description: '',
   });
 
-  // Set initial game
+  // Set initial game - check sessionStorage first
   useEffect(() => {
     if (games.length > 0 && !selectedGameId) {
-      const nextGame = games.find(g => new Date(g.date) >= new Date()) || games[0];
-      setSelectedGameId(nextGame.id);
+      // Check if there's a game ID in sessionStorage (from navigation)
+      const storedGameId = sessionStorage.getItem('selectedGameId');
+      if (storedGameId && games.find(g => g.id === storedGameId)) {
+        setSelectedGameId(storedGameId);
+        // Clear it after using
+        sessionStorage.removeItem('selectedGameId');
+      } else {
+        const nextGame = games.find(g => new Date(g.date) >= new Date()) || games[0];
+        setSelectedGameId(nextGame.id);
+      }
     }
   }, [games, selectedGameId]);
 

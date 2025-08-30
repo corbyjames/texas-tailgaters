@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Calendar, MapPin, Tv, Users, Utensils, ChevronRight } from 'lucide-react';
 import { Game } from '../../types/Game';
 import PotluckService from '../../services/potluckService';
@@ -11,6 +11,7 @@ interface MobileGameCardProps {
 }
 
 const MobileGameCard: React.FC<MobileGameCardProps> = ({ game, onGameClick }) => {
+  const navigate = useNavigate();
   const [potluckStats, setPotluckStats] = useState<{
     totalItems: number;
     assignedItems: number;
@@ -161,13 +162,18 @@ const MobileGameCard: React.FC<MobileGameCardProps> = ({ game, onGameClick }) =>
 
         {/* Action Buttons - Stacked on Mobile */}
         <div className="flex flex-col gap-2">
-          <Link
-            to={`/games/${game.id}/potluck`}
+          <button
             className="w-full py-3 px-4 bg-orange-600 text-white rounded-lg font-medium text-center active:bg-orange-700 transition-colors"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              // Navigate to potluck page with this game selected
+              // Store the selected game ID in sessionStorage so the potluck page can pick it up
+              sessionStorage.setItem('selectedGameId', game.id);
+              navigate('/potluck');
+            }}
           >
             View Potluck
-          </Link>
+          </button>
           <button
             className="w-full py-3 px-4 bg-gray-100 text-gray-700 rounded-lg font-medium active:bg-gray-200 transition-colors"
             onClick={(e) => {
