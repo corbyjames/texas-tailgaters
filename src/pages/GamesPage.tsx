@@ -3,7 +3,8 @@ import { useGames } from '../hooks/useGames';
 import GameCard from '../components/games/GameCard';
 import MobileGameCard from '../components/games/MobileGameCard';
 import { Game } from '../types/Game';
-import { Calendar, Filter, Search } from 'lucide-react';
+import { Calendar, Filter, Search, Send } from 'lucide-react';
+import { InvitationModalWithSMS } from '../components/invitations/InvitationModalWithSMS';
 
 const GamesPage: React.FC = () => {
   const { games, loading, error, syncFromUTAthletics } = useGames();
@@ -11,6 +12,8 @@ const GamesPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isMobile, setIsMobile] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [showSeasonInvite, setShowSeasonInvite] = useState(false);
+  const [selectedGameForInvite, setSelectedGameForInvite] = useState<Game | null>(null);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -76,12 +79,20 @@ const GamesPage: React.FC = () => {
             <h1 className="text-xl font-bold text-gray-900">
               {new Date().getFullYear()} Season
             </h1>
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="p-2 rounded-lg bg-gray-100 active:bg-gray-200"
-            >
-              <Filter className="w-5 h-5 text-gray-700" />
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowSeasonInvite(true)}
+                className="p-2 rounded-lg bg-orange-500 text-white active:bg-orange-600"
+              >
+                <Send className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="p-2 rounded-lg bg-gray-100 active:bg-gray-200"
+              >
+                <Filter className="w-5 h-5 text-gray-700" />
+              </button>
+            </div>
           </div>
           
           {/* Mobile Search Bar */}
@@ -101,12 +112,21 @@ const GamesPage: React.FC = () => {
         <div className="mb-6">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-2xl font-bold text-ut-text">🏈 {new Date().getFullYear()} Season</h1>
-            <button
-              onClick={handleSync}
-              className="btn-secondary text-sm"
-            >
-              🔄 Sync Schedule
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowSeasonInvite(true)}
+                className="btn-primary text-sm flex items-center gap-2"
+              >
+                <Send className="w-4 h-4" />
+                Invite to Season
+              </button>
+              <button
+                onClick={handleSync}
+                className="btn-secondary text-sm"
+              >
+                🔄 Sync Schedule
+              </button>
+            </div>
           </div>
 
         {/* Stats - Hidden on mobile */}
@@ -235,9 +255,17 @@ const GamesPage: React.FC = () => {
         <div className="space-y-4">
           {filteredGames.map((game) => (
             isMobile ? (
-              <MobileGameCard key={game.id} game={game} />
+              <MobileGameCard 
+                key={game.id} 
+                game={game}
+                onGameClick={() => setSelectedGameForInvite(game)}
+              />
             ) : (
-              <GameCard key={game.id} game={game} />
+              <GameCard 
+                key={game.id} 
+                game={game}
+                onInvite={(g) => setSelectedGameForInvite(g)}
+              />
             )
           ))}
         </div>
@@ -265,6 +293,24 @@ const GamesPage: React.FC = () => {
             ➕ Add Game
           </button>
         </div>
+      )}
+
+      {/* Season Invitation Modal */}
+      <InvitationModalWithSMS
+        games={games}
+        isOpen={showSeasonInvite}
+        onClose={() => setShowSeasonInvite(false)}
+        inviteType="season"
+      />
+
+      {/* Single Game Invitation Modal */}
+      {selectedGameForInvite && (
+        <InvitationModalWithSMS
+          game={selectedGameForInvite}
+          isOpen={!!selectedGameForInvite}
+          onClose={() => setSelectedGameForInvite(null)}
+          inviteType="single"
+        />
       )}
     </div>
   );

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Users, Trophy, CheckCircle, XCircle } from 'lucide-react';
+import { ShoppingBag, Users, Trophy, CheckCircle, XCircle, Send } from 'lucide-react';
 import { Game } from '../../types/Game';
 import { GameHeader } from './GameHeader';
 import PotluckService from '../../services/potluckService';
@@ -8,9 +8,10 @@ import PotluckService from '../../services/potluckService';
 interface GameCardProps {
   game: Game;
   onGameClick?: (game: Game) => void;
+  onInvite?: (game: Game) => void;
 }
 
-const GameCard: React.FC<GameCardProps> = ({ game, onGameClick }) => {
+const GameCard: React.FC<GameCardProps> = ({ game, onGameClick, onInvite }) => {
   const [potluckStats, setPotluckStats] = useState<{
     totalItems: number;
     assignedItems: number;
@@ -185,13 +186,15 @@ const GameCard: React.FC<GameCardProps> = ({ game, onGameClick }) => {
               View Details
             </Link>
             <button
-              className="flex-1 btn-secondary text-sm py-2"
+              className="flex-1 btn-secondary text-sm py-2 flex items-center justify-center gap-1"
               onClick={(e) => {
                 e.stopPropagation();
-                // TODO: Implement send invite functionality
-                console.log('Send invite for game:', game.id);
+                if (onInvite) {
+                  onInvite(game);
+                }
               }}
             >
+              <Send className="w-3 h-3" />
               Send Invite
             </button>
           </div>
