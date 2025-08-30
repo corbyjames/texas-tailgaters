@@ -93,9 +93,9 @@ export default function MobilePotluckPageFixed() {
     if (!formData.name.trim()) return;
 
     if (editingItem) {
-      await updateItem(editingItem.id, {
+      await updateItem({
+        id: editingItem.id,
         ...formData,
-        gameId: selectedGameId,
       });
       setEditingItem(null);
       setShowEditModal(false);
