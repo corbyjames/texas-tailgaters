@@ -1,0 +1,241 @@
+{
+  "config": {
+    "configFile": "/Users/jamescjames/projects/marine-life-id/marine-life-id/playwright.production.config.ts",
+    "rootDir": "/Users/jamescjames/projects/marine-life-id/marine-life-id/tests",
+    "forbidOnly": true,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "production-test-report"
+        }
+      ],
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "production-test-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/Users/jamescjames/projects/marine-life-id/marine-life-id/production-test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/jamescjames/projects/marine-life-id/marine-life-id/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/production-*.spec.ts"
+        ],
+        "timeout": 90000
+      },
+      {
+        "outputDir": "/Users/jamescjames/projects/marine-life-id/marine-life-id/production-test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Users/jamescjames/projects/marine-life-id/marine-life-id/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/production-*.spec.ts"
+        ],
+        "timeout": 90000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.55.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "production-potluck-quantity.spec.ts",
+      "file": "production-potluck-quantity.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Potluck Quantity Management - Production",
+          "file": "production-potluck-quantity.spec.ts",
+          "line": 72,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Create item with quantity and verify progress bar",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 1650,
+                      "error": {
+                        "message": "Error: page.goto: net::ERR_HTTP_RESPONSE_CODE_FAILURE at https://texas-tailgaters.onrender.com/login\nCall log:\n\u001b[2m  - navigating to \"https://texas-tailgaters.onrender.com/login\", waiting until \"load\"\u001b[22m\n",
+                        "stack": "Error: page.goto: net::ERR_HTTP_RESPONSE_CODE_FAILURE at https://texas-tailgaters.onrender.com/login\nCall log:\n\u001b[2m  - navigating to \"https://texas-tailgaters.onrender.com/login\", waiting until \"load\"\u001b[22m\n\n    at loginUser (/Users/jamescjames/projects/marine-life-id/marine-life-id/tests/production-potluck-quantity.spec.ts:14:14)\n    at /Users/jamescjames/projects/marine-life-id/marine-life-id/tests/production-potluck-quantity.spec.ts:79:11",
+                        "location": {
+                          "file": "/Users/jamescjames/projects/marine-life-id/marine-life-id/tests/production-potluck-quantity.spec.ts",
+                          "column": 14,
+                          "line": 14
+                        },
+                        "snippet": "  12 | // Helper functions\n  13 | async function loginUser(page: Page, email: string, password: string, name: string) {\n> 14 |   await page.goto('/login');\n     |              ^\n  15 |   await page.waitForLoadState('networkidle');\n  16 |   \n  17 |   // Wait for the form to be visible"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/jamescjames/projects/marine-life-id/marine-life-id/tests/production-potluck-quantity.spec.ts",
+                            "column": 14,
+                            "line": 14
+                          },
+                          "message": "Error: page.goto: net::ERR_HTTP_RESPONSE_CODE_FAILURE at https://texas-tailgaters.onrender.com/login\nCall log:\n\u001b[2m  - navigating to \"https://texas-tailgaters.onrender.com/login\", waiting until \"load\"\u001b[22m\n\n\n  12 | // Helper functions\n  13 | async function loginUser(page: Page, email: string, password: string, name: string) {\n> 14 |   await page.goto('/login');\n     |              ^\n  15 |   await page.waitForLoadState('networkidle');\n  16 |   \n  17 |   // Wait for the form to be visible\n    at loginUser (/Users/jamescjames/projects/marine-life-id/marine-life-id/tests/production-potluck-quantity.spec.ts:14:14)\n    at /Users/jamescjames/projects/marine-life-id/marine-life-id/tests/production-potluck-quantity.spec.ts:79:11"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T02:48:33.859Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/jamescjames/projects/marine-life-id/marine-life-id/production-test-results/production-potluck-quantit-25a38-ity-and-verify-progress-bar-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/jamescjames/projects/marine-life-id/marine-life-id/production-test-results/production-potluck-quantit-25a38-ity-and-verify-progress-bar-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/jamescjames/projects/marine-life-id/marine-life-id/production-test-results/production-potluck-quantit-25a38-ity-and-verify-progress-bar-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/jamescjames/projects/marine-life-id/marine-life-id/tests/production-potluck-quantity.spec.ts",
+                        "column": 14,
+                        "line": 14
+                      }
+                    },
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 1321,
+                      "error": {
+                        "message": "Error: page.goto: net::ERR_HTTP_RESPONSE_CODE_FAILURE at https://texas-tailgaters.onrender.com/login\nCall log:\n\u001b[2m  - navigating to \"https://texas-tailgaters.onrender.com/login\", waiting until \"load\"\u001b[22m\n",
+                        "stack": "Error: page.goto: net::ERR_HTTP_RESPONSE_CODE_FAILURE at https://texas-tailgaters.onrender.com/login\nCall log:\n\u001b[2m  - navigating to \"https://texas-tailgaters.onrender.com/login\", waiting until \"load\"\u001b[22m\n\n    at loginUser (/Users/jamescjames/projects/marine-life-id/marine-life-id/tests/production-potluck-quantity.spec.ts:14:14)\n    at /Users/jamescjames/projects/marine-life-id/marine-life-id/tests/production-potluck-quantity.spec.ts:79:11",
+                        "location": {
+                          "file": "/Users/jamescjames/projects/marine-life-id/marine-life-id/tests/production-potluck-quantity.spec.ts",
+                          "column": 14,
+                          "line": 14
+                        },
+                        "snippet": "  12 | // Helper functions\n  13 | async function loginUser(page: Page, email: string, password: string, name: string) {\n> 14 |   await page.goto('/login');\n     |              ^\n  15 |   await page.waitForLoadState('networkidle');\n  16 |   \n  17 |   // Wait for the form to be visible"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/jamescjames/projects/marine-life-id/marine-life-id/tests/production-potluck-quantity.spec.ts",
+                            "column": 14,
+                            "line": 14
+                          },
+                          "message": "Error: page.goto: net::ERR_HTTP_RESPONSE_CODE_FAILURE at https://texas-tailgaters.onrender.com/login\nCall log:\n\u001b[2m  - navigating to \"https://texas-tailgaters.onrender.com/login\", waiting until \"load\"\u001b[22m\n\n\n  12 | // Helper functions\n  13 | async function loginUser(page: Page, email: string, password: string, name: string) {\n> 14 |   await page.goto('/login');\n     |              ^\n  15 |   await page.waitForLoadState('networkidle');\n  16 |   \n  17 |   // Wait for the form to be visible\n    at loginUser (/Users/jamescjames/projects/marine-life-id/marine-life-id/tests/production-potluck-quantity.spec.ts:14:14)\n    at /Users/jamescjames/projects/marine-life-id/marine-life-id/tests/production-potluck-quantity.spec.ts:79:11"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2025-08-30T02:48:37.559Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/jamescjames/projects/marine-life-id/marine-life-id/production-test-results/production-potluck-quantit-25a38-ity-and-verify-progress-bar-chromium-retry1/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/jamescjames/projects/marine-life-id/marine-life-id/production-test-results/production-potluck-quantit-25a38-ity-and-verify-progress-bar-chromium-retry1/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/jamescjames/projects/marine-life-id/marine-life-id/production-test-results/production-potluck-quantit-25a38-ity-and-verify-progress-bar-chromium-retry1/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/Users/jamescjames/projects/marine-life-id/marine-life-id/production-test-results/production-potluck-quantit-25a38-ity-and-verify-progress-bar-chromium-retry1/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/jamescjames/projects/marine-life-id/marine-life-id/tests/production-potluck-quantity.spec.ts",
+                        "column": 14,
+                        "line": 14
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "05b7ab655865e9b56bf6-cfe14893f660b74b7e12",
+              "file": "production-potluck-quantity.spec.ts",
+              "line": 78,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-08-30T02:48:32.879Z",
+    "duration": 6922.394,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}
