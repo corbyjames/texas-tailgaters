@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, ChevronDown, ChevronUp, Search } from 'lucide-react';
+import { Plus, ChevronDown, ChevronUp, Search, Edit2, Trash2 } from 'lucide-react';
 import { useGames } from '../hooks/useGames';
 import { usePotluck } from '../hooks/usePotluck';
 import { useAuth } from '../hooks/useAuth';
@@ -20,12 +20,15 @@ export default function MobilePotluckPageFixed() {
   const [selectedGameId, setSelectedGameId] = useState<string>('');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingItem, setEditingItem] = useState<PotluckItem | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   const { 
     items, 
     loading: potluckLoading, 
-    createItem, 
+    createItem,
+    updateItem, 
     deleteItem, 
     assignItem, 
     unassignItem,
@@ -72,14 +75,37 @@ export default function MobilePotluckPageFixed() {
     setExpandedCategories(newExpanded);
   };
 
+  // Load editing item data
+  useEffect(() => {
+    if (editingItem) {
+      setFormData({
+        name: editingItem.name,
+        category: editingItem.category,
+        quantity: editingItem.quantity || '',
+        description: editingItem.description || '',
+      });
+      setShowEditModal(true);
+    }
+  }, [editingItem]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim()) return;
 
-    await createItem({
-      ...formData,
-      gameId: selectedGameId,
-    });
+    if (editingItem) {
+      await updateItem(editingItem.id, {
+        ...formData,
+        gameId: selectedGameId,
+      });
+      setEditingItem(null);
+      setShowEditModal(false);
+    } else {
+      await createItem({
+        ...formData,
+        gameId: selectedGameId,
+      });
+      setShowAddModal(false);
+    }
 
     setFormData({
       name: '',
@@ -87,7 +113,12 @@ export default function MobilePotluckPageFixed() {
       quantity: '',
       description: '',
     });
-    setShowAddModal(false);
+  };
+
+  const handleDelete = async (itemId: string) => {
+    if (confirm('Are you sure you want to delete this item?')) {
+      await deleteItem(itemId);
+    }
   };
 
   const handleAssign = async (item: PotluckItem) => {
@@ -212,22 +243,39 @@ export default function MobilePotluckPageFixed() {
                               <span className="text-sm text-gray-500 ml-1">({item.quantity})</span>
                             )}
                           </h4>
+                          {item.description && (
+                            <p className="text-xs text-gray-600 mt-1">{item.description}</p>
+                          )}
                           {item.assignedTo && (
                             <p className="text-xs text-green-600 mt-1">
                               Assigned to: {item.assignedTo}
                             </p>
                           )}
                         </div>
-                        <button
-                          onClick={() => handleAssign(item)}
-                          className={`ml-2 px-3 py-1 text-xs rounded-full ${
-                            item.assignedTo === user?.email
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-gray-100 text-gray-700'
-                          }`}
-                        >
-                          {item.assignedTo === user?.email ? 'Unassign' : 'I\'ll bring'}
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => handleAssign(item)}
+                            className={`px-3 py-1 text-xs rounded-full ${
+                              item.assignedTo === user?.email
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-gray-100 text-gray-700'
+                            }`}
+                          >
+                            {item.assignedTo === user?.email ? 'Unassign' : 'I\'ll bring'}
+                          </button>
+                          <button
+                            onClick={() => setEditingItem(item)}
+                            className="p-1.5 text-gray-400 hover:text-gray-600"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(item.id)}
+                            className="p-1.5 text-gray-400 hover:text-red-600"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -246,11 +294,13 @@ export default function MobilePotluckPageFixed() {
         <Plus className="w-6 h-6" />
       </button>
 
-      {/* Add Modal */}
-      {showAddModal && (
+      {/* Add/Edit Modal */}
+      {(showAddModal || showEditModal) && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end">
           <div className="bg-white w-full rounded-t-xl p-4 animate-slide-up">
-            <h3 className="text-lg font-semibold mb-4">Add Potluck Item</h3>
+            <h3 className="text-lg font-semibold mb-4">
+              {editingItem ? 'Edit Potluck Item' : 'Add Potluck Item'}
+            </h3>
             <form onSubmit={handleSubmit}>
               <input
                 type="text"
@@ -292,7 +342,17 @@ export default function MobilePotluckPageFixed() {
               <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={() => setShowAddModal(false)}
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setShowEditModal(false);
+                    setEditingItem(null);
+                    setFormData({
+                      name: '',
+                      category: 'other',
+                      quantity: '',
+                      description: '',
+                    });
+                  }}
                   className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg"
                 >
                   Cancel
@@ -301,7 +361,7 @@ export default function MobilePotluckPageFixed() {
                   type="submit"
                   className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg"
                 >
-                  Add Item
+                  {editingItem ? 'Update Item' : 'Add Item'}
                 </button>
               </div>
             </form>
