@@ -56,5 +56,16 @@ export interface PotluckItem {
   dietaryFlags?: string[];
   createdAt: string;
   user?: User;
+  // Quantity tracking fields
+  quantityNeeded: number;  // How many of this item are needed
+  quantityBrought: number; // How many have been claimed/brought
+  assignments?: PotluckAssignment[]; // Track who's bringing what quantity
+}
+
+export interface PotluckAssignment {
+  userId: string;
+  userName: string;
+  quantity: number;
+  assignedAt: string;
 }
 

@@ -1,4 +1,4 @@
-import { PotluckItem } from '../types/Game';
+import { PotluckItem, PotluckAssignment } from '../types/Game';
 import firebaseService from './firebaseService';
 
 interface CreatePotluckItemData {
@@ -9,10 +9,18 @@ interface CreatePotluckItemData {
   description?: string;
   assignedTo?: string;
   dietaryFlags?: string[];
+  quantityNeeded?: number;  // Add quantity needed field
 }
 
 interface UpdatePotluckItemData extends Partial<CreatePotluckItemData> {
   id: string;
+}
+
+interface AssignQuantityData {
+  itemId: string;
+  userId: string;
+  userName: string;
+  quantity: number;
 }
 
 export class PotluckService {
@@ -32,7 +40,10 @@ export class PotluckService {
         assignedTo: item.assigned_to,
         isAdminAssigned: item.is_admin_assigned,
         dietaryFlags: item.dietary_flags,
-        createdAt: item.created_at
+        createdAt: item.created_at,
+        quantityNeeded: item.quantity_needed || 1,
+        quantityBrought: item.quantity_brought || 0,
+        assignments: item.assignments || []
       }));
     } catch (error) {
       console.error('Error fetching potluck items:', error);
@@ -56,7 +67,10 @@ export class PotluckService {
         assignedTo: item.assigned_to,
         isAdminAssigned: item.is_admin_assigned,
         dietaryFlags: item.dietary_flags,
-        createdAt: item.created_at
+        createdAt: item.created_at,
+        quantityNeeded: item.quantity_needed || 1,
+        quantityBrought: item.quantity_brought || 0,
+        assignments: item.assignments || []
       }));
     } catch (error) {
       console.error('Error fetching all potluck items:', error);
@@ -75,7 +89,10 @@ export class PotluckService {
         description: data.description,
         assigned_to: data.assignedTo,
         is_admin_assigned: false,
-        dietary_flags: data.dietaryFlags || []
+        dietary_flags: data.dietaryFlags || [],
+        quantity_needed: data.quantityNeeded || 1,
+        quantity_brought: 0,
+        assignments: []
       };
 
       const newItem = await firebaseService.createPotluckItem(insertData);
@@ -90,7 +107,10 @@ export class PotluckService {
         assignedTo: newItem.assigned_to,
         isAdminAssigned: newItem.is_admin_assigned,
         dietaryFlags: newItem.dietary_flags,
-        createdAt: newItem.created_at
+        createdAt: newItem.created_at,
+        quantityNeeded: newItem.quantity_needed || 1,
+        quantityBrought: newItem.quantity_brought || 0,
+        assignments: newItem.assignments || []
       };
     } catch (error) {
       console.error('Error creating potluck item:', error);
@@ -127,7 +147,10 @@ export class PotluckService {
         assignedTo: updatedItem.assigned_to,
         isAdminAssigned: updatedItem.is_admin_assigned,
         dietaryFlags: updatedItem.dietary_flags,
-        createdAt: updatedItem.created_at
+        createdAt: updatedItem.created_at,
+        quantityNeeded: updatedItem.quantity_needed || 1,
+        quantityBrought: updatedItem.quantity_brought || 0,
+        assignments: updatedItem.assignments || []
       };
     } catch (error) {
       console.error('Error updating potluck item:', error);
@@ -165,7 +188,10 @@ export class PotluckService {
         assignedTo: updatedItem.assigned_to,
         isAdminAssigned: updatedItem.is_admin_assigned,
         dietaryFlags: updatedItem.dietary_flags,
-        createdAt: updatedItem.created_at
+        createdAt: updatedItem.created_at,
+        quantityNeeded: updatedItem.quantity_needed || 1,
+        quantityBrought: updatedItem.quantity_brought || 0,
+        assignments: updatedItem.assignments || []
       };
     } catch (error) {
       console.error('Error assigning item:', error);
@@ -173,12 +199,45 @@ export class PotluckService {
     }
   }
 
-  // User: Assign item to themselves
-  static async assignPotluckItem(itemId: string, userId: string, userName: string): Promise<PotluckItem | null> {
+  // User: Assign item to themselves with quantity
+  static async assignPotluckItemWithQuantity(data: AssignQuantityData): Promise<PotluckItem | null> {
     try {
-      const updatedItem = await firebaseService.updatePotluckItem(itemId, {
-        assigned_to: userName || userId,
-        is_admin_assigned: false
+      // First get the current item to check quantities
+      const currentItem = await firebaseService.getPotluckItem(data.itemId);
+      if (!currentItem) return null;
+
+      const currentQuantityBrought = currentItem.quantity_brought || 0;
+      const quantityNeeded = currentItem.quantity_needed || 1;
+      const assignments = currentItem.assignments || [];
+
+      // Check if item is already full
+      if (currentQuantityBrought >= quantityNeeded) {
+        console.error('Item is already fully assigned');
+        return null;
+      }
+
+      // Calculate how many can be assigned
+      const remainingNeeded = quantityNeeded - currentQuantityBrought;
+      const quantityToAssign = Math.min(data.quantity, remainingNeeded);
+
+      // Add new assignment
+      const newAssignment: PotluckAssignment = {
+        userId: data.userId,
+        userName: data.userName,
+        quantity: quantityToAssign,
+        assignedAt: new Date().toISOString()
+      };
+
+      // Update assignments list
+      const updatedAssignments = [...assignments, newAssignment];
+      const newQuantityBrought = currentQuantityBrought + quantityToAssign;
+
+      // Update the item
+      const updatedItem = await firebaseService.updatePotluckItem(data.itemId, {
+        quantity_brought: newQuantityBrought,
+        assignments: updatedAssignments,
+        // If fully assigned, mark as assigned to "Multiple people"
+        assigned_to: newQuantityBrought >= quantityNeeded ? 'Multiple people' : currentItem.assigned_to
       });
       
       if (!updatedItem) return null;
@@ -196,12 +255,26 @@ export class PotluckService {
         assignedTo: updatedItem.assigned_to,
         isAdminAssigned: updatedItem.is_admin_assigned,
         dietaryFlags: updatedItem.dietary_flags,
-        createdAt: updatedItem.created_at
+        createdAt: updatedItem.created_at,
+        quantityNeeded: updatedItem.quantity_needed || 1,
+        quantityBrought: updatedItem.quantity_brought || 0,
+        assignments: updatedItem.assignments || []
       };
     } catch (error) {
-      console.error('Error assigning potluck item:', error);
+      console.error('Error assigning potluck item with quantity:', error);
       return null;
     }
+  }
+
+  // User: Assign item to themselves (legacy method for backward compatibility)
+  static async assignPotluckItem(itemId: string, userId: string, userName: string): Promise<PotluckItem | null> {
+    // Use the new method with default quantity of 1
+    return this.assignPotluckItemWithQuantity({
+      itemId,
+      userId,
+      userName,
+      quantity: 1
+    });
   }
 
   // User: Unassign item from themselves
@@ -227,7 +300,10 @@ export class PotluckService {
         assignedTo: updatedItem.assigned_to,
         isAdminAssigned: updatedItem.is_admin_assigned,
         dietaryFlags: updatedItem.dietary_flags,
-        createdAt: updatedItem.created_at
+        createdAt: updatedItem.created_at,
+        quantityNeeded: updatedItem.quantity_needed || 1,
+        quantityBrought: updatedItem.quantity_brought || 0,
+        assignments: updatedItem.assignments || []
       };
     } catch (error) {
       console.error('Error unassigning potluck item:', error);

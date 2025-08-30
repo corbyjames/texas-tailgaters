@@ -206,7 +206,7 @@ class FirebaseService {
   }
 
   // Potluck operations
-  async getPotluckItems(gameId?: string): Promise<PotluckItem[]> {
+  async getPotluckItems(gameId?: string): Promise<any[]> {
     const potluckRef = ref(database, 'potluck_items');
     const snapshot = await get(potluckRef);
     
@@ -224,7 +224,7 @@ class FirebaseService {
     return [];
   }
 
-  async createPotluckItem(item: Omit<PotluckItem, 'id'>): Promise<PotluckItem> {
+  async createPotluckItem(item: any): Promise<any> {
     const potluckRef = ref(database, 'potluck_items');
     const newItemRef = push(potluckRef);
     
@@ -245,7 +245,17 @@ class FirebaseService {
     return { id: newItemRef.key!, ...itemData };
   }
 
-  async updatePotluckItem(id: string, updates: Partial<PotluckItem>): Promise<PotluckItem | null> {
+  async getPotluckItem(id: string): Promise<any | null> {
+    const itemRef = ref(database, `potluck_items/${id}`);
+    const snapshot = await get(itemRef);
+    
+    if (snapshot.exists()) {
+      return { id, ...snapshot.val() };
+    }
+    return null;
+  }
+
+  async updatePotluckItem(id: string, updates: any): Promise<any | null> {
     const itemRef = ref(database, `potluck_items/${id}`);
     
     // Clean data - remove undefined values
