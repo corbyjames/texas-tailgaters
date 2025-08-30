@@ -19,6 +19,7 @@ import { useAuth } from '../hooks/useAuth';
 import { Game, PotluckItem } from '../types/Game';
 import { GameHeader } from '../components/games/GameHeader';
 import { teamLogos } from '../services/teamLogos';
+import { PotluckSignupModal } from '../components/potluck/PotluckSignupModal';
 
 const POTLUCK_CATEGORIES = [
   { value: 'main', label: 'Main Dish', icon: '🍖', color: 'bg-red-100 text-red-800' },
@@ -47,6 +48,7 @@ export default function GameDetailsPage() {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['main', 'side', 'appetizer']));
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState<PotluckItem | null>(null);
+  const [signupItem, setSignupItem] = useState<PotluckItem | null>(null);
   
   // Find the specific game
   const game = games.find(g => g.id === id);
@@ -69,6 +71,7 @@ export default function GameDetailsPage() {
     name: '',
     category: 'other' as PotluckItem['category'],
     quantity: '',
+    quantityNeeded: 1,
     description: '',
     dietaryFlags: [] as string[],
   });
@@ -91,6 +94,7 @@ export default function GameDetailsPage() {
         name: '',
         category: 'other',
         quantity: '',
+        quantityNeeded: 1,
         description: '',
         dietaryFlags: [],
       });
@@ -104,6 +108,7 @@ export default function GameDetailsPage() {
         name: editingItem.name,
         category: editingItem.category,
         quantity: editingItem.quantity || '',
+        quantityNeeded: editingItem.quantityNeeded || 1,
         description: editingItem.description || '',
         dietaryFlags: editingItem.dietaryFlags || [],
       });
@@ -180,10 +185,14 @@ export default function GameDetailsPage() {
     if (!user) return;
     
     try {
-      if (item.assignedTo === user.email) {
+      // For single items or canceling assignments
+      if (item.assignedTo === user.email || 
+          item.assignments?.some(a => a.userId === user.id)) {
+        // Handle unassignment
         await unassignItem(item.id);
       } else {
-        await assignItem(item.id, user.id, user.email || 'Anonymous');
+        // Simple assignment for single items (quantity = 1)
+        await assignItem(item.id, user.id, user.name || user.email || 'Anonymous');
       }
     } catch (error) {
       console.error('Error assigning item:', error);
@@ -371,23 +380,36 @@ export default function GameDetailsPage() {
               
               return (
                 <div key={category.value} className="border border-gray-200 rounded-lg overflow-hidden">
-                  <button
-                    onClick={() => toggleCategory(category.value)}
-                    className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl">{category.icon}</span>
-                      <span className="font-medium">{category.label}</span>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${category.color}`}>
-                        {categoryItems.length}
-                      </span>
-                    </div>
-                    {expandedCategories.has(category.value) ? (
-                      <ChevronUp className="w-4 h-4 text-gray-400" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 text-gray-400" />
-                    )}
-                  </button>
+                  <div className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors">
+                    <button
+                      onClick={() => toggleCategory(category.value)}
+                      className="flex-1 flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-xl">{category.icon}</span>
+                        <span className="font-medium">{category.label}</span>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${category.color}`}>
+                          {categoryItems.length}
+                        </span>
+                      </div>
+                      {expandedCategories.has(category.value) ? (
+                        <ChevronUp className="w-4 h-4 text-gray-400" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 text-gray-400" />
+                      )}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setFormData(prev => ({ ...prev, category: category.value as PotluckItem['category'] }));
+                        setShowAddModal(true);
+                      }}
+                      className="ml-2 p-1.5 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors"
+                      title={`Add ${category.label}`}
+                    >
+                      <Plus className="w-5 h-5" />
+                    </button>
+                  </div>
                   
                   {expandedCategories.has(category.value) && categoryItems.length > 0 && (
                     <div className="border-t border-gray-200 divide-y divide-gray-100">
@@ -414,7 +436,39 @@ export default function GameDetailsPage() {
                                 <p className="text-sm text-gray-600 mt-1">{item.description}</p>
                               )}
                               
-                              {item.assignedTo && (
+                              {/* Quantity tracking display */}
+                              {item.quantityNeeded && item.quantityNeeded > 1 && (
+                                <div className="mt-2">
+                                  <div className="flex items-center gap-2 text-xs">
+                                    <span className="text-gray-600">
+                                      {item.quantityBrought || 0} of {item.quantityNeeded} claimed
+                                    </span>
+                                  </div>
+                                  <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                    <div 
+                                      className={`h-2 rounded-full transition-all ${
+                                        (item.quantityBrought || 0) >= item.quantityNeeded 
+                                          ? 'bg-green-500' 
+                                          : 'bg-orange-500'
+                                      }`}
+                                      style={{ width: `${Math.min(100, ((item.quantityBrought || 0) / item.quantityNeeded) * 100)}%` }}
+                                    />
+                                  </div>
+                                  {item.assignments && item.assignments.length > 0 && (
+                                    <div className="mt-2 space-y-1">
+                                      {item.assignments.map((assignment, idx) => (
+                                        <div key={idx} className="flex items-center gap-1 text-xs text-gray-600">
+                                          <Users className="w-3 h-3" />
+                                          <span>{assignment.userName}: bringing {assignment.quantity}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                              
+                              {/* Single item assignment display */}
+                              {item.assignedTo && (!item.quantityNeeded || item.quantityNeeded === 1) && (
                                 <div className="flex items-center gap-1 mt-2">
                                   <Users className="w-3 h-3 text-green-600" />
                                   <span className="text-xs text-green-600">
@@ -425,21 +479,52 @@ export default function GameDetailsPage() {
                             </div>
                             
                             <div className="flex items-center gap-2 ml-4">
-                              {!item.assignedTo ? (
-                                <button
-                                  onClick={() => handleAssign(item)}
-                                  className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200"
-                                >
-                                  I'll bring this
-                                </button>
-                              ) : item.assignedTo === user?.email ? (
-                                <button
-                                  onClick={() => handleAssign(item)}
-                                  className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
-                                >
-                                  Cancel
-                                </button>
-                              ) : null}
+                              {(() => {
+                                const hasQuantityTracking = (item.quantityNeeded || 1) > 1;
+                                const userHasAssignment = item.assignments?.some(a => a.userId === user?.id);
+                                const isFullyClaimed = hasQuantityTracking && 
+                                  (item.quantityBrought || 0) >= (item.quantityNeeded || 1);
+                                const isSingleItemAssigned = !hasQuantityTracking && item.assignedTo;
+                                const canSignUp = !userHasAssignment && !isFullyClaimed && !isSingleItemAssigned;
+                                const canCancel = userHasAssignment || item.assignedTo === user?.email;
+
+                                if (canSignUp) {
+                                  return (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (hasQuantityTracking) {
+                                          setSignupItem(item);
+                                        } else {
+                                          handleAssign(item);
+                                        }
+                                      }}
+                                      className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200"
+                                    >
+                                      I'll bring this
+                                    </button>
+                                  );
+                                } else if (canCancel) {
+                                  return (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleAssign(item);
+                                      }}
+                                      className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                                    >
+                                      Cancel
+                                    </button>
+                                  );
+                                } else if (isFullyClaimed) {
+                                  return (
+                                    <span className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded">
+                                      Fully Claimed
+                                    </span>
+                                  );
+                                }
+                                return null;
+                              })()}
                               
                               <button
                                 onClick={() => {
@@ -520,17 +605,37 @@ export default function GameDetailsPage() {
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Quantity/Servings
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.quantity}
-                    onChange={(e) => setFormData(prev => ({ ...prev, quantity: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    placeholder="e.g., Serves 10-12"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      How many needed? *
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={formData.quantityNeeded}
+                      onChange={(e) => setFormData(prev => ({ ...prev, quantityNeeded: parseInt(e.target.value) || 1 }))}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      placeholder="1"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      {formData.quantityNeeded > 1 ? 'Multiple people can sign up' : 'Single person item'}
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Servings (optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.quantity}
+                      onChange={(e) => setFormData(prev => ({ ...prev, quantity: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      placeholder="e.g., Serves 10-12"
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -590,6 +695,17 @@ export default function GameDetailsPage() {
             </div>
           </div>
         )}
+
+        {/* Potluck Signup Modal */}
+        <PotluckSignupModal
+          item={signupItem}
+          isOpen={!!signupItem}
+          onClose={() => setSignupItem(null)}
+          onSuccess={() => {
+            setSignupItem(null);
+            // Refresh will happen automatically via potluckUpdate event
+          }}
+        />
       </div>
     </div>
   );
