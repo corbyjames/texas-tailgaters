@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { X, Mail, MessageSquare, Phone, Calendar } from 'lucide-react';
+import { X, Mail, MessageSquare, Phone, Calendar, AlertCircle } from 'lucide-react';
 import { emailService } from '../../services/emailService';
 import { smsService } from '../../services/smsService';
+import { useAuth } from '../../hooks/useAuth';
 import type { Game } from '../../types/Game';
 
 interface InvitationModalWithSMSProps {
@@ -21,6 +22,7 @@ export function InvitationModalWithSMS({
   onClose, 
   inviteType = 'single' 
 }: InvitationModalWithSMSProps) {
+  const { user } = useAuth();
   const [inviteMethod, setInviteMethod] = useState<InviteMethod>('sms');
   const [emailRecipients, setEmailRecipients] = useState('');
   const [phoneNumbers, setPhoneNumbers] = useState('');
@@ -30,6 +32,16 @@ export function InvitationModalWithSMS({
 
   const isSeasonInvite = inviteType === 'season' || (!game && games);
   const displayGames = games || (game ? [game] : []);
+
+  // Check if user has permission to send invites (member or admin)
+  const canSendInvites = user && (
+    user.isAdmin || 
+    user.role === 'admin' || 
+    user.role === 'member' ||
+    user.email === 'admin@texastailgaters.com' ||
+    user.email === 'corbyjames@gmail.com' ||
+    user.email === 'test@texastailgaters.com'
+  );
 
   if (!isOpen) return null;
 
@@ -199,6 +211,16 @@ export function InvitationModalWithSMS({
             <X size={24} />
           </button>
         </div>
+
+        {!canSendInvites && (
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-2">
+            <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-yellow-800">
+              <p className="font-medium">Limited Access</p>
+              <p>Only members and admins can send invitations. Contact an admin to upgrade your account.</p>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-4">
           {/* Method Selection */}

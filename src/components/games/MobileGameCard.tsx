@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Tv, Users, Utensils, ChevronRight } from 'lucide-react';
+import { Calendar, MapPin, Tv, Users, Utensils, ChevronRight, UserCheck } from 'lucide-react';
 import { Game } from '../../types/Game';
 import PotluckService from '../../services/potluckService';
+import rsvpService from '../../services/rsvpService';
 import { getTeamInfo } from '../../services/teamLogos';
+import { RSVPModal } from './RSVPModal';
+import { useAuth } from '../../hooks/useAuth';
 
 interface MobileGameCardProps {
   game: Game;
@@ -12,10 +15,14 @@ interface MobileGameCardProps {
 
 const MobileGameCard: React.FC<MobileGameCardProps> = ({ game, onGameClick }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [potluckStats, setPotluckStats] = useState<{
     totalItems: number;
     assignedItems: number;
   }>({ totalItems: 0, assignedItems: 0 });
+  const [showRSVPModal, setShowRSVPModal] = useState(false);
+  const [userRSVP, setUserRSVP] = useState<any>(null);
+  const [rsvpStats, setRsvpStats] = useState<any>(null);
 
   useEffect(() => {
     const fetchPotluckStats = async () => {
@@ -26,17 +33,33 @@ const MobileGameCard: React.FC<MobileGameCardProps> = ({ game, onGameClick }) =>
       });
     };
 
+    const fetchRSVPData = async () => {
+      if (user) {
+        const userRsvp = await rsvpService.getUserRSVPForGame(user.id, game.id);
+        setUserRSVP(userRsvp);
+      }
+      const stats = await rsvpService.getGameRSVPStats(game.id);
+      setRsvpStats(stats);
+    };
+
     fetchPotluckStats();
+    fetchRSVPData();
 
     const handleUpdate = () => {
       fetchPotluckStats();
+      fetchRSVPData();
     };
 
     window.addEventListener('potluckUpdate', handleUpdate);
+    window.addEventListener('rsvpUpdated', handleUpdate);
+    window.addEventListener('rsvpCreated', handleUpdate);
+    
     return () => {
       window.removeEventListener('potluckUpdate', handleUpdate);
+      window.removeEventListener('rsvpUpdated', handleUpdate);
+      window.removeEventListener('rsvpCreated', handleUpdate);
     };
-  }, [game.id]);
+  }, [game.id, user]);
 
   const gameDate = new Date(game.date);
   const isUpcoming = gameDate >= new Date();
@@ -175,17 +198,32 @@ const MobileGameCard: React.FC<MobileGameCardProps> = ({ game, onGameClick }) =>
             View Potluck
           </button>
           <button
-            className="w-full py-3 px-4 bg-gray-100 text-gray-700 rounded-lg font-medium active:bg-gray-200 transition-colors"
+            className={`w-full py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
+              userRSVP?.status === 'yes'
+                ? 'bg-green-100 text-green-700 active:bg-green-200'
+                : 'bg-gray-100 text-gray-700 active:bg-gray-200'
+            }`}
             onClick={(e) => {
               e.stopPropagation();
-              // TODO: Implement quick RSVP
-              console.log('Quick RSVP for game:', game.id);
+              setShowRSVPModal(true);
             }}
           >
-            RSVP
+            {userRSVP?.status === 'yes' && <UserCheck className="w-4 h-4" />}
+            {userRSVP ? 
+              userRSVP.status === 'yes' ? 'Going' : 
+              userRSVP.status === 'maybe' ? 'Maybe' : 
+              'Not Going' 
+              : 'RSVP'}
           </button>
         </div>
       </div>
+      
+      {/* RSVP Modal */}
+      <RSVPModal
+        game={showRSVPModal ? game : null}
+        isOpen={showRSVPModal}
+        onClose={() => setShowRSVPModal(false)}
+      />
     </div>
   );
 };

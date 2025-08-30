@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useGames } from '../hooks/useGames';
-import { Trash2, Users, Calendar, Shield, AlertTriangle, RefreshCw, Activity } from 'lucide-react';
+import { Trash2, Users, Calendar, Shield, AlertTriangle, RefreshCw, Activity, MessageSquare } from 'lucide-react';
+import { FeedbackManager } from '../components/admin/FeedbackManager';
 
 const AdminPage: React.FC = () => {
   const { user, loading } = useAuth();
@@ -17,6 +18,7 @@ const AdminPage: React.FC = () => {
   const [syncError, setSyncError] = useState('');
   const [diagnosing, setDiagnosing] = useState(false);
   const [diagnosticResults, setDiagnosticResults] = useState<string>('');
+  const [activeTab, setActiveTab] = useState<'overview' | 'feedback'>('overview');
 
   // Check if user is admin
   React.useEffect(() => {
@@ -147,6 +149,42 @@ const AdminPage: React.FC = () => {
         <p className="text-gray-600">Manage system data and settings</p>
       </div>
 
+      {/* Tabs */}
+      <div className="mb-6">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'overview'
+                  ? 'border-orange-500 text-orange-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Activity className="w-4 h-4" />
+                Overview
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('feedback')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'feedback'
+                  ? 'border-orange-500 text-orange-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <MessageSquare className="w-4 h-4" />
+                Feedback
+              </div>
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      {activeTab === 'overview' ? (
+        <>
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <div className="card p-4">
@@ -326,6 +364,11 @@ const AdminPage: React.FC = () => {
           </button>
         </div>
       </div>
+      </>
+      ) : (
+        /* Feedback Tab */
+        <FeedbackManager />
+      )}
     </div>
   );
 };
