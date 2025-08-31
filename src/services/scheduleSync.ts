@@ -8,7 +8,10 @@ interface UTGame {
   time?: string;
   tvNetwork?: string;
   isHome: boolean;
-  result?: string;
+  result?: 'W' | 'L' | 'T';
+  homeScore?: number;
+  awayScore?: number;
+  status?: 'scheduled' | 'completed' | 'in-progress';
 }
 
 // UT 2024 Football Schedule
@@ -27,20 +30,20 @@ const UT_2024_SCHEDULE: UTGame[] = [
   { date: '2024-11-30', opponent: 'Texas A&M', location: 'College Station, TX', time: '6:30 PM', tvNetwork: 'ABC', isHome: false },
 ];
 
-// UT 2025 Football Schedule (with likely TV networks based on matchup importance)
+// UT 2025 Football Schedule (official from texaslonghorns.com)
 const UT_2025_SCHEDULE: UTGame[] = [
-  { date: '2025-08-30', opponent: 'Ohio State', location: 'Columbus, OH', time: '11:00 AM', tvNetwork: 'FOX', isHome: false }, // Big Noon Kickoff marquee matchup
-  { date: '2025-09-06', opponent: 'San Jose State', location: 'Austin, TX', time: 'TBD', tvNetwork: 'Longhorn Network', isHome: true },
-  { date: '2025-09-13', opponent: 'UTSA', location: 'Austin, TX', time: 'TBD', tvNetwork: 'ESPN+', isHome: true },
-  { date: '2025-09-20', opponent: 'Colorado State', location: 'Austin, TX', time: 'TBD', tvNetwork: 'SEC Network', isHome: true },
-  { date: '2025-10-04', opponent: 'Mississippi State', location: 'Austin, TX', time: 'TBD', tvNetwork: 'ESPN', isHome: true },
-  { date: '2025-10-11', opponent: 'Oklahoma', location: 'Dallas, TX', time: '2:30 PM', tvNetwork: 'ABC', isHome: false }, // Red River Rivalry - always ABC at 2:30
-  { date: '2025-10-18', opponent: 'Georgia', location: 'Austin, TX', time: 'TBD', tvNetwork: 'CBS', isHome: true }, // SEC Game of the Week candidate
-  { date: '2025-10-25', opponent: 'Vanderbilt', location: 'Nashville, TN', time: 'TBD', tvNetwork: 'SEC Network', isHome: false },
-  { date: '2025-11-01', opponent: 'Florida', location: 'Austin, TX', time: 'TBD', tvNetwork: 'ESPN', isHome: true },
-  { date: '2025-11-15', opponent: 'Arkansas', location: 'Fayetteville, AR', time: 'TBD', tvNetwork: 'ABC/ESPN', isHome: false },
-  { date: '2025-11-22', opponent: 'Kentucky', location: 'Austin, TX', time: 'TBD', tvNetwork: 'SEC Network', isHome: true },
-  { date: '2025-11-29', opponent: 'Texas A&M', location: 'College Station, TX', time: 'TBD', tvNetwork: 'ABC', isHome: false }, // Rivalry game - primetime
+  { date: '2025-08-30', opponent: 'Ohio State', location: 'Columbus, OH', time: '11:00 AM', tvNetwork: 'FOX', isHome: false, status: 'completed', result: 'L', homeScore: 28, awayScore: 24 },
+  { date: '2025-09-06', opponent: 'San Jose State', location: 'Austin, TX', time: '11:00 AM', tvNetwork: 'ABC', isHome: true },
+  { date: '2025-09-13', opponent: 'UTEP', location: 'Austin, TX', time: '3:15 PM', tvNetwork: 'SEC Network', isHome: true },
+  { date: '2025-09-20', opponent: 'Sam Houston', location: 'Austin, TX', time: '7:00 PM', tvNetwork: 'ESPN+/SEC Network+', isHome: true },
+  { date: '2025-10-04', opponent: 'Florida', location: 'Gainesville, FL', time: 'TBD', tvNetwork: 'TBD', isHome: false }, // Flex time 2:30-7pm
+  { date: '2025-10-11', opponent: 'Oklahoma', location: 'Dallas, TX', time: '2:30 PM', tvNetwork: 'ABC/ESPN', isHome: false }, // Red River Rivalry at Cotton Bowl
+  { date: '2025-10-18', opponent: 'Kentucky', location: 'Lexington, KY', time: 'TBD', tvNetwork: 'TBD', isHome: false }, // Night game 5-7pm
+  { date: '2025-10-25', opponent: 'Mississippi State', location: 'Starkville, MS', time: 'TBD', tvNetwork: 'TBD', isHome: false }, // Flex time
+  { date: '2025-11-01', opponent: 'Vanderbilt', location: 'Austin, TX', time: '11:00 AM', tvNetwork: 'ABC/ESPN', isHome: true },
+  { date: '2025-11-15', opponent: 'Georgia', location: 'Athens, GA', time: 'TBD', tvNetwork: 'TBD', isHome: false }, // Flex time
+  { date: '2025-11-22', opponent: 'Arkansas', location: 'Austin, TX', time: 'TBD', tvNetwork: 'TBD', isHome: true }, // Flex time
+  { date: '2025-11-28', opponent: 'Texas A&M', location: 'Austin, TX', time: '6:30 PM', tvNetwork: 'ABC', isHome: true }, // Friday game, rivalry
 ];
 
 export class ScheduleSyncService {
@@ -61,6 +64,19 @@ export class ScheduleSyncService {
         // Find team logo if available
         const teamLogo = teamLogos[utGame.opponent] || null;
         
+        // Determine status based on date and utGame status
+        let status: 'planned' | 'unplanned' | 'watch-party' | 'completed' = 'unplanned';
+        if (utGame.status === 'completed') {
+          status = 'completed';
+        } else {
+          const gameDate = new Date(utGame.date);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          if (gameDate < today) {
+            status = 'completed';
+          }
+        }
+        
         return {
           id: `temp-${Date.now()}-${index}`, // Temporary ID, will be replaced when saved
           date: utGame.date,
@@ -69,8 +85,11 @@ export class ScheduleSyncService {
           location: utGame.location,
           isHome: utGame.isHome,
           tvNetwork: utGame.tvNetwork || 'TBD',
-          status: 'unplanned' as const,
+          status: status,
           expectedAttendance: 0,
+          result: utGame.result,
+          homeScore: utGame.homeScore,
+          awayScore: utGame.awayScore,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };

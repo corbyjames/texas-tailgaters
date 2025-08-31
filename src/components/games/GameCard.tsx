@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Users, Trophy, CheckCircle, XCircle, Send } from 'lucide-react';
+import { ShoppingBag, Users, Trophy, CheckCircle, XCircle, Send, ChevronDown, ChevronUp } from 'lucide-react';
 import { Game } from '../../types/Game';
 import { GameHeader } from './GameHeader';
 import PotluckService from '../../services/potluckService';
@@ -12,6 +12,7 @@ interface GameCardProps {
 }
 
 const GameCard: React.FC<GameCardProps> = ({ game, onGameClick, onInvite }) => {
+  const [isExpanded, setIsExpanded] = useState(game.status !== 'completed');
   const [potluckStats, setPotluckStats] = useState<{
     totalItems: number;
     assignedItems: number;
@@ -78,17 +79,65 @@ const GameCard: React.FC<GameCardProps> = ({ game, onGameClick, onInvite }) => {
   // Calculate total participants (potluck items + expected attendees)
   const totalParticipants = potluckStats.totalItems + (game.expectedAttendance || 0);
 
+  // For completed games, show collapsed view by default
+  if (game.status === 'completed' && !isExpanded) {
+    return (
+      <div className="card p-3 hover:shadow-ut-hover transition-all duration-200 cursor-pointer bg-gray-50">
+        <div className="flex items-center justify-between" onClick={() => setIsExpanded(true)}>
+          <div className="flex items-center gap-4">
+            {/* Score Display */}
+            <div className="flex items-center gap-2">
+              {game.result === 'W' && <CheckCircle className="w-5 h-5 text-green-600" />}
+              {game.result === 'L' && <XCircle className="w-5 h-5 text-red-600" />}
+              {game.result === 'T' && <Trophy className="w-5 h-5 text-yellow-600" />}
+              <span className={`font-bold text-lg ${
+                game.result === 'W' ? 'text-green-600' : 
+                game.result === 'L' ? 'text-red-600' : 
+                'text-gray-600'
+              }`}>
+                {game.result || '-'}
+              </span>
+            </div>
+            
+            {/* Game Info */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">
+                {new Date(game.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              </span>
+              <span className="font-medium">
+                {game.isHome ? 'vs' : '@'} {game.opponent}
+              </span>
+              {game.homeScore !== undefined && game.awayScore !== undefined && (
+                <span className="font-semibold">
+                  {game.isHome ? (
+                    <span>UT {game.homeScore} - {game.awayScore}</span>
+                  ) : (
+                    <span>{game.awayScore} - UT {game.homeScore}</span>
+                  )}
+                </span>
+              )}
+            </div>
+          </div>
+          
+          <ChevronDown className="w-5 h-5 text-gray-400" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div 
       className="card p-4 hover:shadow-ut-hover transition-all duration-200 cursor-pointer"
       onClick={handleClick}
     >
       <div className="flex items-start gap-4">
-        {/* Total Count Display */}
-        <div className="flex-shrink-0 text-center">
-          <div className="text-3xl font-bold text-ut-orange">{totalParticipants}</div>
-          <div className="text-xs text-gray-600">Items + Attendees</div>
-        </div>
+        {/* Total Count Display - Only for non-completed games */}
+        {game.status !== 'completed' && (
+          <div className="flex-shrink-0 text-center">
+            <div className="text-3xl font-bold text-ut-orange">{totalParticipants}</div>
+            <div className="text-xs text-gray-600">Items + Attendees</div>
+          </div>
+        )}
         
         {/* Game Info */}
         <div className="flex-grow">
@@ -140,9 +189,22 @@ const GameCard: React.FC<GameCardProps> = ({ game, onGameClick, onInvite }) => {
                 </div>
               )}
             </div>
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(game.status)} ml-3`}>
-              {getStatusText(game.status)}
-            </span>
+            <div className="flex items-center gap-2">
+              {game.status === 'completed' && isExpanded && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsExpanded(false);
+                  }}
+                  className="p-1 hover:bg-gray-100 rounded"
+                >
+                  <ChevronUp className="w-4 h-4 text-gray-600" />
+                </button>
+              )}
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(game.status)}`}>
+                {getStatusText(game.status)}
+              </span>
+            </div>
           </div>
 
           {game.theme && (
@@ -205,5 +267,7 @@ const GameCard: React.FC<GameCardProps> = ({ game, onGameClick, onInvite }) => {
 };
 
 export default GameCard;
+
+
 
 

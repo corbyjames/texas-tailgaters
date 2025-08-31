@@ -17,6 +17,9 @@ export interface CreateGameData {
 
 export interface UpdateGameData extends Partial<CreateGameData> {
   id: string;
+  result?: 'W' | 'L' | 'T';
+  homeScore?: number;
+  awayScore?: number;
 }
 
 export class GameService {
@@ -162,6 +165,9 @@ export class GameService {
       if (updateData.setupTime !== undefined) dbUpdateData.setup_time = updateData.setupTime;
       if (updateData.expectedAttendance !== undefined) dbUpdateData.expected_attendance = updateData.expectedAttendance;
       if (updateData.tvNetwork !== undefined) dbUpdateData.tv_network = updateData.tvNetwork;
+      if (updateData.result !== undefined) dbUpdateData.result = updateData.result;
+      if (updateData.homeScore !== undefined) dbUpdateData.home_score = updateData.homeScore;
+      if (updateData.awayScore !== undefined) dbUpdateData.away_score = updateData.awayScore;
 
       const updatedGame = await firebaseService.updateGame(id, dbUpdateData);
       
@@ -253,18 +259,37 @@ export class GameService {
   }
 
   // Sync with external schedule (alias for backward compatibility)
-  static async syncFromUTAthletics(): Promise<{ success: boolean; gamesAdded: number; message: string }> {
+  static async syncFromUTAthletics(): Promise<{ success: boolean; gamesAdded: number; gamesUpdated?: number; message: string }> {
     try {
-      const newGames = await this.syncSchedule();
+      const syncedGames = await this.syncSchedule();
+      // Count how many were actually new vs updated by checking creation time
+      const now = new Date();
+      const oneMinuteAgo = new Date(now.getTime() - 60000);
+      const newGames = syncedGames.filter(g => new Date(g.createdAt) > oneMinuteAgo);
+      const updatedGames = syncedGames.filter(g => new Date(g.createdAt) <= oneMinuteAgo);
+      
+      let message = '';
+      if (newGames.length > 0 && updatedGames.length > 0) {
+        message = `Successfully added ${newGames.length} new games and updated ${updatedGames.length} existing games`;
+      } else if (newGames.length > 0) {
+        message = `Successfully added ${newGames.length} new games from UT Athletics`;
+      } else if (updatedGames.length > 0) {
+        message = `Successfully updated ${updatedGames.length} existing games with latest information`;
+      } else {
+        message = 'All games are already up to date';
+      }
+      
       return {
         success: true,
         gamesAdded: newGames.length,
-        message: `Successfully synced ${newGames.length} games from UT Athletics`
+        gamesUpdated: updatedGames.length,
+        message
       };
     } catch (error) {
       return {
         success: false,
         gamesAdded: 0,
+        gamesUpdated: 0,
         message: `Sync failed: ${error}`
       };
     }
@@ -277,14 +302,16 @@ export class GameService {
       const externalGames = await ScheduleSyncService.syncSchedule();
       const existingGames = await this.getGames();
       const newGames: Game[] = [];
+      const updatedGames: Game[] = [];
 
       for (const externalGame of externalGames) {
         // Check if game already exists (by date and opponent)
-        const exists = existingGames.some(
+        const existingGame = existingGames.find(
           g => g.date === externalGame.date && g.opponent === externalGame.opponent
         );
 
-        if (!exists) {
+        if (!existingGame) {
+          // Create new game
           const createdGame = await this.createGame({
             date: externalGame.date,
             time: externalGame.time,
@@ -295,11 +322,42 @@ export class GameService {
             status: 'unplanned'
           });
           newGames.push(createdGame);
+        } else {
+          // Update existing game if it has missing or different information
+          const needsUpdate = 
+            (existingGame.time === 'TBD' && externalGame.time !== 'TBD') ||
+            (existingGame.tvNetwork === 'TBD' && externalGame.tvNetwork !== 'TBD') ||
+            (!existingGame.location && externalGame.location) ||
+            (existingGame.time !== externalGame.time) ||
+            (existingGame.tvNetwork !== externalGame.tvNetwork) ||
+            (existingGame.status !== externalGame.status) ||
+            (externalGame.result && existingGame.result !== externalGame.result) ||
+            (externalGame.homeScore !== undefined && existingGame.homeScore !== externalGame.homeScore) ||
+            (externalGame.awayScore !== undefined && existingGame.awayScore !== externalGame.awayScore);
+
+          if (needsUpdate) {
+            const updateData: any = {
+              id: existingGame.id,
+              time: externalGame.time,
+              tvNetwork: externalGame.tvNetwork,
+              location: externalGame.location || existingGame.location,
+              status: externalGame.status
+            };
+            
+            // Add score data if available
+            if (externalGame.result) updateData.result = externalGame.result;
+            if (externalGame.homeScore !== undefined) updateData.homeScore = externalGame.homeScore;
+            if (externalGame.awayScore !== undefined) updateData.awayScore = externalGame.awayScore;
+            
+            const updatedGame = await this.updateGame(updateData);
+            updatedGames.push(updatedGame);
+            console.log(`Updated game: ${externalGame.opponent} on ${externalGame.date} - Status: ${externalGame.status}, Time: ${externalGame.time}, TV: ${externalGame.tvNetwork}`);
+          }
         }
       }
 
-      console.log(`Sync complete. Added ${newGames.length} new games.`);
-      return newGames;
+      console.log(`Sync complete. Added ${newGames.length} new games, updated ${updatedGames.length} existing games.`);
+      return [...newGames, ...updatedGames];
     } catch (error) {
       console.error('Error syncing schedule:', error);
       throw error;

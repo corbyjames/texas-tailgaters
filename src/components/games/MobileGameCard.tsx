@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Tv, Users, Utensils, ChevronRight, UserCheck } from 'lucide-react';
+import { Calendar, MapPin, Tv, Users, Utensils, ChevronRight, UserCheck, CheckCircle, XCircle, Trophy } from 'lucide-react';
 import { Game } from '../../types/Game';
 import PotluckService from '../../services/potluckService';
 import rsvpService from '../../services/rsvpService';
@@ -94,6 +94,81 @@ const MobileGameCard: React.FC<MobileGameCardProps> = ({ game, onGameClick }) =>
       onGameClick(game);
     }
   };
+
+  // For completed games, show a more compact view
+  if (game.status === 'completed') {
+    return (
+      <>
+        <div 
+          className="bg-gray-50 rounded-lg shadow-sm border border-gray-200 overflow-hidden active:bg-gray-100 transition-colors"
+          onClick={handleClick}
+        >
+          <div className="p-3">
+            {/* Score Row */}
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-3">
+                {/* Result Icon */}
+                <div className="flex items-center gap-1">
+                  {game.result === 'W' && <CheckCircle className="w-5 h-5 text-green-600" />}
+                  {game.result === 'L' && <XCircle className="w-5 h-5 text-red-600" />}
+                  {game.result === 'T' && <Trophy className="w-5 h-5 text-yellow-600" />}
+                  <span className={`font-bold text-lg ${
+                    game.result === 'W' ? 'text-green-600' : 
+                    game.result === 'L' ? 'text-red-600' : 
+                    'text-gray-600'
+                  }`}>
+                    {game.result || '-'}
+                  </span>
+                </div>
+                
+                {/* Score */}
+                {game.homeScore !== undefined && game.awayScore !== undefined && (
+                  <span className="font-semibold text-gray-800">
+                    {game.isHome ? (
+                      <span>UT {game.homeScore} - {game.awayScore}</span>
+                    ) : (
+                      <span>{game.awayScore} - UT {game.homeScore}</span>
+                    )}
+                  </span>
+                )}
+              </div>
+              
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </div>
+            
+            {/* Game Info */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">
+                  {formatMobileDate(gameDate)}
+                </span>
+                <span className="text-sm font-medium text-gray-700">
+                  {game.isHome ? 'vs' : '@'} {game.opponent}
+                </span>
+              </div>
+              <span className="text-xs px-2 py-1 bg-gray-200 text-gray-600 rounded-full">
+                Final
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        {/* RSVP Modal */}
+        <RSVPModal 
+          game={game}
+          isOpen={showRSVPModal}
+          onClose={() => {
+            setShowRSVPModal(false);
+            // Refresh RSVP data after modal closes
+            if (user) {
+              rsvpService.getUserRSVPForGame(user.id, game.id).then(setUserRSVP);
+            }
+            rsvpService.getGameRSVPStats(game.id).then(setRsvpStats);
+          }}
+        />
+      </>
+    );
+  }
 
   return (
     <div 
