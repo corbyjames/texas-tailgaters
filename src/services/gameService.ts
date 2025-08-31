@@ -305,9 +305,14 @@ export class GameService {
       const updatedGames: Game[] = [];
 
       for (const externalGame of externalGames) {
-        // Check if game already exists (by date and opponent)
+        // Check if game already exists (by opponent and season year)
+        // This allows us to update games even if the date is wrong
+        const externalYear = new Date(externalGame.date).getFullYear();
         const existingGame = existingGames.find(
-          g => g.date === externalGame.date && g.opponent === externalGame.opponent
+          g => {
+            const existingYear = new Date(g.date).getFullYear();
+            return g.opponent === externalGame.opponent && existingYear === externalYear;
+          }
         );
 
         if (!existingGame) {
@@ -325,6 +330,7 @@ export class GameService {
         } else {
           // Update existing game if it has missing or different information
           const needsUpdate = 
+            (existingGame.date !== externalGame.date) || // Check date changes too!
             (existingGame.time === 'TBD' && externalGame.time !== 'TBD') ||
             (existingGame.tvNetwork === 'TBD' && externalGame.tvNetwork !== 'TBD') ||
             (!existingGame.location && externalGame.location) ||
@@ -338,6 +344,7 @@ export class GameService {
           if (needsUpdate) {
             const updateData: any = {
               id: existingGame.id,
+              date: externalGame.date, // Include date in updates!
               time: externalGame.time,
               tvNetwork: externalGame.tvNetwork,
               location: externalGame.location || existingGame.location,
