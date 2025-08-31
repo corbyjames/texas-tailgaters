@@ -7,7 +7,7 @@ import rsvpService from '../../services/rsvpService';
 import { getTeamInfo } from '../../services/teamLogos';
 import { RSVPModal } from './RSVPModal';
 import { useAuth } from '../../hooks/useAuth';
-import { isGameUpcoming } from '../../utils/dateUtils';
+import { isGameUpcoming, parseGameDate } from '../../utils/dateUtils';
 
 interface MobileGameCardProps {
   game: Game;
@@ -62,7 +62,7 @@ const MobileGameCard: React.FC<MobileGameCardProps> = ({ game, onGameClick }) =>
     };
   }, [game.id, user]);
 
-  const gameDate = new Date(game.date);
+  const gameDate = parseGameDate(game.date);
   const isUpcoming = isGameUpcoming(game.date);
   const opponentInfo = getTeamInfo(game.opponent);
   

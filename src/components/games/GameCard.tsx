@@ -4,6 +4,7 @@ import { ShoppingBag, Users, Trophy, CheckCircle, XCircle, Send, ChevronDown, Ch
 import { Game } from '../../types/Game';
 import { GameHeader } from './GameHeader';
 import PotluckService from '../../services/potluckService';
+import { parseGameDate } from '../../utils/dateUtils';
 
 interface GameCardProps {
   game: Game;
@@ -102,7 +103,7 @@ const GameCard: React.FC<GameCardProps> = ({ game, onGameClick, onInvite }) => {
             {/* Game Info */}
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">
-                {new Date(game.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                {parseGameDate(game.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               </span>
               <span className="font-medium">
                 {game.isHome ? 'vs' : '@'} {game.opponent}
