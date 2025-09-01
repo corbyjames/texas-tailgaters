@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Sync Date</title>
+</head>
+<body>
+    <h1>Clear Schedule Sync Date</h1>
+    <button onclick="clearSync()">Clear Last Sync Date</button>
+    <div id="status"></div>
+    
+    <script>
+        function clearSync() {
+            localStorage.removeItem('lastScheduleSync');
+            document.getElementById('status').innerHTML = '<p style="color: green;">✓ Sync date cleared. Next page load will trigger sync.</p>';
+        }
+        
+        // Show current status
+        const lastSync = localStorage.getItem('lastScheduleSync');
+        if (lastSync) {
+            document.getElementById('status').innerHTML = '<p>Last sync: ' + lastSync + '</p>';
+        } else {
+            document.getElementById('status').innerHTML = '<p>No previous sync found</p>';
+        }
+    </script>
+</body>
+</html>

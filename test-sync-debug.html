@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Schedule Sync</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { padding: 10px 20px; margin: 10px; }
+        .game { padding: 10px; margin: 5px 0; background: #f5f5f5; border-radius: 5px; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Debug Schedule Sync</h1>
+    
+    <button onclick="clearLocalStorage()">Clear Local Storage</button>
+    <button onclick="checkFirebaseGames()">Check Firebase Games</button>
+    <button onclick="triggerManualSync()">Trigger Manual Sync</button>
+    
+    <div id="status"></div>
+    <div id="games"></div>
+    
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, get, set, push } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyBJascYs4rXD4uL5Z8F7RDkMOBhQtjehic",
+            authDomain: "texas-tailgaters.firebaseapp.com",
+            databaseURL: "https://texas-tailgaters-default-rtdb.firebaseio.com",
+            projectId: "texas-tailgaters",
+            storageBucket: "texas-tailgaters.appspot.com",
+            messagingSenderId: "517392756353",
+            appId: "1:517392756353:web:texas-tailgaters-web"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        
+        window.clearLocalStorage = function() {
+            localStorage.clear();
+            document.getElementById('status').innerHTML = '<p class="success">✓ Local storage cleared</p>';
+        };
+        
+        window.checkFirebaseGames = async function() {
+            const statusDiv = document.getElementById('status');
+            const gamesDiv = document.getElementById('games');
+            
+            statusDiv.innerHTML = '<p>Checking Firebase...</p>';
+            
+            try {
+                const gamesRef = ref(database, 'games');
+                const snapshot = await get(gamesRef);
+                
+                if (snapshot.exists()) {
+                    const games = snapshot.val();
+                    const gameCount = Object.keys(games).length;
+                    
+                    statusDiv.innerHTML = `<p class="success">✓ Found ${gameCount} games in Firebase</p>`;
+                    
+                    let html = '<h3>Games in Database:</h3>';
+                    Object.entries(games).forEach(([id, game]) => {
+                        html += `<div class="game">
+                            <strong>${game.date}</strong> - 
+                            ${game.is_home ? 'vs' : '@'} ${game.opponent} - 
+                            ${game.time || 'TBD'} - 
+                            ${game.tv_network || 'TBD'}
+                            ${game.status === 'completed' ? ' (COMPLETED)' : ''}
+                        </div>`;
+                    });
+                    
+                    gamesDiv.innerHTML = html;
+                } else {
+                    statusDiv.innerHTML = '<p class="error">No games found in Firebase</p>';
+                    gamesDiv.innerHTML = '';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        };
+        
+        window.triggerManualSync = async function() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = '<p>Starting manual sync...</p>';
+            
+            // 2025 Schedule
+            const schedule2025 = [
+                { date: '2025-08-30', opponent: 'Ohio State', location: 'Columbus, OH', time: '11:00 AM', tv_network: 'FOX', is_home: false, status: 'completed', result: 'L', home_score: 28, away_score: 24 },
+                { date: '2025-09-06', opponent: 'San Jose State', location: 'Austin, TX', time: '11:00 AM', tv_network: 'ABC', is_home: true },
+                { date: '2025-09-13', opponent: 'UTEP', location: 'Austin, TX', time: '3:15 PM', tv_network: 'SEC Network', is_home: true },
+                { date: '2025-09-20', opponent: 'Sam Houston', location: 'Austin, TX', time: '7:00 PM', tv_network: 'ESPN+/SEC Network+', is_home: true },
+                { date: '2025-10-04', opponent: 'Florida', location: 'Gainesville, FL', time: 'TBD', tv_network: 'TBD', is_home: false },
+                { date: '2025-10-11', opponent: 'Oklahoma', location: 'Dallas, TX', time: '2:30 PM', tv_network: 'ABC/ESPN', is_home: false },
+                { date: '2025-10-18', opponent: 'Kentucky', location: 'Lexington, KY', time: 'TBD', tv_network: 'TBD', is_home: false },
+                { date: '2025-10-25', opponent: 'Mississippi State', location: 'Starkville, MS', time: 'TBD', tv_network: 'TBD', is_home: false },
+                { date: '2025-11-01', opponent: 'Vanderbilt', location: 'Austin, TX', time: '11:00 AM', tv_network: 'ABC/ESPN', is_home: true },
+                { date: '2025-11-15', opponent: 'Georgia', location: 'Athens, GA', time: 'TBD', tv_network: 'TBD', is_home: false },
+                { date: '2025-11-22', opponent: 'Arkansas', location: 'Austin, TX', time: 'TBD', tv_network: 'TBD', is_home: true },
+                { date: '2025-11-28', opponent: 'Texas A&M', location: 'Austin, TX', time: '6:30 PM', tv_network: 'ABC', is_home: true }
+            ];
+            
+            try {
+                const gamesRef = ref(database, 'games');
+                const existingSnapshot = await get(gamesRef);
+                const existingGames = existingSnapshot.exists() ? existingSnapshot.val() : {};
+                
+                let added = 0;
+                let updated = 0;
+                
+                for (const game of schedule2025) {
+                    // Check if game exists
+                    const existingGame = Object.entries(existingGames).find(([id, g]) => 
+                        g.date === game.date && g.opponent === game.opponent
+                    );
+                    
+                    if (!existingGame) {
+                        // Add new game
+                        const newGameRef = push(gamesRef);
+                        await set(newGameRef, {
+                            ...game,
+                            status: game.status || 'unplanned',
+                            expected_attendance: 0,
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                        });
+                        added++;
+                    } else {
+                        // Update existing if needed
+                        const [id, existing] = existingGame;
+                        if (existing.time === 'TBD' && game.time !== 'TBD') {
+                            await set(ref(database, `games/${id}`), {
+                                ...existing,
+                                ...game,
+                                updated_at: new Date().toISOString()
+                            });
+                            updated++;
+                        }
+                    }
+                }
+                
+                statusDiv.innerHTML = `<p class="success">✓ Sync complete: ${added} added, ${updated} updated</p>`;
+                
+                // Refresh the display
+                await checkFirebaseGames();
+                
+            } catch (error) {
+                statusDiv.innerHTML = `<p class="error">Sync error: ${error.message}</p>`;
+            }
+        };
+        
+        // Check games on load
+        checkFirebaseGames();
+    </script>
+</body>
+</html>

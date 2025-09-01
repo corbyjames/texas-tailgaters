@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSVP Modal Fix Test</title>
+    <style>
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .fix-box {
+            background: #f0fdf4;
+            border: 2px solid #10b981;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .fix-box h2 {
+            color: #059669;
+            margin-top: 0;
+        }
+        .test-steps {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .step {
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #f97316;
+            background: #fff7ed;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-weight: 500;
+        }
+        .success {
+            background: #10b981;
+            color: white;
+        }
+        button {
+            padding: 12px 24px;
+            margin: 10px;
+            cursor: pointer;
+            border-radius: 6px;
+            border: none;
+            background: #f97316;
+            color: white;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #ea580c;
+        }
+        code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .warning {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            color: #92400e;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 RSVP Modal Navigation Fix</h1>
+    
+    <div class="status success">
+        ✅ RSVP modal now stays on the same page after submission!
+    </div>
+
+    <div class="fix-box">
+        <h2>What Was Fixed</h2>
+        <ul>
+            <li><strong>Issue:</strong> After submitting RSVP, users were redirected to invite page</li>
+            <li><strong>Solution:</strong> Modal now closes gracefully and stays on current page</li>
+            <li><strong>Added:</strong> Success message displays briefly before closing</li>
+            <li><strong>Timing:</strong> 1.5 second success display, then auto-close</li>
+        </ul>
+    </div>
+
+    <div class="test-steps">
+        <h2>Test Steps</h2>
+        
+        <div class="step">
+            <strong>Step 1: Navigate to Game Details</strong>
+            <ul>
+                <li>Go to Games page</li>
+                <li>Click "View Details" on any game</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <strong>Step 2: Open RSVP Modal</strong>
+            <ul>
+                <li>Look for the RSVP button (top right of attendees section)</li>
+                <li>Click to open the RSVP modal</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <strong>Step 3: Submit RSVP</strong>
+            <ul>
+                <li>Select your attendance status (Yes/Maybe/No)</li>
+                <li>If "Yes", choose number of attendees</li>
+                <li>Add optional notes</li>
+                <li>Click "Submit RSVP"</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <strong>Step 4: Verify Behavior</strong>
+            <ul>
+                <li>✅ Success message appears: "RSVP Submitted!"</li>
+                <li>✅ Modal closes after 1.5 seconds</li>
+                <li>✅ You remain on the same game details page</li>
+                <li>✅ RSVP list updates with your response</li>
+                <li>❌ No navigation to invite or other pages</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="fix-box">
+        <h2>What You'll See</h2>
+        <ol>
+            <li><strong>During submission:</strong> "Saving..." button state</li>
+            <li><strong>After success:</strong> Green checkmark with success message
+                <ul>
+                    <li>"See you at the game!" (if Yes)</li>
+                    <li>"Hope you can make it!" (if Maybe)</li>
+                    <li>"Maybe next time!" (if No)</li>
+                </ul>
+            </li>
+            <li><strong>After closing:</strong> Updated RSVP button shows your status</li>
+            <li><strong>In attendees list:</strong> Your name appears in appropriate section</li>
+        </ol>
+    </div>
+
+    <div class="warning">
+        <strong>⚠️ Note:</strong> If you still experience navigation issues:
+        <ul>
+            <li>Check for any browser extensions that might interfere</li>
+            <li>Ensure you're not accidentally double-clicking</li>
+            <li>Clear browser cache and try again</li>
+            <li>The modal should ONLY close, not navigate anywhere</li>
+        </ul>
+    </div>
+
+    <div class="test-steps">
+        <h2>Code Changes Applied</h2>
+        <pre style="background: #1f2937; color: #e5e7eb; padding: 15px; border-radius: 8px; overflow-x: auto;">
+// RSVPModal.tsx changes:
+
+1. Added success state:
+   const [success, setSuccess] = useState(false);
+
+2. After successful RSVP submission:
+   setSuccess(true);
+   setTimeout(() => {
+     setSuccess(false);
+     onClose(); // Just close, no navigation
+   }, 1500);
+
+3. Success UI shows before closing:
+   {success ? (
+     &lt;div className="text-center"&gt;
+       ✓ RSVP Submitted!
+       {contextual message based on status}
+     &lt;/div&gt;
+   ) : (
+     // Regular form content
+   )}
+        </pre>
+    </div>
+
+    <div style="text-align: center; margin: 40px 0;">
+        <button onclick="window.open('http://localhost:5173/games', '_blank')">
+            Test RSVP Now
+        </button>
+        <button onclick="showInstructions()">
+            Show Test Instructions
+        </button>
+    </div>
+
+    <script>
+        function showInstructions() {
+            alert(`Test Instructions:
+1. Open any game details page
+2. Click the RSVP button
+3. Submit your RSVP
+4. Verify you stay on the same page
+5. Check that your RSVP appears in the list
+
+The modal should close after showing success - no navigation!`);
+        }
+
+        // Check if dev server is running
+        fetch('http://localhost:5173')
+            .then(() => {
+                console.log('✅ Dev server is running');
+            })
+            .catch(() => {
+                document.body.insertAdjacentHTML('afterbegin', 
+                    '<div class="status" style="background: #ef4444; color: white;">❌ Dev server not running. Run: npm run dev</div>');
+            });
+    </script>
+</body>
+</html>

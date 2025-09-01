@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check Florida Game Details</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 40px auto; 
+            padding: 20px; 
+            background: #f5f5f5;
+        }
+        .status { 
+            padding: 15px; 
+            margin: 20px 0; 
+            border-radius: 5px; 
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e9; color: #2e7d32; }
+        .info { background: #e3f2fd; color: #1565c0; }
+        .game-card {
+            background: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .date { font-weight: bold; color: #1976d2; }
+        .opponent { font-size: 1.2em; font-weight: bold; margin: 10px 0; }
+        .details { color: #666; margin: 5px 0; }
+        h2 { color: #333; border-bottom: 2px solid #1976d2; padding-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Florida Game Details Check</h1>
+    <div id="status"></div>
+    <div id="results"></div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, collection, getDocs, query, where, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBq0vwv2IzqGFzLlqvCH-7lKxDLByN6mxU",
+            authDomain: "texastailgaters-ce4e3.firebaseapp.com",
+            projectId: "texastailgaters-ce4e3",
+            storageBucket: "texastailgaters-ce4e3.appspot.com",
+            messagingSenderId: "1081679850706",
+            appId: "1:1081679850706:web:d2ca26ac479f067e32feb0"
+        };
+
+        const status = document.getElementById('status');
+        const results = document.getElementById('results');
+
+        async function checkFloridaGame() {
+            try {
+                status.innerHTML = '<div class="status info">Initializing Firebase...</div>';
+                const app = initializeApp(firebaseConfig);
+                const auth = getAuth(app);
+                const db = getFirestore(app);
+
+                await signInAnonymously(auth);
+                status.innerHTML = '<div class="status success">Connected to Firebase!</div>';
+
+                // Get all games
+                const gamesRef = collection(db, 'games');
+                const q = query(gamesRef, orderBy('gameDate'));
+                const snapshot = await getDocs(q);
+
+                let floridaGames = [];
+                let allGames = [];
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    allGames.push({ id: doc.id, ...data });
+                    
+                    if (data.opponent && data.opponent.toLowerCase().includes('florida')) {
+                        floridaGames.push({ id: doc.id, ...data });
+                    }
+                });
+
+                results.innerHTML = '<h2>Florida Games Found:</h2>';
+                
+                if (floridaGames.length === 0) {
+                    results.innerHTML += '<div class="status error">No Florida games found in database!</div>';
+                } else {
+                    floridaGames.forEach(game => {
+                        const gameDate = game.gameDate ? new Date(game.gameDate) : null;
+                        const dateStr = gameDate ? gameDate.toLocaleDateString('en-US', { 
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            timeZone: 'America/Chicago'
+                        }) : 'No date';
+                        
+                        const timeStr = game.time || 'TBD';
+                        const locationStr = game.location || 'TBD';
+                        const tvStr = game.tvNetwork || 'TBD';
+                        
+                        results.innerHTML += `
+                            <div class="game-card">
+                                <div class="opponent">${game.opponent}</div>
+                                <div class="date">Date: ${dateStr}</div>
+                                <div class="details">Raw Date Value: ${game.gameDate}</div>
+                                <div class="details">Time: ${timeStr}</div>
+                                <div class="details">Location: ${locationStr}</div>
+                                <div class="details">TV: ${tvStr}</div>
+                                <div class="details">Home Game: ${game.isHome ? 'Yes' : 'No'}</div>
+                                <div class="details">Document ID: ${game.id}</div>
+                            </div>
+                        `;
+                    });
+                }
+
+                // Show all 2025 games for context
+                results.innerHTML += '<h2>All 2025 Games (for reference):</h2>';
+                const games2025 = allGames.filter(g => {
+                    const date = g.gameDate ? new Date(g.gameDate) : null;
+                    return date && date.getFullYear() === 2025;
+                });
+
+                games2025.forEach(game => {
+                    const gameDate = game.gameDate ? new Date(game.gameDate) : null;
+                    const dateStr = gameDate ? gameDate.toLocaleDateString('en-US', { 
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        timeZone: 'America/Chicago'
+                    }) : 'No date';
+                    
+                    results.innerHTML += `
+                        <div class="game-card" style="padding: 10px;">
+                            <div><strong>${game.opponent}</strong> - ${dateStr} - ${game.time || 'TBD'}</div>
+                        </div>
+                    `;
+                });
+
+            } catch (error) {
+                status.innerHTML = `<div class="status error">Error: ${error.message}</div>`;
+                console.error('Error:', error);
+            }
+        }
+
+        checkFloridaGame();
+    </script>
+</body>
+</html>

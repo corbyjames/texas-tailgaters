@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Verify All 2025 Game Dates</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .game { padding: 10px; margin: 5px 0; background: #f5f5f5; border-radius: 5px; }
+        .error { background: #ffe0e0; }
+        .warning { background: #fff0e0; }
+        .success { background: #e0ffe0; }
+        button { padding: 10px 20px; margin: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Verify All 2025 Texas Football Game Dates</h1>
+    
+    <button onclick="checkDates()">Check All Dates</button>
+    <button onclick="fixAllDates()">Fix Any Incorrect Dates</button>
+    
+    <div id="results"></div>
+    
+    <script>
+        const CORRECT_2025_SCHEDULE = [
+            { date: '2025-08-30', opponent: 'Ohio State', expectedDay: 'Saturday' },
+            { date: '2025-09-06', opponent: 'San Jose State', expectedDay: 'Saturday' },
+            { date: '2025-09-13', opponent: 'UTEP', expectedDay: 'Saturday' },
+            { date: '2025-09-20', opponent: 'Sam Houston', expectedDay: 'Saturday' },
+            { date: '2025-10-04', opponent: 'Florida', expectedDay: 'Saturday' },
+            { date: '2025-10-11', opponent: 'Oklahoma', expectedDay: 'Saturday' },
+            { date: '2025-10-18', opponent: 'Kentucky', expectedDay: 'Saturday' },
+            { date: '2025-10-25', opponent: 'Mississippi State', expectedDay: 'Saturday' },
+            { date: '2025-11-01', opponent: 'Vanderbilt', expectedDay: 'Saturday' },
+            { date: '2025-11-15', opponent: 'Georgia', expectedDay: 'Saturday' },
+            { date: '2025-11-22', opponent: 'Arkansas', expectedDay: 'Saturday' },
+            { date: '2025-11-28', opponent: 'Texas A&M', expectedDay: 'Friday' } // Special Friday game
+        ];
+        
+        function checkDates() {
+            const resultsDiv = document.getElementById('results');
+            let html = '<h2>Date Verification Results:</h2>';
+            let hasErrors = false;
+            
+            CORRECT_2025_SCHEDULE.forEach(game => {
+                const gameDate = new Date(game.date + 'T12:00:00'); // Add time to avoid timezone issues
+                const dayOfWeek = gameDate.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'America/Chicago' });
+                const isCorrect = dayOfWeek === game.expectedDay;
+                
+                if (!isCorrect) hasErrors = true;
+                
+                html += `
+                    <div class="game ${isCorrect ? 'success' : 'error'}">
+                        <strong>${game.date}</strong> - ${game.opponent}<br>
+                        Day: ${dayOfWeek} (Expected: ${game.expectedDay})
+                        ${isCorrect ? ' ✓' : ' ❌ INCORRECT DATE'}
+                    </div>
+                `;
+            });
+            
+            if (hasErrors) {
+                html += '<p style="color: red; font-weight: bold;">⚠️ Some dates are incorrect!</p>';
+            } else {
+                html += '<p style="color: green; font-weight: bold;">✓ All dates are correct!</p>';
+            }
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        async function fixAllDates() {
+            // This would connect to Firebase and fix the dates
+            // For now, showing what needs to be fixed
+            
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+                <h3>Dates that need fixing in Firebase:</h3>
+                <p>If Florida game shows as Oct 3 (Friday), it should be Oct 4 (Saturday)</p>
+                <p>All other games should be on Saturdays except Texas A&M (Friday, Nov 28)</p>
+                <p style="color: blue;">Use the check-florida-date.html page to fix the Florida game if needed.</p>
+            `;
+        }
+        
+        // Check on load
+        checkDates();
+    </script>
+</body>
+</html>

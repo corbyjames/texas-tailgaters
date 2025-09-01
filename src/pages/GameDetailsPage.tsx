@@ -11,7 +11,10 @@ import {
   Edit2,
   Plus,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  UserCheck,
+  UserX,
+  UserPlus
 } from 'lucide-react';
 import { useGames } from '../hooks/useGames';
 import { usePotluck } from '../hooks/usePotluck';
@@ -20,6 +23,8 @@ import { Game, PotluckItem } from '../types/Game';
 import { GameHeader } from '../components/games/GameHeader';
 import { teamLogos } from '../services/teamLogos';
 import { PotluckSignupModal } from '../components/potluck/PotluckSignupModal';
+import { RSVPModal } from '../components/games/RSVPModal';
+import rsvpService, { RSVP } from '../services/rsvpService';
 
 const POTLUCK_CATEGORIES = [
   { value: 'main', label: 'Main Dish', icon: '🍖', color: 'bg-red-100 text-red-800' },
@@ -49,6 +54,10 @@ export default function GameDetailsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState<PotluckItem | null>(null);
   const [signupItem, setSignupItem] = useState<PotluckItem | null>(null);
+  const [rsvps, setRsvps] = useState<RSVP[]>([]);
+  const [rsvpStats, setRsvpStats] = useState<any>(null);
+  const [showRSVPModal, setShowRSVPModal] = useState(false);
+  const [userRSVP, setUserRSVP] = useState<RSVP | null>(null);
   
   // Find the specific game
   const game = games.find(g => g.id === id);
@@ -114,6 +123,44 @@ export default function GameDetailsPage() {
       });
     }
   }, [editingItem]);
+
+  // Fetch RSVPs for this game
+  useEffect(() => {
+    const fetchRSVPs = async () => {
+      if (game?.id) {
+        try {
+          const gameRsvps = await rsvpService.getGameRSVPs(game.id);
+          setRsvps(gameRsvps);
+          
+          const stats = await rsvpService.getGameRSVPStats(game.id);
+          setRsvpStats(stats);
+          
+          // Check if current user has RSVPed
+          if (user) {
+            const currentUserRSVP = gameRsvps.find(r => r.userId === user.id);
+            setUserRSVP(currentUserRSVP || null);
+          }
+        } catch (error) {
+          console.error('Error fetching RSVPs:', error);
+        }
+      }
+    };
+
+    fetchRSVPs();
+
+    // Listen for RSVP updates
+    const handleRSVPUpdate = () => {
+      fetchRSVPs();
+    };
+
+    window.addEventListener('rsvpUpdated', handleRSVPUpdate);
+    window.addEventListener('rsvpCreated', handleRSVPUpdate);
+
+    return () => {
+      window.removeEventListener('rsvpUpdated', handleRSVPUpdate);
+      window.removeEventListener('rsvpCreated', handleRSVPUpdate);
+    };
+  }, [game?.id, user]);
 
   if (gamesLoading || potluckLoading) {
     return (
@@ -343,22 +390,149 @@ export default function GameDetailsPage() {
           </div>
         </div>
 
-        {/* Attendees Section */}
-        {attendees.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Who's Coming</h2>
-            <div className="flex flex-wrap gap-2">
-              {attendees.map((attendee, index) => (
-                <span 
-                  key={index}
-                  className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
-                >
-                  {attendee}
+        {/* RSVP Attendees Section */}
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6">
+          <div className="mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
+              <h2 className="text-lg font-semibold text-gray-900">RSVPs & Attendees</h2>
+              <button
+                onClick={() => setShowRSVPModal(true)}
+                className={`px-3 sm:px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors text-sm sm:text-base ${
+                  userRSVP?.status === 'yes' 
+                    ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                    : userRSVP?.status === 'maybe'
+                    ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                    : userRSVP?.status === 'no'
+                    ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-orange-500 text-white hover:bg-orange-600'
+                }`}
+              >
+                {userRSVP?.status === 'yes' && <UserCheck className="w-4 h-4" />}
+                {userRSVP?.status === 'no' && <UserX className="w-4 h-4" />}
+                {!userRSVP && <UserPlus className="w-4 h-4" />}
+                <span className="sm:inline">
+                  {userRSVP ? 
+                    userRSVP.status === 'yes' ? 'You\'re Going' :
+                    userRSVP.status === 'maybe' ? 'You Might Go' :
+                    'Not Going'
+                    : 'RSVP'}
                 </span>
-              ))}
+              </button>
             </div>
+            {rsvpStats && (
+              <div className="flex flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm">
+                <span className="text-green-600 font-medium">
+                  ✓ {rsvpStats.yes} Going ({rsvpStats.totalAttendees})
+                </span>
+                <span className="text-yellow-600">
+                  ? {rsvpStats.maybe} Maybe
+                </span>
+                <span className="text-gray-500">
+                  ✗ {rsvpStats.no} Not Going
+                </span>
+              </div>
+            )}
           </div>
-        )}
+
+          {/* Group RSVPs by status */}
+          {rsvps.length > 0 ? (
+            <div className="space-y-4">
+              {/* Going */}
+              {rsvps.filter(r => r.status === 'yes').length > 0 && (
+                <div>
+                  <h3 className="text-xs sm:text-sm font-medium text-gray-700 mb-2">Going</h3>
+                  <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                    {rsvps.filter(r => r.status === 'yes').map((rsvp) => (
+                      <div 
+                        key={rsvp.id}
+                        className="flex items-center justify-between p-2 sm:p-3 bg-green-50 border border-green-200 rounded-lg"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
+                            {rsvp.userName?.charAt(0) || rsvp.userEmail?.charAt(0) || '?'}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">
+                              {rsvp.userName || rsvp.userEmail?.split('@')[0] || 'Anonymous'}
+                            </p>
+                            {rsvp.attendeeCount > 1 && (
+                              <p className="text-xs text-gray-600">
+                                +{rsvp.attendeeCount - 1} guest{rsvp.attendeeCount > 2 ? 's' : ''}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        {rsvp.notes && (
+                          <span className="text-xs text-gray-500 flex-shrink-0" title={rsvp.notes}>
+                            💬
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Maybe */}
+              {rsvps.filter(r => r.status === 'maybe').length > 0 && (
+                <div>
+                  <h3 className="text-xs sm:text-sm font-medium text-gray-700 mb-2">Maybe</h3>
+                  <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                    {rsvps.filter(r => r.status === 'maybe').map((rsvp) => (
+                      <div 
+                        key={rsvp.id}
+                        className="flex items-center gap-2 p-2 sm:p-3 bg-yellow-50 border border-yellow-200 rounded-lg"
+                      >
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 bg-yellow-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
+                          {rsvp.userName?.charAt(0) || rsvp.userEmail?.charAt(0) || '?'}
+                        </div>
+                        <p className="text-xs sm:text-sm text-gray-900 truncate">
+                          {rsvp.userName || rsvp.userEmail?.split('@')[0] || 'Anonymous'}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Not Going */}
+              {rsvps.filter(r => r.status === 'no').length > 0 && (
+                <div>
+                  <h3 className="text-xs sm:text-sm font-medium text-gray-700 mb-2">Not Going</h3>
+                  <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                    {rsvps.filter(r => r.status === 'no').map((rsvp) => (
+                      <span 
+                        key={rsvp.id}
+                        className="px-2 py-0.5 sm:py-1 bg-gray-100 text-gray-600 rounded-full text-xs"
+                      >
+                        {rsvp.userName || rsvp.userEmail?.split('@')[0] || 'Anonymous'}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-xs sm:text-sm">No RSVPs yet. Be the first to RSVP!</p>
+          )}
+
+          {/* From Potluck Assignments (if any items are assigned) */}
+          {attendees.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <h3 className="text-xs sm:text-sm font-medium text-gray-700 mb-2">Also Bringing Food</h3>
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                {attendees.map((attendee, index) => (
+                  <span 
+                    key={index}
+                    className="px-2 sm:px-3 py-0.5 sm:py-1 bg-orange-100 text-orange-700 rounded-full text-xs sm:text-sm"
+                  >
+                    {attendee}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Potluck Section */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
@@ -705,6 +879,13 @@ export default function GameDetailsPage() {
             setSignupItem(null);
             // Refresh will happen automatically via potluckUpdate event
           }}
+        />
+
+        {/* RSVP Modal */}
+        <RSVPModal
+          game={showRSVPModal ? game : null}
+          isOpen={showRSVPModal}
+          onClose={() => setShowRSVPModal(false)}
         />
       </div>
     </div>

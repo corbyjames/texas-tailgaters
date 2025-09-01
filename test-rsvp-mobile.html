@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSVP Mobile Layout Test</title>
+    <style>
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .device-frame {
+            width: 375px;
+            height: 667px;
+            border: 16px solid #333;
+            border-radius: 36px;
+            padding: 10px;
+            margin: 20px auto;
+            background: white;
+            overflow-y: auto;
+            position: relative;
+        }
+        .device-frame::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 16px;
+            background: #333;
+            border-radius: 0 0 16px 16px;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-weight: 500;
+        }
+        .success {
+            background: #10b981;
+            color: white;
+        }
+        .changes-list {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .changes-list h3 {
+            color: #d97706;
+            margin-top: 0;
+        }
+        .changes-list ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .changes-list li {
+            margin: 8px 0;
+        }
+        button {
+            padding: 12px 24px;
+            margin: 10px;
+            cursor: pointer;
+            border-radius: 6px;
+            border: none;
+            background: #f97316;
+            color: white;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #ea580c;
+        }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .comparison > div {
+            padding: 15px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+        .comparison h4 {
+            margin-top: 0;
+            color: #1f2937;
+        }
+        @media (max-width: 768px) {
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+            .device-frame {
+                margin: 20px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>📱 RSVP Attendees List - Mobile Layout Test</h1>
+    
+    <div class="status success">
+        ✅ RSVP attendees list is now fully mobile-responsive!
+    </div>
+
+    <div class="changes-list">
+        <h3>Mobile Optimizations Applied</h3>
+        <ul>
+            <li><strong>Responsive Header:</strong> RSVP button stacks below title on mobile</li>
+            <li><strong>Flexible Grid:</strong> Cards adapt from 1 column on phones to 3 on desktop</li>
+            <li><strong>Touch-Friendly Sizes:</strong> Larger tap targets for mobile users</li>
+            <li><strong>Text Scaling:</strong> Smaller text on mobile to fit more content</li>
+            <li><strong>Truncation:</strong> Long names truncate with ellipsis on small screens</li>
+            <li><strong>Compact Spacing:</strong> Reduced padding and gaps on mobile</li>
+            <li><strong>Custom Breakpoint:</strong> Added xs:475px for better control</li>
+        </ul>
+    </div>
+
+    <div class="comparison">
+        <div>
+            <h4>🖥️ Desktop View</h4>
+            <ul>
+                <li>3 columns for "Going" cards</li>
+                <li>Full-size avatars (8x8)</li>
+                <li>Normal text size (sm)</li>
+                <li>Comfortable padding (p-6)</li>
+                <li>Side-by-side header layout</li>
+                <li>Full button text always visible</li>
+            </ul>
+        </div>
+        <div>
+            <h4>📱 Mobile View</h4>
+            <ul>
+                <li>1-2 columns for cards</li>
+                <li>Smaller avatars (7x7)</li>
+                <li>Compact text size (xs)</li>
+                <li>Reduced padding (p-4)</li>
+                <li>Stacked header layout</li>
+                <li>Truncated names if needed</li>
+            </ul>
+        </div>
+    </div>
+
+    <h2>Mobile Preview (375px width)</h2>
+    <div class="device-frame">
+        <div style="padding: 16px; background: #f9fafb; min-height: 100%;">
+            <!-- RSVP Section Preview -->
+            <div style="background: white; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                <div style="margin-bottom: 12px;">
+                    <h3 style="font-size: 18px; font-weight: 600; margin: 0 0 12px 0;">RSVPs & Attendees</h3>
+                    <button style="width: 100%; padding: 8px; font-size: 14px; background: #f97316; color: white; border-radius: 6px; margin-bottom: 8px;">
+                        RSVP
+                    </button>
+                    <div style="font-size: 12px; color: #666; display: flex; flex-wrap: wrap; gap: 8px;">
+                        <span style="color: #10b981;">✓ 8 Going (12)</span>
+                        <span style="color: #eab308;">? 2 Maybe</span>
+                        <span style="color: #6b7280;">✗ 1 Not Going</span>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 16px;">
+                    <h4 style="font-size: 12px; color: #6b7280; margin: 0 0 8px 0;">Going</h4>
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px; padding: 8px; background: #dcfce7; border: 1px solid #86efac; border-radius: 6px;">
+                            <div style="width: 28px; height: 28px; background: #059669; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">J</div>
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-size: 12px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">John Smith</div>
+                                <div style="font-size: 11px; color: #666;">+2 guests</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px; padding: 8px; background: #dcfce7; border: 1px solid #86efac; border-radius: 6px;">
+                            <div style="width: 28px; height: 28px; background: #059669; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">S</div>
+                            <div style="font-size: 12px; font-weight: 500;">Sarah J.</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 16px;">
+                    <h4 style="font-size: 12px; color: #6b7280; margin: 0 0 8px 0;">Maybe</h4>
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 8px; background: #fef3c7; border: 1px solid #fde047; border-radius: 6px;">
+                        <div style="width: 28px; height: 28px; background: #eab308; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">T</div>
+                        <div style="font-size: 12px;">Tom Wilson</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #e5e7eb;">
+                    <h4 style="font-size: 12px; color: #6b7280; margin: 0 0 8px 0;">Also Bringing Food</h4>
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                        <span style="padding: 2px 8px; background: #fed7aa; color: #c2410c; border-radius: 12px; font-size: 11px;">Alice C.</span>
+                        <span style="padding: 2px 8px; background: #fed7aa; color: #c2410c; border-radius: 12px; font-size: 11px;">Bob M.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="changes-list">
+        <h3>Responsive Classes Used</h3>
+        <ul>
+            <li><code>p-4 sm:p-6</code> - Smaller padding on mobile</li>
+            <li><code>text-xs sm:text-sm</code> - Smaller text on mobile</li>
+            <li><code>gap-1.5 sm:gap-2</code> - Tighter gaps on mobile</li>
+            <li><code>grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3</code> - Adaptive columns</li>
+            <li><code>w-7 h-7 sm:w-8 sm:h-8</code> - Smaller avatars on mobile</li>
+            <li><code>px-2 sm:px-3</code> - Compact horizontal padding</li>
+            <li><code>flex-col sm:flex-row</code> - Stack elements vertically on mobile</li>
+            <li><code>truncate</code> - Prevent text overflow with ellipsis</li>
+        </ul>
+    </div>
+
+    <div style="text-align: center; margin: 40px 0;">
+        <button onclick="testMobile()">
+            Test on Mobile Device
+        </button>
+        <button onclick="testResponsive()">
+            Test Responsive View
+        </button>
+    </div>
+
+    <script>
+        function testMobile() {
+            if (window.innerWidth > 768) {
+                alert('To test mobile view:\n1. Open DevTools (F12)\n2. Toggle device toolbar (Ctrl+Shift+M)\n3. Select iPhone or similar\n4. Navigate to a game details page');
+            } else {
+                window.open('http://localhost:5173/games', '_blank');
+            }
+        }
+
+        function testResponsive() {
+            window.open('http://localhost:5173/games', '_blank');
+            alert('Resize your browser window to see how the RSVP list adapts:\n• Desktop: 3 columns\n• Tablet: 2 columns\n• Mobile: 1-2 columns\n• All text and spacing adjusts automatically');
+        }
+
+        // Check if dev server is running
+        fetch('http://localhost:5173')
+            .then(() => {
+                console.log('✅ Dev server is running');
+            })
+            .catch(() => {
+                document.body.insertAdjacentHTML('afterbegin', 
+                    '<div class="status" style="background: #ef4444; color: white;">❌ Dev server not running. Run: npm run dev</div>');
+            });
+    </script>
+</body>
+</html>

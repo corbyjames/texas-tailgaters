@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manual Schedule Sync</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { padding: 10px 20px; margin: 10px 0; }
+        .game { padding: 10px; margin: 5px 0; background: #f5f5f5; border-radius: 5px; }
+        .completed { background: #e0e0e0; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Manual Schedule Sync Test</h1>
+    <button onclick="syncSchedule()">Sync Schedule Now</button>
+    <button onclick="viewGames()">View Current Games</button>
+    <button onclick="clearAllGames()">Clear All Games</button>
+    
+    <div id="status"></div>
+    <div id="games"></div>
+    
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, get, set, remove } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyBJascYs4rXD4uL5Z8F7RDkMOBhQtjehic",
+            authDomain: "texas-tailgaters.firebaseapp.com",
+            databaseURL: "https://texas-tailgaters-default-rtdb.firebaseio.com",
+            projectId: "texas-tailgaters",
+            storageBucket: "texas-tailgaters.appspot.com",
+            messagingSenderId: "517392756353",
+            appId: "1:517392756353:web:texas-tailgaters-web"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        
+        window.syncSchedule = async function() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = '<p>Syncing schedule...</p>';
+            
+            // Manually trigger sync by opening the games page
+            window.open('http://localhost:5173/games', '_blank');
+            statusDiv.innerHTML = '<p class="success">✓ Sync triggered. Check the games page for updates.</p>';
+            
+            // Also view current games
+            setTimeout(viewGames, 2000);
+        };
+        
+        window.viewGames = async function() {
+            const gamesDiv = document.getElementById('games');
+            gamesDiv.innerHTML = '<h2>Loading games...</h2>';
+            
+            try {
+                const gamesRef = ref(database, 'games');
+                const snapshot = await get(gamesRef);
+                
+                if (snapshot.exists()) {
+                    const games = snapshot.val();
+                    let html = '<h2>Current Games in Database:</h2>';
+                    
+                    // Convert to array and sort by date
+                    const gamesArray = Object.entries(games).map(([id, game]) => ({
+                        ...game,
+                        id
+                    })).sort((a, b) => new Date(a.date) - new Date(b.date));
+                    
+                    gamesArray.forEach(game => {
+                        const isCompleted = game.status === 'completed';
+                        html += `
+                            <div class="game ${isCompleted ? 'completed' : ''}">
+                                <strong>${game.date}</strong> - 
+                                ${game.is_home ? 'vs' : '@'} ${game.opponent}
+                                ${game.time ? ` at ${game.time}` : ''}
+                                ${game.tv_network ? ` on ${game.tv_network}` : ''}
+                                ${isCompleted && game.result ? ` - Result: ${game.result}` : ''}
+                                ${isCompleted && game.home_score !== undefined ? ` (${game.home_score}-${game.away_score})` : ''}
+                            </div>
+                        `;
+                    });
+                    
+                    gamesDiv.innerHTML = html;
+                } else {
+                    gamesDiv.innerHTML = '<p>No games found in database</p>';
+                }
+            } catch (error) {
+                gamesDiv.innerHTML = '<p class="error">Error loading games: ' + error.message + '</p>';
+            }
+        };
+        
+        window.clearAllGames = async function() {
+            if (!confirm('Are you sure you want to clear all games? This will remove everything!')) {
+                return;
+            }
+            
+            const statusDiv = document.getElementById('status');
+            try {
+                const gamesRef = ref(database, 'games');
+                await remove(gamesRef);
+                statusDiv.innerHTML = '<p class="success">✓ All games cleared. Refresh the games page to re-sync.</p>';
+                document.getElementById('games').innerHTML = '';
+            } catch (error) {
+                statusDiv.innerHTML = '<p class="error">Error clearing games: ' + error.message + '</p>';
+            }
+        };
+        
+        // Load games on page load
+        viewGames();
+    </script>
+</body>
+</html>

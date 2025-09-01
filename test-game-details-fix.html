@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameDetailsPage Quantity Fix Verification</title>
+    <style>
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-weight: 500;
+        }
+        .success {
+            background: #10b981;
+            color: white;
+        }
+        .fix {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .fix h3 {
+            color: #d97706;
+            margin-top: 0;
+        }
+        .code {
+            background: #1f2937;
+            color: #10b981;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 4px;
+            border: none;
+            background: #f97316;
+            color: white;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #ea580c;
+        }
+        .test-step {
+            background: white;
+            border-left: 4px solid #f97316;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .check {
+            color: #10b981;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 GameDetailsPage Quantity Features - FIXED!</h1>
+    
+    <div class="status success">
+        ✅ The quantity management issues on GameDetailsPage have been fixed!
+    </div>
+
+    <div class="fix">
+        <h3>What Was Wrong:</h3>
+        <ul>
+            <li>❌ PotluckSignupModal was being called with wrong props (<code>onSignup</code> instead of <code>onSuccess</code>)</li>
+            <li>❌ The modal wasn't being passed the <code>isOpen</code> prop</li>
+            <li>❌ handleAssign was trying to pass quantity to assignItem which doesn't support it</li>
+        </ul>
+        
+        <h3>What Was Fixed:</h3>
+        <div class="code">
+// FIXED: PotluckSignupModal now uses correct props
+&lt;PotluckSignupModal
+  item={signupItem}
+  isOpen={!!signupItem}  // ← Added isOpen prop
+  onClose={() => setSignupItem(null)}
+  onSuccess={() => {     // ← Changed from onSignup to onSuccess
+    setSignupItem(null);
+    // Modal handles the quantity assignment internally
+  }}
+/&gt;
+        </div>
+        
+        <p><strong>Key insight:</strong> The PotluckSignupModal component handles quantity assignments internally via <code>PotluckService.assignPotluckItemWithQuantity()</code>. It doesn't need the parent to handle the assignment!</p>
+    </div>
+
+    <div class="fix">
+        <h3>Test It Now:</h3>
+        
+        <div class="test-step">
+            <strong>Step 1:</strong> Navigate to Game Details
+            <ul>
+                <li>Go to Games page</li>
+                <li>Click "View Details" on any game</li>
+            </ul>
+        </div>
+        
+        <div class="test-step">
+            <strong>Step 2:</strong> Create Item with Quantity
+            <ul>
+                <li>Click the <code>+</code> button next to any category</li>
+                <li>Fill in item name</li>
+                <li>Set "How many needed?" to <code>3</code> or more</li>
+                <li>Click "Add Item"</li>
+            </ul>
+        </div>
+        
+        <div class="test-step">
+            <strong>Step 3:</strong> Test Quantity Assignment
+            <ul>
+                <li>Click "I'll bring this" on the item</li>
+                <li><span class="check">✓</span> Modal should appear asking "How many will you bring?"</li>
+                <li>Enter a quantity (e.g., 2)</li>
+                <li>Click "I'll bring 2"</li>
+                <li><span class="check">✓</span> Progress should update to show "2 of 3"</li>
+                <li><span class="check">✓</span> Your assignment should show with quantity</li>
+            </ul>
+        </div>
+        
+        <div class="test-step">
+            <strong>Step 4:</strong> Verify All Features Work
+            <ul>
+                <li><span class="check">✓</span> Progress bars display correctly</li>
+                <li><span class="check">✓</span> Multiple assignments show</li>
+                <li><span class="check">✓</span> Cancel button works</li>
+                <li><span class="check">✓</span> "Fully Claimed" badge appears when quantity reached</li>
+                <li><span class="check">✓</span> Category plus buttons pre-populate category</li>
+            </ul>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin: 40px 0;">
+        <button onclick="window.open('http://localhost:5173/games', '_blank')">
+            Test on Games Page Now
+        </button>
+        <button onclick="window.open('http://localhost:5173/potluck', '_blank')">
+            Compare with Potluck Page
+        </button>
+    </div>
+
+    <div class="fix">
+        <h3>Summary of All Fixes Applied:</h3>
+        <ol>
+            <li>✅ Added <code>quantityNeeded</code> field to form state</li>
+            <li>✅ Added quantity input UI with "How many needed?" field</li>
+            <li>✅ Added category plus buttons that pre-populate</li>
+            <li>✅ Fixed PotluckSignupModal props (<code>isOpen</code> and <code>onSuccess</code>)</li>
+            <li>✅ Simplified handleAssign to not handle quantities (modal does it)</li>
+            <li>✅ Progress bars and assignment tracking already working</li>
+        </ol>
+    </div>
+
+    <script>
+        // Check if dev server is running
+        fetch('http://localhost:5173')
+            .then(() => {
+                console.log('✅ Dev server is running - Ready to test!');
+            })
+            .catch(() => {
+                document.body.insertAdjacentHTML('afterbegin', 
+                    '<div class="status" style="background: #ef4444; color: white;">❌ Dev server not running. Run: npm run dev</div>');
+            });
+    </script>
+</body>
+</html>

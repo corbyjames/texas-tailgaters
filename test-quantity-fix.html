@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Quantity Management Fix</title>
+    <style>
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #10b981;
+            color: white;
+        }
+        .info {
+            background: #3b82f6;
+            color: white;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 4px;
+            border: none;
+            background: #f97316;
+            color: white;
+        }
+        button:hover {
+            background: #ea580c;
+        }
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .checklist li:before {
+            content: "✓ ";
+            color: #10b981;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>GameDetailsPage Quantity Management Fix</h1>
+    <p>Verification that the GameDetailsPage now has the same quantity management features as PotluckPage.</p>
+
+    <div class="test-section">
+        <h2>✅ Changes Applied</h2>
+        <div class="status success">
+            All quantity management features have been added to GameDetailsPage to match PotluckPage
+        </div>
+        
+        <h3>What was fixed:</h3>
+        <ul class="checklist">
+            <li>Added <strong>quantityNeeded</strong> field to form state (default: 1)</li>
+            <li>Added quantity input field with number type (min: 1)</li>
+            <li>Shows helper text: "Multiple people can sign up" or "Single person item"</li>
+            <li>Split quantity field into two: "How many needed?" and "Servings (optional)"</li>
+            <li>Added Plus button to each category header that pre-populates category</li>
+            <li>Form now properly saves quantityNeeded when creating/editing items</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>Testing Checklist</h2>
+        <p>Please verify these features work on the Game Details page:</p>
+        
+        <h3>1. Creating Items with Quantity</h3>
+        <ul class="checklist">
+            <li>Click "Add Item" button or Plus icon in any category</li>
+            <li>Set "How many needed?" to 3</li>
+            <li>Create the item</li>
+            <li>Verify progress bar shows 0/3</li>
+            <li>Click "I'll bring this" and select quantity</li>
+            <li>Verify progress updates correctly</li>
+        </ul>
+
+        <h3>2. Category Plus Buttons</h3>
+        <ul class="checklist">
+            <li>Click Plus icon next to "Main Dish" category</li>
+            <li>Verify modal opens with "Main Dish" pre-selected</li>
+            <li>Create item and verify it appears in correct category</li>
+        </ul>
+
+        <h3>3. Editing Items</h3>
+        <ul class="checklist">
+            <li>Edit an existing item</li>
+            <li>Change "How many needed?" value</li>
+            <li>Save and verify the quantity updates</li>
+            <li>Verify progress bar reflects new total</li>
+        </ul>
+
+        <h3>4. Quantity Tracking Display</h3>
+        <ul class="checklist">
+            <li>Items with quantity > 1 show progress bars</li>
+            <li>Multiple assignments display correctly</li>
+            <li>"Fully Claimed" badge appears when quantity reached</li>
+            <li>Single items (quantity = 1) work as before</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>Quick Navigation</h2>
+        <button onclick="window.open('http://localhost:5173/games', '_blank')">
+            Open Games Page
+        </button>
+        <button onclick="testGameDetails()">
+            Test Game Details
+        </button>
+        <button onclick="compareToPotluck()">
+            Compare to Potluck Page
+        </button>
+    </div>
+
+    <div class="test-section">
+        <h2>Code Changes Summary</h2>
+        <pre style="background: #f3f4f6; padding: 10px; border-radius: 4px; overflow-x: auto;">
+// GameDetailsPage.tsx updates:
+
+1. Form state now includes quantityNeeded:
+const [formData, setFormData] = useState({
+  name: '',
+  category: 'other',
+  quantity: '',
+  quantityNeeded: 1,  // ← Added
+  description: '',
+  dietaryFlags: [],
+});
+
+2. Form UI updated with quantity fields:
+&lt;div className="grid grid-cols-2 gap-4"&gt;
+  &lt;div&gt;
+    &lt;label&gt;How many needed? *&lt;/label&gt;
+    &lt;input type="number" min="1" value={formData.quantityNeeded} /&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;label&gt;Servings (optional)&lt;/label&gt;
+    &lt;input type="text" value={formData.quantity} /&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+3. Category headers now have Plus buttons:
+&lt;button onClick={() =&gt; {
+  setFormData(prev =&gt; ({ ...prev, category: category.value }));
+  setShowAddModal(true);
+}}&gt;
+  &lt;Plus /&gt;
+&lt;/button&gt;
+        </pre>
+    </div>
+
+    <script>
+        function testGameDetails() {
+            window.open('http://localhost:5173/games', '_blank');
+            alert('Click "View Details" on any game, then test the potluck features on that page');
+        }
+
+        function compareToPotluck() {
+            window.open('http://localhost:5173/potluck', '_blank');
+            alert('Compare the behavior between Potluck page and Game Details page - they should match now');
+        }
+
+        // Check if dev server is running
+        fetch('http://localhost:5173')
+            .then(() => {
+                document.body.insertAdjacentHTML('afterbegin', 
+                    '<div class="status success">✅ Dev server is running - Ready to test!</div>');
+            })
+            .catch(() => {
+                document.body.insertAdjacentHTML('afterbegin', 
+                    '<div class="status" style="background: #ef4444; color: white;">❌ Dev server not running. Run: npm run dev</div>');
+            });
+    </script>
+</body>
+</html>

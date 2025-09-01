@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Force Schedule Resync</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { padding: 10px 20px; margin: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>Force Schedule Resync</h1>
+    
+    <button onclick="clearAndResync()">Clear Cache & Force Resync</button>
+    
+    <div id="status"></div>
+    
+    <script>
+        function clearAndResync() {
+            const statusDiv = document.getElementById('status');
+            
+            // Clear the sync date from localStorage
+            localStorage.removeItem('lastScheduleSync');
+            
+            statusDiv.innerHTML = '<div class="status success">✓ Sync cache cleared!</div>';
+            
+            // Open the games page which will trigger a fresh sync
+            setTimeout(() => {
+                statusDiv.innerHTML += '<div class="status success">Opening games page to trigger sync...</div>';
+                window.open('http://localhost:5173/games', '_blank');
+                
+                setTimeout(() => {
+                    statusDiv.innerHTML += '<div class="status success">Sync should be complete. Check the games page for updated dates.</div>';
+                }, 3000);
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

@@ -18,11 +18,13 @@ export function RSVPModal({ game, isOpen, onClose }: RSVPModalProps) {
     notes: ''
   });
   const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [existingRSVP, setExistingRSVP] = useState<RSVP | null>(null);
   const [stats, setStats] = useState<any>(null);
 
   useEffect(() => {
     if (game && user && isOpen) {
+      setSuccess(false); // Reset success state when opening
       loadExistingRSVP();
       loadStats();
     }
@@ -78,10 +80,14 @@ export function RSVPModal({ game, isOpen, onClose }: RSVPModalProps) {
       // Reload stats
       await loadStats();
       
-      // Close modal after success
+      // Show success state
+      setSuccess(true);
+      
+      // Close modal after brief delay
       setTimeout(() => {
+        setSuccess(false);
         onClose();
-      }, 1000);
+      }, 1500);
     } catch (error) {
       console.error('Error submitting RSVP:', error);
     } finally {
@@ -120,23 +126,40 @@ export function RSVPModal({ game, isOpen, onClose }: RSVPModalProps) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">
-              RSVP for Game
-            </h2>
-            <p className="text-sm text-gray-600 mt-1">
-              {game.isHome ? 'vs' : '@'} {game.opponent}
+        {success ? (
+          // Success Message
+          <div className="text-center py-8">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">RSVP Submitted!</h3>
+            <p className="text-gray-600">
+              {formData.status === 'yes' ? 'See you at the game!' : 
+               formData.status === 'maybe' ? 'Hope you can make it!' :
+               'Maybe next time!'}
             </p>
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <X size={24} />
-          </button>
-        </div>
+        ) : (
+          <>
+            {/* Header */}
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">
+                  RSVP for Game
+                </h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  {game.isHome ? 'vs' : '@'} {game.opponent}
+                </p>
+              </div>
+              <button
+                onClick={onClose}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={24} />
+              </button>
+            </div>
 
         {/* Game Details */}
         <div className="bg-gray-50 rounded-lg p-3 mb-4 space-y-2">
@@ -273,6 +296,8 @@ export function RSVPModal({ game, isOpen, onClose }: RSVPModalProps) {
             </button>
           </div>
         </form>
+        </>
+        )}
       </div>
     </div>
   );

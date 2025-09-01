@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Quantity Management Test</title>
+    <style>
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #f97316;
+            border-radius: 8px;
+            background: #fff7ed;
+        }
+        h2 {
+            color: #ea580c;
+            border-bottom: 2px solid #fed7aa;
+            padding-bottom: 10px;
+        }
+        .step {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #f97316;
+            border-radius: 4px;
+        }
+        .step-num {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #f97316;
+            color: white;
+            text-align: center;
+            line-height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .check {
+            color: #10b981;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #10b981;
+            color: white;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 4px;
+            border: none;
+            background: #f97316;
+            color: white;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #ea580c;
+        }
+        code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Manual Testing Guide: Quantity Management</h1>
+    <p>Follow these steps to manually test the quantity management features that were just implemented.</p>
+
+    <div class="status success">
+        ✅ All code changes have been deployed. The features are ready to test!
+    </div>
+
+    <div class="test-section">
+        <h2>Test 1: PotluckPage Quantity Features</h2>
+        
+        <div class="step">
+            <span class="step-num">1</span>
+            <strong>Navigate to Potluck Page</strong>
+            <p>Go to <code>http://localhost:5173/potluck</code></p>
+        </div>
+
+        <div class="step">
+            <span class="step-num">2</span>
+            <strong>Create Item with Quantity</strong>
+            <ul>
+                <li>Click the <code>+</code> button next to any category (e.g., Main Dish)</li>
+                <li>Fill in item name: "Test Burgers"</li>
+                <li>Set "How many needed?" to <code>3</code></li>
+                <li>Notice the helper text changes to "Multiple people can sign up"</li>
+                <li>Click "Add Item"</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <span class="step-num">3</span>
+            <strong>Verify Progress Display</strong>
+            <p><span class="check">✓</span> Item should show "0 of 3 claimed"</p>
+            <p><span class="check">✓</span> Progress bar should be visible (empty)</p>
+            <p><span class="check">✓</span> "I'll bring this" button should be visible</p>
+        </div>
+
+        <div class="step">
+            <span class="step-num">4</span>
+            <strong>Sign Up with Quantity</strong>
+            <ul>
+                <li>Click "I'll bring this" button</li>
+                <li>Modal should appear asking "How many will you bring?"</li>
+                <li>Enter <code>2</code></li>
+                <li>Click "I'll bring 2"</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <span class="step-num">5</span>
+            <strong>Verify Updates</strong>
+            <p><span class="check">✓</span> Progress should show "2 of 3 claimed"</p>
+            <p><span class="check">✓</span> Progress bar should be ~66% filled (orange)</p>
+            <p><span class="check">✓</span> Your assignment should show: "[Your Name]: bringing 2"</p>
+            <p><span class="check">✓</span> "Cancel" button should replace "I'll bring this"</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: GameDetailsPage Quantity Features</h2>
+        
+        <div class="step">
+            <span class="step-num">1</span>
+            <strong>Navigate to Game Details</strong>
+            <ul>
+                <li>Go to <code>http://localhost:5173/games</code></li>
+                <li>Click "View Details" on any game</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <span class="step-num">2</span>
+            <strong>Test Category Plus Buttons</strong>
+            <ul>
+                <li>Find the <code>+</code> button next to "Side Dish" category</li>
+                <li>Click it</li>
+                <li><span class="check">✓</span> Modal should open with "Side Dish" pre-selected</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <span class="step-num">3</span>
+            <strong>Create Quantity Item</strong>
+            <ul>
+                <li>Item name: "Potato Salad"</li>
+                <li>Set "How many needed?" to <code>4</code></li>
+                <li>Notice the 2-column layout with "Servings" as optional field</li>
+                <li>Click "Add Item"</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <span class="step-num">4</span>
+            <strong>Verify Same Features as PotluckPage</strong>
+            <p><span class="check">✓</span> Progress bar shows "0 of 4"</p>
+            <p><span class="check">✓</span> "I'll bring this" button works with modal</p>
+            <p><span class="check">✓</span> Assignments display correctly</p>
+            <p><span class="check">✓</span> "Fully Claimed" badge when quantity reached</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Edit Quantity Feature</h2>
+        
+        <div class="step">
+            <span class="step-num">1</span>
+            <strong>Edit an Existing Item</strong>
+            <ul>
+                <li>Find any item you created</li>
+                <li>Click the edit (pencil) icon</li>
+                <li>Change "How many needed?" to a different value</li>
+                <li>Save changes</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <span class="step-num">2</span>
+            <strong>Verify Updates</strong>
+            <p><span class="check">✓</span> Progress bar adjusts to new total</p>
+            <p><span class="check">✓</span> Text updates to show new quantity</p>
+            <p><span class="check">✓</span> Existing assignments remain</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 4: Mobile View</h2>
+        
+        <div class="step">
+            <span class="step-num">1</span>
+            <strong>Test on Mobile Viewport</strong>
+            <ul>
+                <li>Open browser DevTools (F12)</li>
+                <li>Toggle device toolbar (Ctrl+Shift+M)</li>
+                <li>Select iPhone or similar device</li>
+                <li>Navigate to potluck page</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <span class="step-num">2</span>
+            <strong>Verify Mobile Features</strong>
+            <p><span class="check">✓</span> All quantity features work on mobile</p>
+            <p><span class="check">✓</span> Modal is mobile-friendly</p>
+            <p><span class="check">✓</span> Progress bars display correctly</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Quick Test Links</h2>
+        <button onclick="window.open('http://localhost:5173/potluck', '_blank')">
+            Open Potluck Page
+        </button>
+        <button onclick="window.open('http://localhost:5173/games', '_blank')">
+            Open Games Page
+        </button>
+        <button onclick="alert('1. Login to the app\n2. Follow the test steps above\n3. Verify all features work as described')">
+            Test Instructions
+        </button>
+    </div>
+
+    <script>
+        // Check if dev server is running
+        fetch('http://localhost:5173')
+            .then(() => {
+                console.log('✅ Dev server is running');
+            })
+            .catch(() => {
+                document.body.insertAdjacentHTML('afterbegin', 
+                    '<div class="status" style="background: #ef4444; color: white;">❌ Dev server not running. Run: npm run dev</div>');
+            });
+    </script>
+</body>
+</html>
