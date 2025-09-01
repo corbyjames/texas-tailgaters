@@ -81,7 +81,8 @@ export function InvitationModalWithSMS({
   };
 
   const createSeasonMessage = () => {
-    let message = `🏈 Texas Tailgaters 2025 Season!\n\n`;
+    const currentYear = new Date().getFullYear();
+    let message = `🏈 Texas Tailgaters ${currentYear} Season!\n\n`;
     message += `You're invited to join us for the entire season!\n\n`;
     message += `📅 Schedule:\n`;
     
@@ -109,7 +110,7 @@ export function InvitationModalWithSMS({
     if (isSeasonInvite) {
       // Season invite
       gameData = {
-        gameName: 'Texas Tailgaters 2025 Season',
+        gameName: `Texas Tailgaters ${new Date().getFullYear()} Season`,
         gameDate: 'Full Season',
         gameTime: 'Various',
         opponent: 'Multiple Games',
@@ -325,7 +326,7 @@ export function InvitationModalWithSMS({
             <div className="text-xs text-gray-600 space-y-1">
               {isSeasonInvite ? (
                 <>
-                  <p>🏈 Texas Tailgaters 2025 Season!</p>
+                  <p>🏈 Texas Tailgaters {new Date().getFullYear()} Season!</p>
                   <p>You're invited to join us for the entire season!</p>
                   <p className="font-semibold mt-2">📅 Upcoming Games:</p>
                   {displayGames.slice(0, 3).map((g, idx) => (

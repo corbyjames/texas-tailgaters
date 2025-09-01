@@ -229,29 +229,13 @@ export class UTAthleticsApiService {
   }
   
   /**
-   * Get manual schedule as fallback
-   * This returns the static schedule we maintain
+   * Get manual schedule as fallback - DEPRECATED
+   * Schedule data should be fetched from the database, not hardcoded
+   * This method should fetch from an external API when available
    */
   private static getManualSchedule(): Partial<Game>[] {
-    const currentYear = new Date().getFullYear();
-    
-    if (currentYear === 2025) {
-      return [
-        { date: '2025-08-30', opponent: 'Ohio State', location: 'Columbus, OH', time: '11:00 AM', tvNetwork: 'FOX', isHome: false },
-        { date: '2025-09-06', opponent: 'San Jose State', location: 'Austin, TX', time: 'TBD', tvNetwork: 'Longhorn Network', isHome: true },
-        { date: '2025-09-13', opponent: 'UTSA', location: 'Austin, TX', time: 'TBD', tvNetwork: 'ESPN+', isHome: true },
-        { date: '2025-09-20', opponent: 'Colorado State', location: 'Austin, TX', time: 'TBD', tvNetwork: 'SEC Network', isHome: true },
-        { date: '2025-10-04', opponent: 'Mississippi State', location: 'Austin, TX', time: 'TBD', tvNetwork: 'ESPN', isHome: true },
-        { date: '2025-10-11', opponent: 'Oklahoma', location: 'Dallas, TX', time: '2:30 PM', tvNetwork: 'ABC', isHome: false },
-        { date: '2025-10-18', opponent: 'Georgia', location: 'Austin, TX', time: 'TBD', tvNetwork: 'CBS', isHome: true },
-        { date: '2025-10-25', opponent: 'Vanderbilt', location: 'Nashville, TN', time: 'TBD', tvNetwork: 'SEC Network', isHome: false },
-        { date: '2025-11-01', opponent: 'Florida', location: 'Austin, TX', time: 'TBD', tvNetwork: 'ESPN', isHome: true },
-        { date: '2025-11-15', opponent: 'Arkansas', location: 'Fayetteville, AR', time: 'TBD', tvNetwork: 'ABC/ESPN', isHome: false },
-        { date: '2025-11-22', opponent: 'Kentucky', location: 'Austin, TX', time: 'TBD', tvNetwork: 'SEC Network', isHome: true },
-        { date: '2025-11-29', opponent: 'Texas A&M', location: 'College Station, TX', time: 'TBD', tvNetwork: 'ABC', isHome: false },
-      ];
-    }
-    
+    console.warn('getManualSchedule: Schedule data should be fetched from the database, not hardcoded.');
+    // Return empty array - schedules should be in the database
     return [];
   }
   
