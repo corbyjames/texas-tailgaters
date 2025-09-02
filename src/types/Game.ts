@@ -24,6 +24,8 @@ export interface Game {
   gameNotes?: string;
   espnGameId?: string;
   lastSyncedAt?: string;
+  // Tailgate hosting field
+  noTailgate?: boolean;
 }
 
 export interface Theme {

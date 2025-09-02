@@ -1,19 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Users, Trophy, CheckCircle, XCircle, Send, ChevronDown, ChevronUp } from 'lucide-react';
+import { ShoppingBag, Users, Trophy, CheckCircle, XCircle, Send, ChevronDown, ChevronUp, Ban, CalendarOff } from 'lucide-react';
 import { Game } from '../../types/Game';
 import { GameHeader } from './GameHeader';
 import PotluckService from '../../services/potluckService';
+import GameService from '../../services/gameService';
 import { parseGameDate } from '../../utils/dateUtils';
+import { useAuth } from '../../hooks/useAuth';
 
 interface GameCardProps {
   game: Game;
   onGameClick?: (game: Game) => void;
   onInvite?: (game: Game) => void;
+  onGameUpdated?: () => void;
 }
 
-const GameCard: React.FC<GameCardProps> = ({ game, onGameClick, onInvite }) => {
+const GameCard: React.FC<GameCardProps> = ({ game, onGameClick, onInvite, onGameUpdated }) => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin' || user?.isAdmin;
   const [isExpanded, setIsExpanded] = useState(game.status !== 'completed');
+  const [isUpdating, setIsUpdating] = useState(false);
   const [potluckStats, setPotluckStats] = useState<{
     totalItems: number;
     assignedItems: number;
@@ -72,8 +78,23 @@ const GameCard: React.FC<GameCardProps> = ({ game, onGameClick, onInvite }) => {
   };
 
   const handleClick = () => {
-    if (onGameClick) {
+    if (onGameClick && !game.noTailgate) {
       onGameClick(game);
+    }
+  };
+
+  const handleToggleNoTailgate = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsUpdating(true);
+    try {
+      await GameService.toggleNoTailgate(game.id);
+      if (onGameUpdated) {
+        onGameUpdated();
+      }
+    } catch (error) {
+      console.error('Error toggling no-tailgate status:', error);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -128,12 +149,35 @@ const GameCard: React.FC<GameCardProps> = ({ game, onGameClick, onInvite }) => {
 
   return (
     <div 
-      className="card p-4 hover:shadow-ut-hover transition-all duration-200 cursor-pointer"
+      className={`card p-4 transition-all duration-200 ${
+        game.noTailgate 
+          ? 'bg-gray-50 opacity-75 border-gray-300' 
+          : 'hover:shadow-ut-hover cursor-pointer'
+      }`}
       onClick={handleClick}
     >
+      {/* No Tailgate Badge */}
+      {game.noTailgate && (
+        <div className="mb-3 flex items-center justify-between">
+          <div className="flex items-center gap-2 px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
+            <Ban className="w-4 h-4" />
+            <span>No Tailgate Hosted</span>
+          </div>
+          {isAdmin && (
+            <button
+              onClick={handleToggleNoTailgate}
+              disabled={isUpdating}
+              className="px-3 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
+            >
+              {isUpdating ? 'Updating...' : 'Enable Tailgate'}
+            </button>
+          )}
+        </div>
+      )}
+      
       <div className="flex items-start gap-4">
-        {/* Total Count Display - Only for non-completed games */}
-        {game.status !== 'completed' && (
+        {/* Total Count Display - Only for non-completed games and games with tailgate */}
+        {game.status !== 'completed' && !game.noTailgate && (
           <div className="flex-shrink-0 text-center">
             <div className="text-3xl font-bold text-ut-orange">{totalParticipants}</div>
             <div className="text-xs text-gray-600">Items + Attendees</div>
@@ -202,6 +246,17 @@ const GameCard: React.FC<GameCardProps> = ({ game, onGameClick, onInvite }) => {
                   <ChevronUp className="w-4 h-4 text-gray-600" />
                 </button>
               )}
+              {/* Admin No-Tailgate Toggle for games not marked as no-tailgate */}
+              {isAdmin && !game.noTailgate && game.status !== 'completed' && (
+                <button
+                  onClick={handleToggleNoTailgate}
+                  disabled={isUpdating}
+                  className="p-1 hover:bg-red-50 rounded text-red-600 disabled:opacity-50"
+                  title="Mark as No Tailgate"
+                >
+                  <CalendarOff className="w-4 h-4" />
+                </button>
+              )}
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(game.status)}`}>
                 {getStatusText(game.status)}
               </span>
@@ -240,27 +295,30 @@ const GameCard: React.FC<GameCardProps> = ({ game, onGameClick, onInvite }) => {
             </div>
           )}
 
-          <div className="flex space-x-2">
-            <Link
-              to={`/games/${game.id}`}
-              className="flex-1 btn-primary text-center text-sm py-2"
-              onClick={(e) => e.stopPropagation()}
-            >
-              View Details
-            </Link>
-            <button
-              className="flex-1 btn-secondary text-sm py-2 flex items-center justify-center gap-1"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onInvite) {
-                  onInvite(game);
-                }
-              }}
-            >
-              <Send className="w-3 h-3" />
-              Send Invite
-            </button>
-          </div>
+          {/* Action Buttons - Hide for no-tailgate games */}
+          {!game.noTailgate && (
+            <div className="flex space-x-2">
+              <Link
+                to={`/games/${game.id}`}
+                className="flex-1 btn-primary text-center text-sm py-2"
+                onClick={(e) => e.stopPropagation()}
+              >
+                View Details
+              </Link>
+              <button
+                className="flex-1 btn-secondary text-sm py-2 flex items-center justify-center gap-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onInvite) {
+                    onInvite(game);
+                  }
+                }}
+              >
+                <Send className="w-3 h-3" />
+                Send Invite
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -268,6 +326,7 @@ const GameCard: React.FC<GameCardProps> = ({ game, onGameClick, onInvite }) => {
 };
 
 export default GameCard;
+
 
 
 

@@ -37,12 +37,20 @@ class AuthService {
   }
 
   private async mapFirebaseUser(firebaseUser: FirebaseUser): Promise<AuthUser> {
+    const adminEmails = [
+      'admin@texastailgaters.com',
+      'corbyjames@gmail.com',
+      'test@texastailgaters.com' // Can be admin for testing
+    ];
+    
+    const isAdmin = adminEmails.includes(firebaseUser.email?.toLowerCase() || '');
+    
     return {
       id: firebaseUser.uid,
       email: firebaseUser.email!,
       name: firebaseUser.displayName || undefined,
-      role: 'member',
-      isAdmin: firebaseUser.email === 'test@texastailgaters.com' || firebaseUser.email === 'corbyjames@gmail.com',
+      role: isAdmin ? 'admin' : 'member',
+      isAdmin: isAdmin,
     };
   }
 

@@ -7,7 +7,7 @@ import { Calendar, Filter, Search, Send } from 'lucide-react';
 import { InvitationModalWithSMS } from '../components/invitations/InvitationModalWithSMS';
 
 const GamesPage: React.FC = () => {
-  const { games, loading, error, syncFromUTAthletics } = useGames();
+  const { games, loading, error, syncFromUTAthletics, refreshGames } = useGames();
   const [filter, setFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [isMobile, setIsMobile] = useState(false);
@@ -265,6 +265,7 @@ const GamesPage: React.FC = () => {
                 key={game.id} 
                 game={game}
                 onInvite={(g) => setSelectedGameForInvite(g)}
+                onGameUpdated={refreshGames}
               />
             )
           ))}
@@ -317,6 +318,7 @@ const GamesPage: React.FC = () => {
 };
 
 export default GamesPage;
+
 
 
 

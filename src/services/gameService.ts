@@ -20,6 +20,7 @@ export interface UpdateGameData extends Partial<CreateGameData> {
   result?: 'W' | 'L' | 'T';
   homeScore?: number;
   awayScore?: number;
+  noTailgate?: boolean;
 }
 
 export class GameService {
@@ -44,6 +45,7 @@ export class GameService {
           setupTime: game.setup_time,
           expectedAttendance: game.expected_attendance,
           tvNetwork: game.tv_network,
+          noTailgate: game.no_tailgate,
           createdAt: game.created_at,
           updatedAt: game.updated_at,
           theme: theme ? {
@@ -88,6 +90,7 @@ export class GameService {
         setupTime: game.setup_time,
         expectedAttendance: game.expected_attendance,
         tvNetwork: game.tv_network,
+        noTailgate: game.no_tailgate,
         createdAt: game.created_at,
         updatedAt: game.updated_at,
         theme: theme ? {
@@ -139,6 +142,7 @@ export class GameService {
         setupTime: newGame.setup_time,
         expectedAttendance: newGame.expected_attendance,
         tvNetwork: newGame.tv_network,
+        noTailgate: newGame.no_tailgate,
         createdAt: newGame.created_at,
         updatedAt: newGame.updated_at
       };
@@ -168,6 +172,7 @@ export class GameService {
       if (updateData.result !== undefined) dbUpdateData.result = updateData.result;
       if (updateData.homeScore !== undefined) dbUpdateData.home_score = updateData.homeScore;
       if (updateData.awayScore !== undefined) dbUpdateData.away_score = updateData.awayScore;
+      if (updateData.noTailgate !== undefined) dbUpdateData.no_tailgate = updateData.noTailgate;
 
       const updatedGame = await firebaseService.updateGame(id, dbUpdateData);
       
@@ -188,6 +193,7 @@ export class GameService {
         setupTime: updatedGame.setup_time,
         expectedAttendance: updatedGame.expected_attendance,
         tvNetwork: updatedGame.tv_network,
+        noTailgate: updatedGame.no_tailgate,
         createdAt: updatedGame.created_at,
         updatedAt: updatedGame.updated_at
       };
@@ -400,6 +406,28 @@ export class GameService {
       await firebaseService.clearAll();
     } catch (error) {
       console.error('Error clearing all data:', error);
+      throw error;
+    }
+  }
+
+  // Toggle no-tailgate status for a game
+  static async toggleNoTailgate(gameId: string): Promise<Game> {
+    try {
+      // Get current game to check status
+      const game = await this.getGame(gameId);
+      if (!game) {
+        throw new Error('Game not found');
+      }
+      
+      // Toggle the noTailgate status
+      const updatedGame = await this.updateGame({
+        id: gameId,
+        noTailgate: !game.noTailgate
+      });
+      
+      return updatedGame;
+    } catch (error) {
+      console.error('Error toggling no-tailgate status:', error);
       throw error;
     }
   }
