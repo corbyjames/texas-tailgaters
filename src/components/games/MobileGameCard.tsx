@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Tv, Users, Utensils, ChevronRight, UserCheck, CheckCircle, XCircle, Trophy } from 'lucide-react';
+import { Calendar, MapPin, Tv, Users, Utensils, ChevronRight, UserCheck, CheckCircle, XCircle, Trophy, Ban, CalendarOff } from 'lucide-react';
 import { Game } from '../../types/Game';
 import PotluckService from '../../services/potluckService';
 import rsvpService from '../../services/rsvpService';
+import GameService from '../../services/gameService';
 import { getTeamInfo } from '../../services/teamLogos';
 import { RSVPModal } from './RSVPModal';
 import { useAuth } from '../../hooks/useAuth';
@@ -12,11 +13,14 @@ import { isGameUpcoming, parseGameDate } from '../../utils/dateUtils';
 interface MobileGameCardProps {
   game: Game;
   onGameClick?: (game: Game) => void;
+  onGameUpdated?: () => void;
 }
 
-const MobileGameCard: React.FC<MobileGameCardProps> = ({ game, onGameClick }) => {
+const MobileGameCard: React.FC<MobileGameCardProps> = ({ game, onGameClick, onGameUpdated }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isAdmin = user?.role === 'admin' || user?.isAdmin;
+  const [isUpdating, setIsUpdating] = useState(false);
   const [potluckStats, setPotluckStats] = useState<{
     totalItems: number;
     assignedItems: number;
@@ -90,8 +94,22 @@ const MobileGameCard: React.FC<MobileGameCardProps> = ({ game, onGameClick }) =>
   };
 
   const handleClick = () => {
-    if (onGameClick) {
-      onGameClick(game);
+    // Navigate to game details page instead of calling onGameClick
+    navigate(`/games/${game.id}`);
+  };
+
+  const handleToggleNoTailgate = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsUpdating(true);
+    try {
+      await GameService.toggleNoTailgate(game.id);
+      if (onGameUpdated) {
+        onGameUpdated();
+      }
+    } catch (error) {
+      console.error('Error toggling no-tailgate status:', error);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -172,9 +190,34 @@ const MobileGameCard: React.FC<MobileGameCardProps> = ({ game, onGameClick }) =>
 
   return (
     <div 
-      className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden active:bg-gray-50 transition-colors"
-      onClick={handleClick}
+      className={`rounded-lg shadow-sm border overflow-hidden transition-colors ${
+        game.noTailgate 
+          ? 'bg-gray-50 opacity-75 border-gray-300' 
+          : 'bg-white border-gray-200 active:bg-gray-50'
+      }`}
+      onClick={game.noTailgate ? undefined : handleClick}
     >
+      {/* No Tailgate Badge */}
+      {game.noTailgate && (
+        <div className="bg-red-100 border-b border-red-200 px-3 py-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-red-800">
+              <Ban className="w-4 h-4" />
+              <span className="text-sm font-medium">No Tailgate Hosted</span>
+            </div>
+            {isAdmin && (
+              <button
+                onClick={handleToggleNoTailgate}
+                disabled={isUpdating}
+                className="text-xs px-2 py-1 bg-white border border-red-300 rounded text-red-600 disabled:opacity-50"
+              >
+                {isUpdating ? '...' : 'Enable'}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+      
       {/* Status Bar */}
       <div className={`h-1 ${getStatusColor(game.status)}`} />
       
@@ -193,11 +236,23 @@ const MobileGameCard: React.FC<MobileGameCardProps> = ({ game, onGameClick }) =>
               </span>
             )}
           </div>
-          {!isUpcoming && (
-            <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
-              Past
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {/* Admin No-Tailgate Toggle */}
+            {isAdmin && !game.noTailgate && game.status !== 'completed' && (
+              <button
+                onClick={handleToggleNoTailgate}
+                disabled={isUpdating}
+                className="p-1 text-red-600 disabled:opacity-50"
+              >
+                <CalendarOff className="w-4 h-4" />
+              </button>
+            )}
+            {!isUpcoming && (
+              <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
+                Past
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Opponent Row with Logo */}
@@ -259,39 +314,41 @@ const MobileGameCard: React.FC<MobileGameCardProps> = ({ game, onGameClick }) =>
           )}
         </div>
 
-        {/* Action Buttons - Stacked on Mobile */}
-        <div className="flex flex-col gap-2">
-          <button
-            className="w-full py-3 px-4 bg-orange-600 text-white rounded-lg font-medium text-center active:bg-orange-700 transition-colors"
-            onClick={(e) => {
-              e.stopPropagation();
-              // Navigate to potluck page with this game selected
-              // Store the selected game ID in sessionStorage so the potluck page can pick it up
-              sessionStorage.setItem('selectedGameId', game.id);
-              navigate('/potluck');
-            }}
-          >
-            View Potluck
-          </button>
-          <button
-            className={`w-full py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
-              userRSVP?.status === 'yes'
-                ? 'bg-green-100 text-green-700 active:bg-green-200'
-                : 'bg-gray-100 text-gray-700 active:bg-gray-200'
-            }`}
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowRSVPModal(true);
-            }}
-          >
-            {userRSVP?.status === 'yes' && <UserCheck className="w-4 h-4" />}
-            {userRSVP ? 
-              userRSVP.status === 'yes' ? 'Going' : 
-              userRSVP.status === 'maybe' ? 'Maybe' : 
-              'Not Going' 
-              : 'RSVP'}
-          </button>
-        </div>
+        {/* Action Buttons - Only show if not no-tailgate */}
+        {!game.noTailgate && (
+          <div className="flex flex-col gap-2">
+            <button
+              className="w-full py-3 px-4 bg-orange-600 text-white rounded-lg font-medium text-center active:bg-orange-700 transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                // Navigate to potluck page with this game selected
+                // Store the selected game ID in sessionStorage so the potluck page can pick it up
+                sessionStorage.setItem('selectedGameId', game.id);
+                navigate('/potluck');
+              }}
+            >
+              View Potluck
+            </button>
+            <button
+              className={`w-full py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
+                userRSVP?.status === 'yes'
+                  ? 'bg-green-100 text-green-700 active:bg-green-200'
+                  : 'bg-gray-100 text-gray-700 active:bg-gray-200'
+              }`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowRSVPModal(true);
+              }}
+            >
+              {userRSVP?.status === 'yes' && <UserCheck className="w-4 h-4" />}
+              {userRSVP ? 
+                userRSVP.status === 'yes' ? 'Going' : 
+                userRSVP.status === 'maybe' ? 'Maybe' : 
+                'Not Going' 
+                : 'RSVP'}
+            </button>
+          </div>
+        )}
       </div>
       
       {/* RSVP Modal */}

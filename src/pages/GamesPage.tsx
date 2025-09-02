@@ -258,7 +258,7 @@ const GamesPage: React.FC = () => {
               <MobileGameCard 
                 key={game.id} 
                 game={game}
-                onGameClick={() => setSelectedGameForInvite(game)}
+                onGameUpdated={refreshGames}
               />
             ) : (
               <GameCard 

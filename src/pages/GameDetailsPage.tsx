@@ -14,7 +14,9 @@ import {
   ChevronUp,
   UserCheck,
   UserX,
-  UserPlus
+  UserPlus,
+  Ban,
+  CalendarOff
 } from 'lucide-react';
 import { useGames } from '../hooks/useGames';
 import { usePotluck } from '../hooks/usePotluck';
@@ -25,6 +27,7 @@ import { teamLogos } from '../services/teamLogos';
 import { PotluckSignupModal } from '../components/potluck/PotluckSignupModal';
 import { RSVPModal } from '../components/games/RSVPModal';
 import rsvpService, { RSVP } from '../services/rsvpService';
+import GameService from '../services/gameService';
 
 const POTLUCK_CATEGORIES = [
   { value: 'main', label: 'Main Dish', icon: '🍖', color: 'bg-red-100 text-red-800' },
@@ -49,7 +52,9 @@ export default function GameDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { games, loading: gamesLoading, updateGame } = useGames();
+  const isAdmin = user?.role === 'admin' || user?.isAdmin;
+  const { games, loading: gamesLoading, updateGame, refreshGames } = useGames();
+  const [isUpdatingNoTailgate, setIsUpdatingNoTailgate] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['main', 'side', 'appetizer']));
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState<PotluckItem | null>(null);
@@ -265,6 +270,20 @@ export default function GameDetailsPage() {
     }));
   };
 
+  const handleToggleNoTailgate = async () => {
+    if (!game) return;
+    
+    setIsUpdatingNoTailgate(true);
+    try {
+      await GameService.toggleNoTailgate(game.id);
+      await refreshGames();
+    } catch (error) {
+      console.error('Error toggling no-tailgate status:', error);
+    } finally {
+      setIsUpdatingNoTailgate(false);
+    }
+  };
+
   const formatDateTime = (date: string, time?: string) => {
     const gameDate = new Date(date);
     const dateStr = gameDate.toLocaleDateString('en-US', { 
@@ -287,6 +306,30 @@ export default function GameDetailsPage() {
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Games
         </Link>
+
+        {/* No Tailgate Banner */}
+        {game?.noTailgate && (
+          <div className="bg-red-100 border border-red-300 rounded-lg p-4 mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Ban className="w-6 h-6 text-red-600" />
+                <div>
+                  <h3 className="text-lg font-semibold text-red-900">No Tailgate Hosted</h3>
+                  <p className="text-sm text-red-700">This game will not have an organized tailgate</p>
+                </div>
+              </div>
+              {isAdmin && (
+                <button
+                  onClick={handleToggleNoTailgate}
+                  disabled={isUpdatingNoTailgate}
+                  className="px-4 py-2 bg-white border border-red-300 rounded-lg text-red-600 hover:bg-red-50 disabled:opacity-50"
+                >
+                  {isUpdatingNoTailgate ? 'Updating...' : 'Enable Tailgate'}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Game Header Card */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
@@ -347,6 +390,19 @@ export default function GameDetailsPage() {
                     🎨 {game.theme.name}
                   </span>
                 )}
+                
+                {/* Admin No-Tailgate Toggle */}
+                {isAdmin && !game?.noTailgate && game?.status !== 'completed' && (
+                  <button
+                    onClick={handleToggleNoTailgate}
+                    disabled={isUpdatingNoTailgate}
+                    className="inline-flex items-center gap-2 px-3 py-1 bg-red-50 border border-red-200 rounded-full text-sm font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
+                    title="Mark as No Tailgate"
+                  >
+                    <CalendarOff className="w-4 h-4" />
+                    Mark No Tailgate
+                  </button>
+                )}
               </div>
             </div>
 
@@ -364,18 +420,22 @@ export default function GameDetailsPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-lg shadow-sm p-4 text-center">
-            <ShoppingBag className="w-8 h-8 text-orange-500 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-gray-900">{stats.totalItems}</p>
-            <p className="text-sm text-gray-600">Potluck Items</p>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow-sm p-4 text-center">
-            <Users className="w-8 h-8 text-green-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-gray-900">{stats.assignedItems}</p>
-            <p className="text-sm text-gray-600">Items Assigned</p>
-          </div>
+        <div className={`grid ${game?.noTailgate ? 'grid-cols-2' : 'grid-cols-2 lg:grid-cols-4'} gap-4 mb-6`}>
+          {!game?.noTailgate && (
+            <>
+              <div className="bg-white rounded-lg shadow-sm p-4 text-center">
+                <ShoppingBag className="w-8 h-8 text-orange-500 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-gray-900">{stats.totalItems}</p>
+                <p className="text-sm text-gray-600">Potluck Items</p>
+              </div>
+              
+              <div className="bg-white rounded-lg shadow-sm p-4 text-center">
+                <Users className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-gray-900">{stats.assignedItems}</p>
+                <p className="text-sm text-gray-600">Items Assigned</p>
+              </div>
+            </>
+          )}
           
           <div className="bg-white rounded-lg shadow-sm p-4 text-center">
             <Clock className="w-8 h-8 text-blue-600 mx-auto mb-2" />
@@ -534,7 +594,8 @@ export default function GameDetailsPage() {
           )}
         </div>
 
-        {/* Potluck Section */}
+        {/* Potluck Section - Hide if no tailgate */}
+        {game && !game.noTailgate ? (
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-semibold text-gray-900">Potluck Items</h2>
@@ -735,6 +796,14 @@ export default function GameDetailsPage() {
             </div>
           )}
         </div>
+        ) : (
+          /* No Tailgate Message */
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 mb-6 text-center">
+            <Ban className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+            <h3 className="text-lg font-medium text-gray-700 mb-2">No Tailgate for This Game</h3>
+            <p className="text-sm text-gray-500">Potluck coordination is not available as no tailgate will be hosted for this game.</p>
+          </div>
+        )}
 
         {/* Add/Edit Modal */}
         {(showAddModal || editingItem) && (
