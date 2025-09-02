@@ -238,7 +238,7 @@ const MobileGameCard: React.FC<MobileGameCardProps> = ({ game, onGameClick, onGa
           </div>
           <div className="flex items-center gap-2">
             {/* Admin No-Tailgate Toggle */}
-            {isAdmin && !game.noTailgate && game.status !== 'completed' && (
+            {isAdmin && !game.noTailgate && (
               <button
                 onClick={handleToggleNoTailgate}
                 disabled={isUpdating}

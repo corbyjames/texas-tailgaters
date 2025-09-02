@@ -15,6 +15,7 @@ interface Game {
   expected_attendance: number;
   tv_network?: string;
   tvNetwork?: string; // Support both formats for compatibility
+  no_tailgate?: boolean;
   created_at?: string;
   updated_at?: string;
 }
