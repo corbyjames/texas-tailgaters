@@ -1,7 +1,7 @@
 // Auth service using Firebase Authentication
 import { auth } from '../config/firebase';
 import { database } from '../config/firebase';
-import { ref, set, get } from 'firebase/database';
+import { ref, set, get, update } from 'firebase/database';
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
@@ -72,17 +72,37 @@ class AuthService {
   async signIn(email: string, password: string): Promise<{ error: any }> {
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
-      this.currentUser = await this.mapFirebaseUser(result.user);
       
-      // Store user metadata in Firebase Database
+      // Check user status in database
       const userRef = ref(database, `users/${result.user.uid}`);
-      await set(userRef, {
-        email: result.user.email,
-        name: result.user.displayName,
-        lastLogin: new Date().toISOString(),
-        isAdmin: this.currentUser.isAdmin
-      });
+      const snapshot = await get(userRef);
       
+      if (snapshot.exists()) {
+        const userData = snapshot.val();
+        
+        // Check if user is inactive
+        if (userData.status === 'inactive') {
+          await firebaseSignOut(auth);
+          return { error: { message: 'Your account has been deactivated. Please contact an administrator.' } };
+        }
+        
+        // Update last login
+        await update(userRef, {
+          lastLogin: new Date().toISOString()
+        });
+      } else {
+        // First time login, create user record
+        await set(userRef, {
+          email: result.user.email,
+          name: result.user.displayName,
+          lastLogin: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          status: 'active',
+          role: this.currentUser?.isAdmin ? 'admin' : 'member'
+        });
+      }
+      
+      this.currentUser = await this.mapFirebaseUser(result.user);
       this.notifyListeners();
       return { error: null };
     } catch (error: any) {
@@ -108,7 +128,8 @@ class AuthService {
         email: result.user.email,
         name: name,
         createdAt: new Date().toISOString(),
-        role: 'member',
+        role: 'pending',
+        status: 'pending_approval',
         isAdmin: false
       });
       

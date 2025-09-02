@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useGames } from '../hooks/useGames';
 import { Trash2, Users, Calendar, Shield, AlertTriangle, RefreshCw, Activity, MessageSquare } from 'lucide-react';
 import { FeedbackManager } from '../components/admin/FeedbackManager';
+import { UserManager } from '../components/admin/UserManager';
 
 const AdminPage: React.FC = () => {
   const { user, loading } = useAuth();
@@ -18,7 +19,7 @@ const AdminPage: React.FC = () => {
   const [syncError, setSyncError] = useState('');
   const [diagnosing, setDiagnosing] = useState(false);
   const [diagnosticResults, setDiagnosticResults] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'overview' | 'feedback'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'feedback'>('overview');
 
   // Check if user is admin
   React.useEffect(() => {
@@ -164,6 +165,19 @@ const AdminPage: React.FC = () => {
               <div className="flex items-center gap-2">
                 <Activity className="w-4 h-4" />
                 Overview
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'users'
+                  ? 'border-orange-500 text-orange-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Users
               </div>
             </button>
             <button
@@ -365,6 +379,9 @@ const AdminPage: React.FC = () => {
         </div>
       </div>
       </>
+      ) : activeTab === 'users' ? (
+        /* Users Tab */
+        <UserManager />
       ) : (
         /* Feedback Tab */
         <FeedbackManager />

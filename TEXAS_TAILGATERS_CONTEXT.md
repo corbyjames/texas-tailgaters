@@ -168,6 +168,57 @@ Object.keys(data).forEach(key => {
 - None required for basic functionality (Firebase config is public)
 - For production: Consider adding environment-specific Firebase configs
 
+### Custom Domain Setup (texastailgaters.com via Squarespace)
+
+#### Prerequisites
+- Domain registered and managed through Squarespace (migrated from Google Domains)
+- Render service deployed and running (URL: https://texas-tailgaters.onrender.com)
+
+#### Step 1: Add Custom Domain in Render
+1. Go to your service dashboard in Render
+2. Navigate to Settings → Custom Domains
+3. Click "Add Custom Domain"
+4. Enter: `texastailgaters.com`
+5. Also add: `www.texastailgaters.com`
+6. Render will provide DNS records to configure
+
+#### Step 2: Configure DNS in Squarespace
+1. Log into your Squarespace account
+2. Go to: Home → Settings → Domains
+3. Click on `texastailgaters.com`
+4. Select "DNS Settings" or "Advanced Settings"
+5. Add the following DNS records:
+
+**For root domain (texastailgaters.com):**
+- Type: A
+- Host: @ (or leave blank)
+- Points to: `216.24.57.1` (Render's IP)
+- TTL: 3600 (or default)
+
+**For www subdomain:**
+- Type: CNAME
+- Host: www
+- Points to: `texas-tailgaters.onrender.com`
+- TTL: 3600 (or default)
+
+#### Step 3: SSL Certificate
+- Render automatically provisions Let's Encrypt SSL certificates
+- This happens after DNS propagation (can take 15-60 minutes)
+- No additional configuration needed
+
+#### Step 4: Verify Configuration
+1. Wait for DNS propagation (15-60 minutes)
+2. Test both URLs:
+   - https://texastailgaters.com
+   - https://www.texastailgaters.com
+3. Both should load your app with valid SSL
+
+#### Troubleshooting
+- **DNS not working after 1 hour**: Check TTL values and ensure old records are removed
+- **SSL certificate errors**: Wait for Render to auto-provision (can take up to 24 hours)
+- **Site loads but shows Squarespace**: Ensure you're editing DNS, not site settings
+- **Redirect issues**: Configure primary domain preference in Render settings
+
 ## Development Commands
 ```bash
 # Local development
@@ -232,6 +283,40 @@ git push origin main     # Triggers Render deployment
 - **Deployment Issues**: Check Render logs and Firebase console
 - **Database Issues**: Firebase Realtime Database console
 
+## Recent Session Updates (September 1, 2025)
+
+### Changes Made
+1. **Removed Hardcoded Schedules**:
+   - Deleted hardcoded 2024/2025 schedules from `scheduleSync.ts`
+   - Removed hardcoded 2025 schedule from `utAthleticsApi.ts`
+   - Deleted unused `mockData.ts` file
+   - Made year references dynamic in `InvitationModalWithSMS.tsx`
+
+2. **Florida Game Date Issue**:
+   - Correct date should be: October 4, 2025 (away game in Gainesville, FL)
+   - Created `fix-florida-date.html` utility to update in database
+   - Note: Database requires authentication for write operations
+
+3. **Data Architecture Decision**:
+   - All dynamic data (schedules, games, etc.) must be stored in database
+   - No hardcoded schedules or dates in source code
+   - Schedule sync services should fetch from external APIs or database only
+
+### Current Known Issues
+1. Florida game may still show incorrect date - needs manual database update
+2. Schedule sync returns empty arrays (needs proper API integration)
+3. Firebase database requires authentication for write operations
+
+### Deployment
+- **Render Service ID**: srv-d2oahier433s738jpdkg
+- **Trigger Deploy via API**:
+```bash
+curl -X POST -H "Authorization: Bearer rnd_mFPjhdLcr078PMUvubLB58EqgAIl" \
+     -H "Content-Type: application/json" \
+     https://api.render.com/v1/services/srv-d2oahier433s738jpdkg/deploys \
+     -d '{"clearCache": "do_not_clear"}'
+```
+
 ---
-*Last Updated: December 29, 2024*
+*Last Updated: September 1, 2025*
 *This document should be updated whenever significant changes are made to the project structure or functionality.*
