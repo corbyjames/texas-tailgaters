@@ -11,6 +11,7 @@ import {
   updateProfile,
   sendPasswordResetEmail
 } from 'firebase/auth';
+import { notificationService } from './notificationService';
 
 export interface AuthUser {
   id: string;
@@ -124,13 +125,22 @@ class AuthService {
       
       // Store user metadata in Firebase Database
       const userRef = ref(database, `users/${result.user.uid}`);
-      await set(userRef, {
+      const newUserData = {
         email: result.user.email,
         name: name,
         createdAt: new Date().toISOString(),
         role: 'pending',
         status: 'pending_approval',
         isAdmin: false
+      };
+      await set(userRef, newUserData);
+      
+      // Send notification to admins about new user registration
+      await notificationService.notifyNewUserRegistration({
+        id: result.user.uid,
+        email: result.user.email || '',
+        name: name,
+        createdAt: newUserData.createdAt
       });
       
       this.notifyListeners();

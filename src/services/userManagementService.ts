@@ -1,6 +1,7 @@
 import { database, auth } from '../config/firebase';
 import { ref, get, set, update, remove, onValue } from 'firebase/database';
 import { sendPasswordResetEmail, deleteUser } from 'firebase/auth';
+import { notificationService } from './notificationService';
 
 export interface User {
   id: string;
@@ -53,12 +54,27 @@ class UserManagementService {
   async approveUser(userId: string, approvedBy: string): Promise<boolean> {
     try {
       const userRef = ref(database, `users/${userId}`);
+      
+      // Get user data before updating
+      const snapshot = await get(userRef);
+      const userData = snapshot.val();
+      
       await update(userRef, {
         status: 'active',
         role: 'member',
         approvedAt: new Date().toISOString(),
         approvedBy: approvedBy
       });
+      
+      // Send notification to the approved user
+      if (userData) {
+        await notificationService.notifyUserApproved({
+          id: userId,
+          email: userData.email,
+          name: userData.name || 'User'
+        });
+      }
+      
       return true;
     } catch (error) {
       console.error('Error approving user:', error);

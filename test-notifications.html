@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Notification System - Texas Tailgaters</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #BF5700;
+            border-bottom: 2px solid #BF5700;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background: #BF5700;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #8F3E00;
+        }
+        .console {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #4CAF50;
+        }
+        .error-entry {
+            border-left-color: #f44336;
+            color: #ff9999;
+        }
+        .info-entry {
+            border-left-color: #2196F3;
+            color: #90CAF9;
+        }
+        .success-entry {
+            border-left-color: #4CAF50;
+            color: #a5d6a7;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .info-box {
+            background: #FFF3CD;
+            border: 1px solid #FFC107;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔔 Notification System Test</h1>
+        
+        <div class="info-box">
+            <strong>ℹ️ Note:</strong> EmailJS configuration is required for actual email sending.
+            Without configuration, notifications will be logged to the console only.
+        </div>
+
+        <div class="test-section">
+            <h2>Test New User Registration Notification</h2>
+            <p>This simulates a new user signing up and triggers admin notifications.</p>
+            <input type="email" id="testEmail" placeholder="Enter test email" value="testuser@example.com">
+            <input type="text" id="testName" placeholder="Enter test name" value="Test User">
+            <button onclick="testNewUserNotification()">Send Test Registration Alert</button>
+        </div>
+
+        <div class="test-section">
+            <h2>Test User Approval Notification</h2>
+            <p>This simulates an admin approving a user and sending them a welcome email.</p>
+            <input type="email" id="approvalEmail" placeholder="Enter user email" value="newuser@example.com">
+            <input type="text" id="approvalName" placeholder="Enter user name" value="New User">
+            <button onclick="testUserApprovalNotification()">Send Test Approval Email</button>
+        </div>
+
+        <div class="test-section">
+            <h2>Test Game Notifications</h2>
+            <button onclick="testGameAdded()">Test New Game Added</button>
+            <button onclick="testGameUpdated()">Test Game Updated</button>
+            <button onclick="testNoTailgate()">Test No Tailgate Set</button>
+        </div>
+
+        <div class="test-section">
+            <h2>Test RSVP Notification</h2>
+            <button onclick="testRSVPNotification()">Test RSVP Received</button>
+        </div>
+
+        <div class="test-section">
+            <h2>Console Output</h2>
+            <div id="console" class="console">
+                <div class="log-entry info-entry">Console output will appear here...</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import notification service
+        import { notificationService, NotificationEvent } from './src/services/notificationService.ts';
+        
+        // Make functions available globally
+        window.notificationService = notificationService;
+        window.NotificationEvent = NotificationEvent;
+
+        // Console logger
+        const logToConsole = (message, type = 'log') => {
+            const consoleDiv = document.getElementById('console');
+            const entry = document.createElement('div');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            let className = 'log-entry';
+            if (type === 'error') className += ' error-entry';
+            else if (type === 'info') className += ' info-entry';
+            else if (type === 'success') className += ' success-entry';
+            
+            entry.className = className;
+            entry.innerHTML = `[${timestamp}] ${message}`;
+            consoleDiv.appendChild(entry);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+            
+            // Also log to actual console
+            console[type](message);
+        };
+
+        window.testNewUserNotification = async () => {
+            const email = document.getElementById('testEmail').value;
+            const name = document.getElementById('testName').value;
+            
+            logToConsole('Testing new user registration notification...', 'info');
+            
+            try {
+                await notificationService.notifyNewUserRegistration({
+                    id: 'test-' + Date.now(),
+                    email: email,
+                    name: name,
+                    createdAt: new Date().toISOString()
+                });
+                
+                logToConsole(`✅ New user notification triggered for ${name} (${email})`, 'success');
+                logToConsole('Check console for email simulation output', 'info');
+            } catch (error) {
+                logToConsole(`❌ Error: ${error.message}`, 'error');
+            }
+        };
+
+        window.testUserApprovalNotification = async () => {
+            const email = document.getElementById('approvalEmail').value;
+            const name = document.getElementById('approvalName').value;
+            
+            logToConsole('Testing user approval notification...', 'info');
+            
+            try {
+                await notificationService.notifyUserApproved({
+                    id: 'test-' + Date.now(),
+                    email: email,
+                    name: name
+                });
+                
+                logToConsole(`✅ Approval notification sent to ${name} (${email})`, 'success');
+                logToConsole('Check console for email simulation output', 'info');
+            } catch (error) {
+                logToConsole(`❌ Error: ${error.message}`, 'error');
+            }
+        };
+
+        window.testGameAdded = async () => {
+            logToConsole('Testing new game added notification...', 'info');
+            
+            try {
+                await notificationService.notifyGameUpdate(
+                    {
+                        id: 'game-' + Date.now(),
+                        opponent: 'Oklahoma',
+                        date: '2025-10-11',
+                        time: '2:30 PM',
+                        location: 'Cotton Bowl, Dallas, TX',
+                        isHome: false
+                    },
+                    NotificationEvent.NEW_GAME_ADDED
+                );
+                
+                logToConsole('✅ New game notification triggered', 'success');
+            } catch (error) {
+                logToConsole(`❌ Error: ${error.message}`, 'error');
+            }
+        };
+
+        window.testGameUpdated = async () => {
+            logToConsole('Testing game updated notification...', 'info');
+            
+            try {
+                await notificationService.notifyGameUpdate(
+                    {
+                        id: 'game-' + Date.now(),
+                        opponent: 'Texas A&M',
+                        date: '2025-11-29',
+                        time: '7:00 PM',
+                        location: 'Kyle Field, College Station, TX',
+                        isHome: false
+                    },
+                    NotificationEvent.GAME_UPDATED,
+                    ['Time changed from 6:00 PM to 7:00 PM']
+                );
+                
+                logToConsole('✅ Game update notification triggered', 'success');
+            } catch (error) {
+                logToConsole(`❌ Error: ${error.message}`, 'error');
+            }
+        };
+
+        window.testNoTailgate = async () => {
+            logToConsole('Testing no tailgate notification...', 'info');
+            
+            try {
+                await notificationService.notifyGameUpdate(
+                    {
+                        id: 'game-' + Date.now(),
+                        opponent: 'Sam Houston',
+                        date: '2025-09-06',
+                        time: '7:00 PM',
+                        location: 'DKR Memorial Stadium',
+                        isHome: true,
+                        noTailgate: true
+                    },
+                    NotificationEvent.NO_TAILGATE_SET
+                );
+                
+                logToConsole('✅ No tailgate notification triggered', 'success');
+            } catch (error) {
+                logToConsole(`❌ Error: ${error.message}`, 'error');
+            }
+        };
+
+        window.testRSVPNotification = async () => {
+            logToConsole('Testing RSVP notification...', 'info');
+            
+            try {
+                await notificationService.notifyRSVP({
+                    gameId: 'game-123',
+                    userEmail: 'fan@texastailgaters.com',
+                    userName: 'Longhorn Fan',
+                    status: 'attending',
+                    guestCount: 3
+                });
+                
+                logToConsole('✅ RSVP notification triggered', 'success');
+            } catch (error) {
+                logToConsole(`❌ Error: ${error.message}`, 'error');
+            }
+        };
+
+        // Load admin emails on page load
+        window.addEventListener('load', async () => {
+            logToConsole('Loading notification service...', 'info');
+            await notificationService.loadAdminEmails();
+            logToConsole('Notification service ready!', 'success');
+            
+            // Set test admin emails
+            notificationService.setAdminEmails([
+                'admin@texastailgaters.com',
+                'texastailgaters@gmail.com'
+            ]);
+            logToConsole('Admin emails configured for testing', 'info');
+        });
+    </script>
+</body>
+</html>
