@@ -413,6 +413,36 @@ export const teamLogos: Record<string, TeamInfo> = {
     logoUrl: 'https://a.espncdn.com/i/teamlogos/ncaa/500/2433.png',
     primaryColor: '#840029',
     secondaryColor: '#E4AA47'
+  },
+  'Sam Houston': {
+    name: 'Sam Houston State Bearkats',
+    logoUrl: 'https://a.espncdn.com/i/teamlogos/ncaa/500/2534.png',
+    primaryColor: '#F37321',
+    secondaryColor: '#FFFFFF'
+  },
+  'Sam Houston State': {
+    name: 'Sam Houston State Bearkats',
+    logoUrl: 'https://a.espncdn.com/i/teamlogos/ncaa/500/2534.png',
+    primaryColor: '#F37321',
+    secondaryColor: '#FFFFFF'
+  },
+  'SHSU': {
+    name: 'Sam Houston State Bearkats',
+    logoUrl: 'https://a.espncdn.com/i/teamlogos/ncaa/500/2534.png',
+    primaryColor: '#F37321',
+    secondaryColor: '#FFFFFF'
+  },
+  'UTEP': {
+    name: 'UTEP Miners',
+    logoUrl: 'https://a.espncdn.com/i/teamlogos/ncaa/500/2638.png',
+    primaryColor: '#FF6600',
+    secondaryColor: '#051C2C'
+  },
+  'UT El Paso': {
+    name: 'UTEP Miners',
+    logoUrl: 'https://a.espncdn.com/i/teamlogos/ncaa/500/2638.png',
+    primaryColor: '#FF6600',
+    secondaryColor: '#051C2C'
   }
 };
 
