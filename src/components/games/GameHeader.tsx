@@ -1,5 +1,5 @@
-import React from 'react';
-import { getTeamInfo } from '../../services/teamLogos';
+import React, { useEffect } from 'react';
+import { getTeamInfo, checkMissingLogo } from '../../services/teamLogos';
 
 interface GameHeaderProps {
   opponent: string;
@@ -21,6 +21,11 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
   size = 'md'
 }) => {
   const teamInfo = getTeamInfo(opponent);
+  
+  // Check for missing logo and log warning in development
+  useEffect(() => {
+    checkMissingLogo(opponent);
+  }, [opponent]);
   
   const logoSizes = {
     sm: 'w-8 h-8',

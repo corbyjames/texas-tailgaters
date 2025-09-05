@@ -474,3 +474,28 @@ export function getTeamInfo(opponent: string): TeamInfo | null {
 
 // Fallback logo for unknown teams
 export const defaultLogo = 'https://a.espncdn.com/i/teamlogos/ncaa/500/default-team-logo-500.png';
+
+// Track missing logos (useful for development)
+const missingLogos = new Set<string>();
+
+// Function to check and report missing logos
+export function checkMissingLogo(opponent: string): void {
+  if (!opponent) return;
+  
+  const teamInfo = getTeamInfo(opponent);
+  if (!teamInfo && !missingLogos.has(opponent)) {
+    missingLogos.add(opponent);
+    console.warn(`Missing logo configuration for team: "${opponent}"`);
+    console.warn('Add this team to teamLogos.ts to display the correct logo');
+  }
+}
+
+// Get all teams that are missing logos
+export function getMissingLogos(): string[] {
+  return Array.from(missingLogos);
+}
+
+// Clear the missing logos cache (useful for testing)
+export function clearMissingLogosCache(): void {
+  missingLogos.clear();
+}

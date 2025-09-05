@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Game } from '../types/Game';
 import { GameService, CreateGameData, UpdateGameData } from '../services/gameService';
+import { getMissingLogos } from '../services/teamLogos';
 
 export function useGames() {
   const [games, setGames] = useState<Game[]>([]);
@@ -14,6 +15,19 @@ export function useGames() {
       setError(null);
       const data = await GameService.getGames();
       setGames(data);
+      
+      // Check for missing logos after loading games
+      if (data.length > 0) {
+        // This will automatically log warnings for any missing logos
+        // The checkMissingLogo function is called in GameHeader component
+        const missingTeams = getMissingLogos();
+        if (missingTeams.length > 0) {
+          console.log('=== Missing Team Logos Summary ===');
+          console.log(`Found ${missingTeams.length} teams without logo configuration:`);
+          missingTeams.forEach(team => console.log(`  - ${team}`));
+          console.log('Add these teams to src/services/teamLogos.ts');
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch games');
     } finally {
@@ -208,6 +222,7 @@ export function useGames() {
     clearMockData,
   };
 }
+
 
 
 
