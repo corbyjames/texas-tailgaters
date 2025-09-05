@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management Verification - Texas Tailgaters</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f3f4f6;
+        }
+        h1 {
+            color: #bf5700;
+            border-bottom: 2px solid #bf5700;
+            padding-bottom: 10px;
+        }
+        .step {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .step h2 {
+            color: #333;
+            margin-top: 0;
+        }
+        .button {
+            background: #bf5700;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        .button:hover {
+            background: #a04600;
+        }
+        .success {
+            color: #10b981;
+            font-weight: bold;
+        }
+        .warning {
+            color: #f59e0b;
+            font-weight: bold;
+        }
+        .error {
+            color: #ef4444;
+            font-weight: bold;
+        }
+        .code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .feature-list li:before {
+            content: "✓ ";
+            color: #10b981;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 User Management Feature Verification</h1>
+    
+    <div class="step">
+        <h2>📋 Features Implemented</h2>
+        <ul class="feature-list">
+            <li>View all registered users with their status and role</li>
+            <li>Search users by name or email</li>
+            <li>Filter users by status (Active, Inactive, Pending)</li>
+            <li>Filter users by role (Admin, Member)</li>
+            <li>Approve pending user registrations</li>
+            <li>Deactivate/reactivate users</li>
+            <li>Send password reset emails</li>
+            <li>Toggle user roles between admin and member</li>
+            <li>Real-time user statistics dashboard</li>
+            <li>Action menu for each user with context-sensitive options</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <h2>Step 1: Login as Admin</h2>
+        <p>Use the test admin account to access the admin dashboard:</p>
+        <ul>
+            <li>Email: <span class="code">test@texastailgaters.com</span></li>
+            <li>Password: <span class="code">TestPassword123!</span></li>
+        </ul>
+        <a href="http://localhost:5173/login" target="_blank" class="button">Open Login Page</a>
+    </div>
+
+    <div class="step">
+        <h2>Step 2: Navigate to Admin Dashboard</h2>
+        <p>After logging in, navigate to the admin dashboard:</p>
+        <a href="http://localhost:5173/admin" target="_blank" class="button">Open Admin Dashboard</a>
+        <p class="warning">Note: You must be logged in as admin first!</p>
+    </div>
+
+    <div class="step">
+        <h2>Step 3: Access User Management</h2>
+        <p>Click on the <strong>"Users"</strong> tab in the admin dashboard to access user management features.</p>
+        <p>You should see:</p>
+        <ul>
+            <li>Statistics cards showing Total Users, Active, Inactive, Pending, and Admin counts</li>
+            <li>Search bar to find users</li>
+            <li>Filter dropdowns for status and role</li>
+            <li>User table with all registered users</li>
+            <li>Action menu (⋮) for each user</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <h2>Step 4: Test Features</h2>
+        <h3>Create Test Users</h3>
+        <p>Create some test users to work with:</p>
+        <a href="test-user-management.html" target="_blank" class="button">Open Test User Creator</a>
+        
+        <h3>Try These Actions:</h3>
+        <ol>
+            <li><strong>Search:</strong> Type "test" in the search bar</li>
+            <li><strong>Filter:</strong> Select "Pending" from the status dropdown</li>
+            <li><strong>Approve User:</strong> Click ⋮ on a pending user and select "Approve Registration"</li>
+            <li><strong>Deactivate:</strong> Click ⋮ on an active user and select "Deactivate User"</li>
+            <li><strong>Password Reset:</strong> Click ⋮ and select "Send Password Reset"</li>
+            <li><strong>Change Role:</strong> Click ⋮ and select "Make Admin" or "Remove Admin"</li>
+        </ol>
+    </div>
+
+    <div class="step">
+        <h2>✅ Verification Checklist</h2>
+        <p>Confirm the following features are working:</p>
+        <ul style="list-style: none; padding: 0;">
+            <li>☐ Users tab appears in admin dashboard</li>
+            <li>☐ User statistics are displayed correctly</li>
+            <li>☐ Search functionality filters users</li>
+            <li>☐ Status filter shows only matching users</li>
+            <li>☐ Role filter shows only matching users</li>
+            <li>☐ Action menu opens when clicking ⋮</li>
+            <li>☐ User approval changes status from pending to active</li>
+            <li>☐ User deactivation changes status to inactive</li>
+            <li>☐ Password reset shows success message</li>
+            <li>☐ Role toggle changes between admin and member</li>
+            <li>☐ Success/error messages appear for actions</li>
+            <li>☐ Refresh button updates the user list</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <h2>🔍 Troubleshooting</h2>
+        <p>If you encounter issues:</p>
+        <ul>
+            <li><strong>Can't see Users tab:</strong> Ensure you're logged in with test@texastailgaters.com</li>
+            <li><strong>Admin page redirects to login:</strong> Clear browser cache and login again</li>
+            <li><strong>No users showing:</strong> Click "Create Test Users" in the test page</li>
+            <li><strong>Actions not working:</strong> Check browser console for errors (F12)</li>
+        </ul>
+    </div>
+
+    <div class="step" style="background: #fef3c7; border: 2px solid #f59e0b;">
+        <h2 style="color: #d97706;">⚡ Quick Test</h2>
+        <p>For a quick verification, follow these steps in order:</p>
+        <ol>
+            <li>Click here: <a href="http://localhost:5173/login" target="_blank">Login Page</a></li>
+            <li>Login with: <span class="code">test@texastailgaters.com</span> / <span class="code">TestPassword123!</span></li>
+            <li>Click here: <a href="http://localhost:5173/admin" target="_blank">Admin Dashboard</a></li>
+            <li>Click the <strong>"Users"</strong> tab</li>
+            <li>You should see the user management interface!</li>
+        </ol>
+        <p class="success">✅ If you can see the user table and statistics, the feature is working!</p>
+    </div>
+</body>
+</html>

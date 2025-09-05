@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test User Management - Texas Tailgaters</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f3f4f6;
+        }
+        h1 {
+            color: #bf5700;
+            border-bottom: 2px solid #bf5700;
+            padding-bottom: 10px;
+        }
+        .section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .button {
+            background: #bf5700;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .button:hover {
+            background: #a04600;
+        }
+        .button.secondary {
+            background: #6b7280;
+        }
+        .button.secondary:hover {
+            background: #4b5563;
+        }
+        .success {
+            background: #10b981;
+        }
+        .danger {
+            background: #ef4444;
+        }
+        .output {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .test-scenario {
+            border-left: 4px solid #bf5700;
+            padding-left: 15px;
+            margin: 15px 0;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 5px;
+        }
+        .active { background: #10b981; color: white; }
+        .inactive { background: #6b7280; color: white; }
+        .pending { background: #f59e0b; color: white; }
+        .admin { background: #bf5700; color: white; }
+        .member { background: #3b82f6; color: white; }
+    </style>
+</head>
+<body>
+    <h1>🧪 User Management Testing Suite</h1>
+    
+    <div class="section">
+        <h2>📝 Test Scenarios</h2>
+        
+        <div class="test-scenario">
+            <h3>1. Create Test Users</h3>
+            <p>Create multiple test users with different statuses</p>
+            <button class="button" onclick="createTestUsers()">Create Test Users</button>
+            <button class="button secondary" onclick="clearTestUsers()">Clear Test Users</button>
+        </div>
+        
+        <div class="test-scenario">
+            <h3>2. View All Users</h3>
+            <p>Display all registered users with their status and role</p>
+            <button class="button" onclick="viewAllUsers()">View All Users</button>
+        </div>
+        
+        <div class="test-scenario">
+            <h3>3. User Approval</h3>
+            <p>Approve pending users for access</p>
+            <button class="button" onclick="approvePendingUser()">Approve First Pending User</button>
+        </div>
+        
+        <div class="test-scenario">
+            <h3>4. User Deactivation</h3>
+            <p>Deactivate and reactivate users</p>
+            <button class="button" onclick="deactivateUser()">Deactivate Random User</button>
+            <button class="button" onclick="reactivateUser()">Reactivate First Inactive</button>
+        </div>
+        
+        <div class="test-scenario">
+            <h3>5. Password Reset</h3>
+            <p>Send password reset emails to users</p>
+            <button class="button" onclick="sendPasswordReset()">Send Reset to Test User</button>
+        </div>
+        
+        <div class="test-scenario">
+            <h3>6. Role Management</h3>
+            <p>Change user roles between admin and member</p>
+            <button class="button" onclick="toggleUserRole()">Toggle First User Role</button>
+        </div>
+        
+        <div class="test-scenario">
+            <h3>7. Navigate to Admin Page</h3>
+            <p>Go to the admin dashboard to see the UI</p>
+            <button class="button success" onclick="window.open('http://localhost:5173/admin', '_blank')">
+                Open Admin Dashboard
+            </button>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>📊 Output</h2>
+        <div id="output" class="output">Ready for testing...</div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            sendPasswordResetEmail,
+            signOut
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { 
+            getDatabase, 
+            ref, 
+            set, 
+            get, 
+            update, 
+            remove,
+            push
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBJascYs4rXD4uL5Z8F7RDkMOBhQtjehic",
+            authDomain: "texas-tailgaters.firebaseapp.com",
+            databaseURL: "https://texas-tailgaters-default-rtdb.firebaseio.com",
+            projectId: "texas-tailgaters",
+            storageBucket: "texas-tailgaters.appspot.com",
+            messagingSenderId: "517392756353",
+            appId: "1:517392756353:web:texas-tailgaters-web"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const database = getDatabase(app);
+
+        function output(message) {
+            const outputDiv = document.getElementById('output');
+            outputDiv.textContent = typeof message === 'object' 
+                ? JSON.stringify(message, null, 2) 
+                : message;
+        }
+
+        // Make functions global
+        window.createTestUsers = async function() {
+            output('Creating test users...');
+            
+            const testUsers = [
+                { email: 'pending1@test.com', name: 'Pending User 1', status: 'pending_approval', role: 'pending' },
+                { email: 'pending2@test.com', name: 'Pending User 2', status: 'pending_approval', role: 'pending' },
+                { email: 'active1@test.com', name: 'Active User 1', status: 'active', role: 'member' },
+                { email: 'active2@test.com', name: 'Active User 2', status: 'active', role: 'member' },
+                { email: 'inactive1@test.com', name: 'Inactive User 1', status: 'inactive', role: 'member' },
+                { email: 'testadmin@test.com', name: 'Test Admin', status: 'active', role: 'admin' }
+            ];
+
+            const results = [];
+            
+            for (const userData of testUsers) {
+                try {
+                    // Try to create user in Auth (might fail if already exists)
+                    let userId;
+                    try {
+                        const userCredential = await createUserWithEmailAndPassword(
+                            auth, 
+                            userData.email, 
+                            'TestPassword123!'
+                        );
+                        userId = userCredential.user.uid;
+                    } catch (authError) {
+                        // User might already exist, create a fake ID for database entry
+                        userId = 'test_' + userData.email.replace('@', '_').replace('.', '_');
+                    }
+                    
+                    // Add/update user in database
+                    const userRef = ref(database, `users/${userId}`);
+                    await set(userRef, {
+                        email: userData.email,
+                        name: userData.name,
+                        status: userData.status,
+                        role: userData.role,
+                        createdAt: new Date().toISOString(),
+                        isAdmin: userData.role === 'admin'
+                    });
+                    
+                    results.push(`✅ Created: ${userData.email} (${userData.status}, ${userData.role})`);
+                } catch (error) {
+                    results.push(`❌ Failed: ${userData.email} - ${error.message}`);
+                }
+            }
+            
+            output(results.join('\n'));
+        };
+
+        window.clearTestUsers = async function() {
+            output('Clearing test users from database...');
+            
+            const usersRef = ref(database, 'users');
+            const snapshot = await get(usersRef);
+            
+            if (!snapshot.exists()) {
+                output('No users to clear');
+                return;
+            }
+            
+            const users = snapshot.val();
+            const testEmails = ['pending1@test.com', 'pending2@test.com', 'active1@test.com', 
+                              'active2@test.com', 'inactive1@test.com', 'testadmin@test.com'];
+            
+            let cleared = 0;
+            for (const [userId, userData] of Object.entries(users)) {
+                if (testEmails.includes(userData.email) || userId.startsWith('test_')) {
+                    await remove(ref(database, `users/${userId}`));
+                    cleared++;
+                }
+            }
+            
+            output(`Cleared ${cleared} test users from database`);
+        };
+
+        window.viewAllUsers = async function() {
+            output('Loading all users...');
+            
+            const usersRef = ref(database, 'users');
+            const snapshot = await get(usersRef);
+            
+            if (!snapshot.exists()) {
+                output('No users found');
+                return;
+            }
+            
+            const users = snapshot.val();
+            const userList = [];
+            
+            for (const [userId, userData] of Object.entries(users)) {
+                const status = userData.status || 'active';
+                const role = userData.role || 'member';
+                userList.push({
+                    id: userId.substring(0, 8) + '...',
+                    email: userData.email,
+                    name: userData.name || 'No name',
+                    status: status,
+                    role: role,
+                    lastLogin: userData.lastLogin ? new Date(userData.lastLogin).toLocaleDateString() : 'Never'
+                });
+            }
+            
+            output('USERS LIST:\n' + userList.map(u => 
+                `📧 ${u.email}\n   Name: ${u.name}\n   Status: ${u.status} | Role: ${u.role}\n   Last Login: ${u.lastLogin}\n`
+            ).join('\n'));
+        };
+
+        window.approvePendingUser = async function() {
+            output('Looking for pending users...');
+            
+            const usersRef = ref(database, 'users');
+            const snapshot = await get(usersRef);
+            
+            if (!snapshot.exists()) {
+                output('No users found');
+                return;
+            }
+            
+            const users = snapshot.val();
+            let pendingUser = null;
+            let pendingUserId = null;
+            
+            for (const [userId, userData] of Object.entries(users)) {
+                if (userData.status === 'pending_approval') {
+                    pendingUser = userData;
+                    pendingUserId = userId;
+                    break;
+                }
+            }
+            
+            if (!pendingUser) {
+                output('No pending users found');
+                return;
+            }
+            
+            // Approve the user
+            const userRef = ref(database, `users/${pendingUserId}`);
+            await update(userRef, {
+                status: 'active',
+                role: 'member',
+                approvedAt: new Date().toISOString(),
+                approvedBy: 'admin@texastailgaters.com'
+            });
+            
+            output(`✅ Approved user: ${pendingUser.email}\nStatus: pending_approval → active\nRole: ${pendingUser.role} → member`);
+        };
+
+        window.deactivateUser = async function() {
+            output('Finding active user to deactivate...');
+            
+            const usersRef = ref(database, 'users');
+            const snapshot = await get(usersRef);
+            
+            if (!snapshot.exists()) {
+                output('No users found');
+                return;
+            }
+            
+            const users = snapshot.val();
+            let activeUser = null;
+            let activeUserId = null;
+            
+            for (const [userId, userData] of Object.entries(users)) {
+                if (userData.status === 'active' && userData.email !== 'admin@texastailgaters.com') {
+                    activeUser = userData;
+                    activeUserId = userId;
+                    break;
+                }
+            }
+            
+            if (!activeUser) {
+                output('No active users available to deactivate');
+                return;
+            }
+            
+            const userRef = ref(database, `users/${activeUserId}`);
+            await update(userRef, {
+                status: 'inactive',
+                deactivatedAt: new Date().toISOString(),
+                deactivatedBy: 'admin@texastailgaters.com'
+            });
+            
+            output(`⛔ Deactivated user: ${activeUser.email}\nStatus: active → inactive`);
+        };
+
+        window.reactivateUser = async function() {
+            output('Finding inactive user to reactivate...');
+            
+            const usersRef = ref(database, 'users');
+            const snapshot = await get(usersRef);
+            
+            if (!snapshot.exists()) {
+                output('No users found');
+                return;
+            }
+            
+            const users = snapshot.val();
+            let inactiveUser = null;
+            let inactiveUserId = null;
+            
+            for (const [userId, userData] of Object.entries(users)) {
+                if (userData.status === 'inactive') {
+                    inactiveUser = userData;
+                    inactiveUserId = userId;
+                    break;
+                }
+            }
+            
+            if (!inactiveUser) {
+                output('No inactive users found');
+                return;
+            }
+            
+            const userRef = ref(database, `users/${inactiveUserId}`);
+            await update(userRef, {
+                status: 'active',
+                deactivatedAt: null,
+                deactivatedBy: null
+            });
+            
+            output(`✅ Reactivated user: ${inactiveUser.email}\nStatus: inactive → active`);
+        };
+
+        window.sendPasswordReset = async function() {
+            const testEmail = 'test@texastailgaters.com';
+            output(`Sending password reset email to ${testEmail}...`);
+            
+            try {
+                await sendPasswordResetEmail(auth, testEmail);
+                
+                // Log the action in database
+                const usersRef = ref(database, 'users');
+                const snapshot = await get(usersRef);
+                
+                if (snapshot.exists()) {
+                    const users = snapshot.val();
+                    const userId = Object.keys(users).find(key => 
+                        users[key].email === testEmail
+                    );
+                    
+                    if (userId) {
+                        const userRef = ref(database, `users/${userId}`);
+                        await update(userRef, {
+                            lastPasswordReset: new Date().toISOString()
+                        });
+                    }
+                }
+                
+                output(`✅ Password reset email sent to ${testEmail}\n\nCheck the email inbox for the reset link.`);
+            } catch (error) {
+                output(`❌ Failed to send reset email: ${error.message}`);
+            }
+        };
+
+        window.toggleUserRole = async function() {
+            output('Finding first non-admin user to toggle role...');
+            
+            const usersRef = ref(database, 'users');
+            const snapshot = await get(usersRef);
+            
+            if (!snapshot.exists()) {
+                output('No users found');
+                return;
+            }
+            
+            const users = snapshot.val();
+            let targetUser = null;
+            let targetUserId = null;
+            
+            for (const [userId, userData] of Object.entries(users)) {
+                if (userData.email !== 'admin@texastailgaters.com') {
+                    targetUser = userData;
+                    targetUserId = userId;
+                    break;
+                }
+            }
+            
+            if (!targetUser) {
+                output('No users available to toggle');
+                return;
+            }
+            
+            const currentRole = targetUser.role || 'member';
+            const newRole = currentRole === 'admin' ? 'member' : 'admin';
+            
+            const userRef = ref(database, `users/${targetUserId}`);
+            await update(userRef, {
+                role: newRole,
+                isAdmin: newRole === 'admin'
+            });
+            
+            output(`🔄 Toggled user role:\nUser: ${targetUser.email}\nRole: ${currentRole} → ${newRole}`);
+        };
+
+        // Initial message
+        output('User Management Test Suite Ready!\n\nClick the buttons above to test different user management scenarios.');
+    </script>
+</body>
+</html>

@@ -51,19 +51,44 @@ class EmailService {
       return { success: false, message: 'Email service not configured' };
     }
 
+    // Include multiple field name variations to support different template configurations
     const templateParams = {
+      // Email fields - try multiple common variations
       to_email: data.recipientEmail,
+      user_email: data.recipientEmail,
+      email: data.recipientEmail,
+      recipient_email: data.recipientEmail,
+      
+      // Name fields
       to_name: data.recipientName,
+      user_name: data.recipientName,
+      name: data.recipientName,
+      recipient_name: data.recipientName,
+      
+      // Sender fields
       from_name: data.senderName || 'Texas Tailgaters',
+      
+      // Game details - include variations for template compatibility
       game_name: data.gameName,
       game_date: data.gameDate,
+      date: data.gameDate,  // Alternative field name
+      'Game Date': data.gameDate,  // Exact template field name with space
       game_time: data.gameTime,
+      time: data.gameTime,  // Alternative field name
+      'Time': data.gameTime,  // Exact template field name with capital T
       opponent: data.opponent,
+      opposing_team: data.opponent,  // Alternative field name
+      'Opposing Team': data.opponent,  // Exact template field name with space and capitals
+      team: data.opponent,  // Alternative field name
       location: data.location,
+      venue: data.location,  // Alternative field name
+      'Location': data.location,  // Capital L version
       theme: data.theme || 'No specific theme',
       setup_time: data.setupTime || 'TBD',
       special_notes: data.specialNotes || 'None',
+      notes: data.specialNotes || 'None',  // Alternative field name
       rsvp_link: data.rsvpLink,
+      link: data.rsvpLink,  // Alternative field name
       reply_to: 'texastailgaters@gmail.com'
     };
 
@@ -79,11 +104,28 @@ class EmailService {
       } else {
         return { success: false, message: 'Failed to send invitation' };
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending invitation:', error);
+      
+      // Provide more detailed error messages
+      let errorMessage = 'Failed to send invitation';
+      
+      if (error.status === 422) {
+        errorMessage = 'Email template configuration error. The template expects different field names. Check EmailJS dashboard.';
+        console.error('Template parameter issue. Sent params:', templateParams);
+      } else if (error.status === 401) {
+        errorMessage = 'EmailJS authentication failed. Check your public key.';
+      } else if (error.status === 404) {
+        errorMessage = 'EmailJS service or template not found. Check service ID and template ID.';
+      } else if (error.text) {
+        errorMessage = error.text;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       return { 
         success: false, 
-        message: error instanceof Error ? error.message : 'Failed to send invitation' 
+        message: errorMessage
       };
     }
   }
@@ -93,9 +135,21 @@ class EmailService {
       return { success: false, message: 'Email service not configured' };
     }
 
+    // Include multiple field name variations to support different template configurations
     const templateParams = {
+      // Email fields - try multiple common variations
       to_email: data.recipientEmail,
+      user_email: data.recipientEmail,
+      email: data.recipientEmail,
+      recipient_email: data.recipientEmail,
+      
+      // Name fields
       to_name: data.recipientName,
+      user_name: data.recipientName,
+      name: data.recipientName,
+      recipient_name: data.recipientName,
+      
+      // Potluck details
       game_name: data.gameName,
       game_date: data.gameDate,
       assigned_item: data.assignedItem,
@@ -118,11 +172,28 @@ class EmailService {
       } else {
         return { success: false, message: 'Failed to send reminder' };
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending reminder:', error);
+      
+      // Provide more detailed error messages
+      let errorMessage = 'Failed to send reminder';
+      
+      if (error.status === 422) {
+        errorMessage = 'Email template configuration error. The template expects different field names. Check EmailJS dashboard.';
+        console.error('Template parameter issue. Sent params:', templateParams);
+      } else if (error.status === 401) {
+        errorMessage = 'EmailJS authentication failed. Check your public key.';
+      } else if (error.status === 404) {
+        errorMessage = 'EmailJS service or template not found. Check service ID and template ID.';
+      } else if (error.text) {
+        errorMessage = error.text;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       return { 
         success: false, 
-        message: error instanceof Error ? error.message : 'Failed to send reminder' 
+        message: errorMessage
       };
     }
   }

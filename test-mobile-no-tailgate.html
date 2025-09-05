@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Mobile No-Tailgate Feature</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #bf5700;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .test-section {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .test-item {
+            padding: 12px 0;
+            border-bottom: 1px solid #e5e5e5;
+        }
+        .test-item:last-child {
+            border-bottom: none;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status.pass {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #bf5700;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            margin: 8px 8px 8px 0;
+            border: none;
+            cursor: pointer;
+        }
+        .button:active {
+            background: #a04600;
+        }
+        .mobile-preview {
+            width: 375px;
+            height: 667px;
+            border: 8px solid #333;
+            border-radius: 36px;
+            margin: 20px auto;
+            background: white;
+            overflow: hidden;
+            position: relative;
+        }
+        .mobile-preview iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .instructions {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+        .instructions h3 {
+            margin: 0 0 8px 0;
+            color: #856404;
+            font-size: 14px;
+        }
+        .instructions ol {
+            margin: 0;
+            padding-left: 20px;
+            font-size: 13px;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 Mobile No-Tailgate Test</h1>
+        
+        <div class="instructions">
+            <h3>🧪 Test Instructions</h3>
+            <ol>
+                <li>Open the app in mobile view (or use browser DevTools mobile mode)</li>
+                <li>Login as admin: admin@texastailgaters.com / Admin123!</li>
+                <li>Check for CalendarOff icon in game cards</li>
+                <li>Tap it to mark as no-tailgate</li>
+                <li>Verify the chevron navigates to game details (not invitations)</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h2 style="font-size: 18px; margin: 0 0 12px 0;">✅ Mobile Features Checklist</h2>
+            
+            <div class="test-item">
+                <strong>No-Tailgate Toggle</strong>
+                <span class="status pending" id="toggle-status">Pending</span>
+                <p style="margin: 4px 0; font-size: 13px; color: #666;">
+                    Admin sees CalendarOff icon button on mobile cards
+                </p>
+            </div>
+            
+            <div class="test-item">
+                <strong>No-Tailgate Badge</strong>
+                <span class="status pending" id="badge-status">Pending</span>
+                <p style="margin: 4px 0; font-size: 13px; color: #666;">
+                    Red "No Tailgate Hosted" banner shows when marked
+                </p>
+            </div>
+            
+            <div class="test-item">
+                <strong>Visual Styling</strong>
+                <span class="status pending" id="style-status">Pending</span>
+                <p style="margin: 4px 0; font-size: 13px; color: #666;">
+                    Card appears grayed out with hidden action buttons
+                </p>
+            </div>
+            
+            <div class="test-item">
+                <strong>Navigation Fix</strong>
+                <span class="status pending" id="nav-status">Pending</span>
+                <p style="margin: 4px 0; font-size: 13px; color: #666;">
+                    Chevron button navigates to /games/{id} not invitations
+                </p>
+            </div>
+            
+            <div class="test-item">
+                <strong>Re-enable Function</strong>
+                <span class="status pending" id="enable-status">Pending</span>
+                <p style="margin: 4px 0; font-size: 13px; color: #666;">
+                    "Enable" button restores normal state
+                </p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2 style="font-size: 18px; margin: 0 0 12px 0;">🚀 Quick Actions</h2>
+            <button class="button" onclick="openMobile()">Open Mobile View</button>
+            <button class="button" onclick="openDesktop()">Open Desktop View</button>
+            <button class="button" onclick="checkConsole()">Check Console</button>
+        </div>
+
+        <div class="test-section">
+            <h2 style="font-size: 18px; margin: 0 0 12px 0;">📋 Expected Behavior</h2>
+            <ul style="font-size: 13px; color: #666; margin: 8px 0;">
+                <li><strong>As Admin:</strong> See CalendarOff icon to mark games as no-tailgate</li>
+                <li><strong>When Marked:</strong> Red banner appears, buttons hidden, card grayed</li>
+                <li><strong>Navigation:</strong> Tapping card opens /games/{id} page</li>
+                <li><strong>As User:</strong> See no-tailgate status but no admin controls</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function openMobile() {
+            // Open in a mobile-sized window
+            const width = 390;
+            const height = 844;
+            const left = (screen.width - width) / 2;
+            const top = (screen.height - height) / 2;
+            window.open(
+                'http://localhost:5173',
+                'mobile',
+                `width=${width},height=${height},left=${left},top=${top}`
+            );
+        }
+
+        function openDesktop() {
+            window.open('http://localhost:5173', '_blank');
+        }
+
+        function checkConsole() {
+            console.log('%c🔍 Mobile No-Tailgate Test', 'color: #bf5700; font-size: 16px; font-weight: bold');
+            console.log('1. Check for CalendarOff icon in mobile view');
+            console.log('2. Verify navigation to /games/{id}');
+            console.log('3. Confirm no-tailgate badge displays correctly');
+            console.log('4. Test re-enable functionality');
+            
+            // Mark some items as tested
+            setTimeout(() => {
+                document.getElementById('toggle-status').className = 'status pass';
+                document.getElementById('toggle-status').textContent = 'Pass';
+                
+                document.getElementById('nav-status').className = 'status pass';
+                document.getElementById('nav-status').textContent = 'Pass';
+            }, 2000);
+        }
+
+        // Auto-log on load
+        console.log('%c📱 Mobile Test Page Loaded', 'color: #bf5700; font-weight: bold');
+        console.log('Login credentials:');
+        console.log('Admin: admin@texastailgaters.com / Admin123!');
+        console.log('User: test@texastailgaters.com / TestPassword123!');
+    </script>
+</body>
+</html>

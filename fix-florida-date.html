@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Florida Game Date</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 40px auto; 
+            padding: 20px; 
+            background: #f5f5f5;
+        }
+        .status { 
+            padding: 15px; 
+            margin: 20px 0; 
+            border-radius: 5px; 
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e9; color: #2e7d32; }
+        .info { background: #e3f2fd; color: #1565c0; }
+        .warning { background: #fff3e0; color: #ef6c00; }
+        button {
+            background: #1976d2;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover { background: #1565c0; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .game-info {
+            background: white;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <h1>Fix Florida Game Date</h1>
+    <div id="status"></div>
+    <div id="gameInfo"></div>
+    <div id="actions"></div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, get, set, update, push } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        // Correct Firebase configuration from src/config/firebase.ts
+        const firebaseConfig = {
+            apiKey: "AIzaSyBJascYs4rXD4uL5Z8F7RDkMOBhQtjehic",
+            authDomain: "texas-tailgaters.firebaseapp.com",
+            databaseURL: "https://texas-tailgaters-default-rtdb.firebaseio.com",
+            projectId: "texas-tailgaters",
+            storageBucket: "texas-tailgaters.appspot.com",
+            messagingSenderId: "517392756353",
+            appId: "1:517392756353:web:texas-tailgaters-web"
+        };
+
+        const status = document.getElementById('status');
+        const gameInfo = document.getElementById('gameInfo');
+        const actions = document.getElementById('actions');
+
+        let floridaGame = null;
+        let floridaGameKey = null;
+        let database = null;
+
+        async function checkFloridaGame() {
+            try {
+                status.innerHTML = '<div class="status info">Connecting to Firebase...</div>';
+                const app = initializeApp(firebaseConfig);
+                database = getDatabase(app);
+
+                status.innerHTML = '<div class="status success">Connected to Firebase!</div>';
+
+                // Get all games from Firebase Realtime Database (no auth needed for reading)
+                const gamesRef = ref(database, 'games');
+                const snapshot = await get(gamesRef);
+                
+                if (snapshot.exists()) {
+                    const games = snapshot.val();
+                    
+                    // Find Florida game
+                    for (const [key, game] of Object.entries(games)) {
+                        if (game.opponent && game.opponent.toLowerCase().includes('florida')) {
+                            floridaGame = game;
+                            floridaGameKey = key;
+                            break;
+                        }
+                    }
+                }
+
+                if (floridaGame) {
+                    const gameDate = floridaGame.date ? new Date(floridaGame.date) : null;
+                    const dateStr = gameDate ? gameDate.toLocaleDateString('en-US', { 
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        timeZone: 'America/Chicago'
+                    }) : 'No date';
+                    
+                    gameInfo.innerHTML = `
+                        <div class="game-info">
+                            <h2>Current Florida Game Data:</h2>
+                            <p><strong>Opponent:</strong> ${floridaGame.opponent}</p>
+                            <p><strong>Current Date:</strong> ${dateStr}</p>
+                            <p><strong>Raw Date Value:</strong> ${floridaGame.date}</p>
+                            <p><strong>Location:</strong> ${floridaGame.location || 'TBD'}</p>
+                            <p><strong>Time:</strong> ${floridaGame.time || 'TBD'}</p>
+                            <p><strong>Home Game:</strong> ${floridaGame.is_home ? 'Yes' : 'No'}</p>
+                            <p><strong>TV Network:</strong> ${floridaGame.tv_network || floridaGame.tvNetwork || 'TBD'}</p>
+                            <p><strong>Database Key:</strong> ${floridaGameKey}</p>
+                        </div>
+                    `;
+
+                    // Check if date needs fixing
+                    if (floridaGame.date && floridaGame.date !== '2025-10-04') {
+                        gameInfo.innerHTML += '<div class="status warning">⚠️ Florida game date needs to be updated to October 4, 2025</div>';
+                        
+                        actions.innerHTML = `
+                            <button onclick="window.fixDate()">Fix Date to Oct 4, 2025</button>
+                            <button onclick="window.location.reload()">Refresh</button>
+                        `;
+                    } else if (floridaGame.date === '2025-10-04') {
+                        gameInfo.innerHTML += '<div class="status success">✅ Florida game date is correct (October 4, 2025)</div>';
+                        
+                        // Check if location needs fixing
+                        if (floridaGame.is_home !== false || floridaGame.location !== 'Gainesville, FL') {
+                            gameInfo.innerHTML += '<div class="status warning">⚠️ Location or home status needs updating</div>';
+                            actions.innerHTML = `
+                                <button onclick="window.fixLocation()">Fix Location Details</button>
+                                <button onclick="window.location.reload()">Refresh</button>
+                            `;
+                        }
+                    }
+                } else {
+                    gameInfo.innerHTML = '<div class="status error">❌ No Florida game found in database!</div>';
+                    gameInfo.innerHTML += '<div class="status info">Note: If the database requires authentication, you may need to add the game through the app.</div>';
+                    actions.innerHTML = '<button onclick="window.addFloridaGame()">Try Adding Florida Game</button>';
+                }
+
+            } catch (error) {
+                status.innerHTML = `<div class="status error">Error: ${error.message}</div>`;
+                if (error.message.includes('Permission denied')) {
+                    status.innerHTML += '<div class="status warning">Database requires authentication. Please update the game through the app interface.</div>';
+                }
+                console.error('Error:', error);
+            }
+        }
+
+        window.fixDate = async function() {
+            if (!floridaGame || !floridaGameKey || !database) return;
+            
+            try {
+                status.innerHTML = '<div class="status info">Updating Florida game date...</div>';
+                
+                const gameRef = ref(database, `games/${floridaGameKey}`);
+                await update(gameRef, {
+                    date: '2025-10-04',
+                    location: 'Gainesville, FL',
+                    is_home: false,
+                    time: 'TBD',
+                    tv_network: 'TBD',
+                    updated_at: new Date().toISOString()
+                });
+                
+                status.innerHTML = '<div class="status success">✅ Florida game date updated successfully!</div>';
+                setTimeout(() => window.location.reload(), 1500);
+                
+            } catch (error) {
+                status.innerHTML = `<div class="status error">Error updating game: ${error.message}</div>`;
+                if (error.message.includes('Permission denied')) {
+                    status.innerHTML += '<div class="status warning">Database requires authentication. Please update the game through the app interface.</div>';
+                }
+                console.error('Error:', error);
+            }
+        };
+
+        window.fixLocation = async function() {
+            if (!floridaGame || !floridaGameKey || !database) return;
+            
+            try {
+                status.innerHTML = '<div class="status info">Updating Florida game location...</div>';
+                
+                const gameRef = ref(database, `games/${floridaGameKey}`);
+                await update(gameRef, {
+                    location: 'Gainesville, FL',
+                    is_home: false,
+                    updated_at: new Date().toISOString()
+                });
+                
+                status.innerHTML = '<div class="status success">✅ Florida game location updated successfully!</div>';
+                setTimeout(() => window.location.reload(), 1500);
+                
+            } catch (error) {
+                status.innerHTML = `<div class="status error">Error updating game: ${error.message}</div>`;
+                if (error.message.includes('Permission denied')) {
+                    status.innerHTML += '<div class="status warning">Database requires authentication. Please update the game through the app interface.</div>';
+                }
+                console.error('Error:', error);
+            }
+        };
+
+        window.addFloridaGame = async function() {
+            if (!database) return;
+            
+            try {
+                status.innerHTML = '<div class="status info">Adding Florida game...</div>';
+                
+                const gamesRef = ref(database, 'games');
+                const newGameRef = push(gamesRef);
+                
+                await set(newGameRef, {
+                    date: '2025-10-04',
+                    opponent: 'Florida',
+                    location: 'Gainesville, FL',
+                    is_home: false,
+                    time: 'TBD',
+                    tv_network: 'TBD',
+                    status: 'unplanned',
+                    expected_attendance: 0,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                });
+                
+                status.innerHTML = '<div class="status success">✅ Florida game added successfully!</div>';
+                setTimeout(() => window.location.reload(), 1500);
+                
+            } catch (error) {
+                status.innerHTML = `<div class="status error">Error adding game: ${error.message}</div>`;
+                if (error.message.includes('Permission denied')) {
+                    status.innerHTML += '<div class="status warning">Database requires authentication. Please update the game through the app interface.</div>';
+                }
+                console.error('Error:', error);
+            }
+        };
+
+        // Load on page load
+        checkFloridaGame();
+    </script>
+</body>
+</html>

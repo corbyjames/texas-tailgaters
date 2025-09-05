@@ -33,7 +33,7 @@ export default defineConfig({
   // Reporter configuration
   reporter: [
     ['list'],
-    ['html', { outputFolder: 'test-results/html-report', open: 'never' }],
+    ['html', { outputFolder: 'html-report', open: 'never' }],
     ['junit', { outputFile: 'test-results/junit-report.xml' }],
     ['json', { outputFile: 'test-results/json-report.json' }],
     isCI ? ['github'] : ['line']

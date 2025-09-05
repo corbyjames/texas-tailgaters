@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Game Invitation - Texas Tailgaters</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #BF5700;
+            border-bottom: 2px solid #BF5700;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin: 20px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        button {
+            background: #BF5700;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #8F3E00;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            display: block;
+        }
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            display: block;
+        }
+        .result.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            display: block;
+        }
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 600px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+        }
+        .template-preview {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .field-list {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .field-list h3 {
+            margin-top: 0;
+            color: #856404;
+        }
+        .field-list code {
+            background: #fff;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏈 Test Game Invitation Email</h1>
+        
+        <form id="invitationForm">
+            <h2>Recipient Information</h2>
+            <div class="two-column">
+                <div class="form-group">
+                    <label for="recipientEmail">Recipient Email *</label>
+                    <input type="email" id="recipientEmail" required placeholder="fan@texastailgaters.com">
+                </div>
+                <div class="form-group">
+                    <label for="recipientName">Recipient Name *</label>
+                    <input type="text" id="recipientName" required placeholder="Longhorn Fan">
+                </div>
+            </div>
+
+            <h2>Game Information</h2>
+            <div class="two-column">
+                <div class="form-group">
+                    <label for="opponent">Opposing Team *</label>
+                    <input type="text" id="opponent" required placeholder="Oklahoma" value="Oklahoma">
+                </div>
+                <div class="form-group">
+                    <label for="gameDate">Game Date *</label>
+                    <input type="text" id="gameDate" required placeholder="October 11, 2025" value="October 11, 2025">
+                </div>
+            </div>
+            
+            <div class="two-column">
+                <div class="form-group">
+                    <label for="gameTime">Game Time *</label>
+                    <input type="text" id="gameTime" required placeholder="2:30 PM" value="2:30 PM">
+                </div>
+                <div class="form-group">
+                    <label for="location">Location *</label>
+                    <input type="text" id="location" required placeholder="Cotton Bowl, Dallas, TX" value="Cotton Bowl, Dallas, TX">
+                </div>
+            </div>
+
+            <h2>Tailgate Details</h2>
+            <div class="two-column">
+                <div class="form-group">
+                    <label for="theme">Theme (optional)</label>
+                    <input type="text" id="theme" placeholder="Red River Rivalry BBQ" value="Red River Rivalry BBQ">
+                </div>
+                <div class="form-group">
+                    <label for="setupTime">Setup Time (optional)</label>
+                    <input type="text" id="setupTime" placeholder="10:00 AM" value="10:00 AM">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="specialNotes">Special Notes (optional)</label>
+                <textarea id="specialNotes" placeholder="Parking in Lot 5. Bring your own chairs!">Parking in Lot 5. Bring your own chairs! This is going to be an epic tailgate!</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="senderName">Sender Name (optional)</label>
+                <input type="text" id="senderName" placeholder="Your Name" value="Texas Tailgaters Admin">
+            </div>
+
+            <button type="submit">Send Game Invitation</button>
+            <button type="button" onclick="fillSampleData()">Fill Sample Data</button>
+            <button type="button" onclick="previewTemplate()">Preview Template Data</button>
+        </form>
+
+        <div id="result" class="result"></div>
+
+        <div class="field-list">
+            <h3>📋 Template Fields Being Sent:</h3>
+            <p>The following fields are sent to your EmailJS template:</p>
+            <ul>
+                <li><code>{{email}}</code> / <code>{{user_email}}</code> - Recipient's email</li>
+                <li><code>{{name}}</code> / <code>{{user_name}}</code> - Recipient's name</li>
+                <li><code>{{opponent}}</code> / <code>{{opposing_team}}</code> - The opposing team</li>
+                <li><code>{{game_date}}</code> / <code>{{date}}</code> - Game date</li>
+                <li><code>{{game_time}}</code> / <code>{{time}}</code> - Game time</li>
+                <li><code>{{location}}</code> / <code>{{venue}}</code> - Game location</li>
+                <li><code>{{theme}}</code> - Tailgate theme</li>
+                <li><code>{{setup_time}}</code> - Setup time</li>
+                <li><code>{{special_notes}}</code> / <code>{{notes}}</code> - Special notes</li>
+                <li><code>{{game_name}}</code> - Full game name (e.g., "Texas vs Oklahoma")</li>
+                <li><code>{{rsvp_link}}</code> - Link to RSVP</li>
+            </ul>
+        </div>
+
+        <div id="templatePreview" class="template-preview" style="display: none;">
+            <h3>Template Data Preview:</h3>
+            <pre id="previewContent"></pre>
+        </div>
+    </div>
+
+    <script type="module">
+        import { emailService } from './src/services/emailService.ts';
+
+        const form = document.getElementById('invitationForm');
+        const resultDiv = document.getElementById('result');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Get form data
+            const data = {
+                recipientEmail: document.getElementById('recipientEmail').value,
+                recipientName: document.getElementById('recipientName').value,
+                opponent: document.getElementById('opponent').value,
+                gameDate: document.getElementById('gameDate').value,
+                gameTime: document.getElementById('gameTime').value,
+                gameName: `Texas vs ${document.getElementById('opponent').value}`,
+                location: document.getElementById('location').value,
+                theme: document.getElementById('theme').value,
+                setupTime: document.getElementById('setupTime').value,
+                specialNotes: document.getElementById('specialNotes').value,
+                senderName: document.getElementById('senderName').value,
+                rsvpLink: 'https://texastailgaters.com/games'
+            };
+
+            // Show loading
+            resultDiv.className = 'result info';
+            resultDiv.innerHTML = '📧 Sending invitation...';
+
+            try {
+                const result = await emailService.sendGameInvitation(data);
+                
+                if (result.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        ✅ <strong>Success!</strong><br>
+                        ${result.message}<br>
+                        Invitation sent to ${data.recipientEmail}<br>
+                        <br>
+                        Game: ${data.gameName}<br>
+                        Date: ${data.gameDate}<br>
+                        Time: ${data.gameTime}<br>
+                        Location: ${data.location}
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        ❌ <strong>Failed to send invitation</strong><br>
+                        ${result.message}<br>
+                        <br>
+                        <em>Check the browser console for more details.</em>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    ❌ <strong>Error occurred</strong><br>
+                    ${error.message || error}<br>
+                    <br>
+                    <em>Check the browser console for more details.</em>
+                `;
+                console.error('Invitation error:', error);
+            }
+        });
+
+        window.fillSampleData = function() {
+            document.getElementById('recipientEmail').value = 'test@example.com';
+            document.getElementById('recipientName').value = 'Test Fan';
+            document.getElementById('opponent').value = 'Oklahoma';
+            document.getElementById('gameDate').value = 'October 11, 2025';
+            document.getElementById('gameTime').value = '2:30 PM';
+            document.getElementById('location').value = 'Cotton Bowl, Dallas, TX';
+            document.getElementById('theme').value = 'Red River Rivalry BBQ';
+            document.getElementById('setupTime').value = '10:00 AM';
+            document.getElementById('specialNotes').value = 'Parking in Lot 5. Bring your own chairs! This is going to be an epic tailgate!';
+            document.getElementById('senderName').value = 'Texas Tailgaters Admin';
+        };
+
+        window.previewTemplate = function() {
+            const data = {
+                email: document.getElementById('recipientEmail').value || '[Email]',
+                user_email: document.getElementById('recipientEmail').value || '[Email]',
+                name: document.getElementById('recipientName').value || '[Name]',
+                user_name: document.getElementById('recipientName').value || '[Name]',
+                opponent: document.getElementById('opponent').value || '[Opponent]',
+                opposing_team: document.getElementById('opponent').value || '[Opponent]',
+                game_date: document.getElementById('gameDate').value || '[Date]',
+                date: document.getElementById('gameDate').value || '[Date]',
+                game_time: document.getElementById('gameTime').value || '[Time]',
+                time: document.getElementById('gameTime').value || '[Time]',
+                game_name: `Texas vs ${document.getElementById('opponent').value || '[Opponent]'}`,
+                location: document.getElementById('location').value || '[Location]',
+                venue: document.getElementById('location').value || '[Location]',
+                theme: document.getElementById('theme').value || 'No specific theme',
+                setup_time: document.getElementById('setupTime').value || 'TBD',
+                special_notes: document.getElementById('specialNotes').value || 'None',
+                notes: document.getElementById('specialNotes').value || 'None',
+                from_name: document.getElementById('senderName').value || 'Texas Tailgaters',
+                rsvp_link: 'https://texastailgaters.com/games',
+                link: 'https://texastailgaters.com/games',
+                reply_to: 'texastailgaters@gmail.com'
+            };
+
+            const preview = document.getElementById('templatePreview');
+            const content = document.getElementById('previewContent');
+            
+            preview.style.display = 'block';
+            content.textContent = JSON.stringify(data, null, 2);
+            
+            // Scroll to preview
+            preview.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        };
+
+        // Add some helpful console logging
+        console.log('%c🏈 Game Invitation Test Page Ready', 'color: #BF5700; font-size: 16px; font-weight: bold');
+        console.log('EmailJS Service configured with:');
+        console.log('- Service ID:', import.meta.env.VITE_EMAILJS_SERVICE_ID);
+        console.log('- Template ID:', import.meta.env.VITE_EMAILJS_TEMPLATE_ID);
+        console.log('Fill in the form and click "Send Game Invitation" to test');
+    </script>
+</body>
+</html>

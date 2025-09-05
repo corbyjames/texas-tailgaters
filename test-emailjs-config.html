@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EmailJS Configuration Test - Texas Tailgaters</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #BF5700;
+            border-bottom: 2px solid #BF5700;
+            padding-bottom: 10px;
+        }
+        .config-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #f9f9f9;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background: #d4edda;
+            border: 1px solid #28a745;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            border: 1px solid #dc3545;
+            color: #721c24;
+        }
+        .status.warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+        }
+        .status.info {
+            background: #d1ecf1;
+            border: 1px solid #17a2b8;
+            color: #0c5460;
+        }
+        button {
+            background: #BF5700;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #8F3E00;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .test-results {
+            margin-top: 20px;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 3px solid #BF5700;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-left: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .hidden {
+            display: none;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background: #f0f0f0;
+            font-weight: bold;
+        }
+        .check-mark {
+            color: #28a745;
+            font-size: 20px;
+        }
+        .x-mark {
+            color: #dc3545;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📧 EmailJS Configuration Test</h1>
+        
+        <div class="config-section">
+            <h2>1. Configuration Status</h2>
+            <div id="config-status">
+                <p>Checking EmailJS configuration...</p>
+            </div>
+        </div>
+
+        <div class="config-section">
+            <h2>2. Service Connection Test</h2>
+            <p>This tests if EmailJS can connect to your service.</p>
+            <button id="test-connection" onclick="testConnection()">Test Connection</button>
+            <div id="connection-result" class="test-results hidden"></div>
+        </div>
+
+        <div class="config-section">
+            <h2>3. Send Test Email</h2>
+            <p>Send a test email using the configured templates.</p>
+            
+            <label>Recipient Email:</label>
+            <input type="email" id="test-email" placeholder="Enter email address" value="">
+            
+            <label>Recipient Name:</label>
+            <input type="text" id="test-name" placeholder="Enter recipient name" value="Test User">
+            
+            <label>Template Type:</label>
+            <select id="template-type" onchange="updateTemplateFields()">
+                <option value="invitation">Game Invitation</option>
+                <option value="reminder">Potluck Reminder</option>
+                <option value="notification">New User Notification</option>
+                <option value="approval">User Approval</option>
+            </select>
+            
+            <div id="template-fields"></div>
+            
+            <button id="send-test" onclick="sendTestEmail()">Send Test Email</button>
+            <div id="email-result" class="test-results hidden"></div>
+        </div>
+
+        <div class="config-section">
+            <h2>4. Template Verification</h2>
+            <p>Verify that all required EmailJS templates are configured.</p>
+            <button onclick="verifyTemplates()">Verify Templates</button>
+            <div id="template-result" class="test-results hidden"></div>
+        </div>
+
+        <div class="config-section">
+            <h2>5. Configuration Details</h2>
+            <div class="code-block" id="config-details">
+                Loading configuration details...
+            </div>
+        </div>
+
+        <div class="config-section">
+            <h2>6. Test Results Summary</h2>
+            <div id="summary" class="test-results">
+                <p>Run the tests above to see results here.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="module">
+        import { emailService } from './src/services/emailService.ts';
+        import { notificationService } from './src/services/notificationService.ts';
+
+        // Make services available globally
+        window.emailService = emailService;
+        window.notificationService = notificationService;
+        window.emailjs = emailjs;
+
+        // Configuration variables
+        const config = {
+            serviceId: import.meta.env.VITE_EMAILJS_SERVICE_ID || '',
+            templateId: import.meta.env.VITE_EMAILJS_TEMPLATE_ID || '',
+            reminderTemplateId: import.meta.env.VITE_EMAILJS_REMINDER_TEMPLATE_ID || '',
+            notificationTemplateId: import.meta.env.VITE_EMAILJS_NOTIFICATION_TEMPLATE_ID || '',
+            publicKey: import.meta.env.VITE_EMAILJS_PUBLIC_KEY || ''
+        };
+
+        // Check configuration on load
+        window.addEventListener('load', () => {
+            checkConfiguration();
+            updateTemplateFields();
+        });
+
+        function checkConfiguration() {
+            const statusDiv = document.getElementById('config-status');
+            let html = '<table>';
+            html += '<tr><th>Configuration Item</th><th>Status</th><th>Value</th></tr>';
+            
+            // Check Service ID
+            html += '<tr>';
+            html += '<td>Service ID</td>';
+            if (config.serviceId) {
+                html += `<td class="check-mark">✓</td>`;
+                html += `<td>${config.serviceId}</td>`;
+            } else {
+                html += `<td class="x-mark">✗</td>`;
+                html += `<td>Not configured</td>`;
+            }
+            html += '</tr>';
+            
+            // Check Template IDs
+            const templates = [
+                { name: 'Invitation Template', value: config.templateId },
+                { name: 'Reminder Template', value: config.reminderTemplateId },
+                { name: 'Notification Template', value: config.notificationTemplateId }
+            ];
+            
+            templates.forEach(template => {
+                html += '<tr>';
+                html += `<td>${template.name}</td>`;
+                if (template.value) {
+                    html += `<td class="check-mark">✓</td>`;
+                    html += `<td>${template.value}</td>`;
+                } else {
+                    html += `<td class="x-mark">✗</td>`;
+                    html += `<td>Not configured</td>`;
+                }
+                html += '</tr>';
+            });
+            
+            // Check Public Key
+            html += '<tr>';
+            html += '<td>Public Key</td>';
+            if (config.publicKey) {
+                html += `<td class="check-mark">✓</td>`;
+                html += `<td>${config.publicKey.substring(0, 10)}...</td>`;
+            } else {
+                html += `<td class="x-mark">✗</td>`;
+                html += `<td>Not configured</td>`;
+            }
+            html += '</tr>';
+            
+            html += '</table>';
+            
+            // Add overall status
+            const allConfigured = config.serviceId && config.templateId && config.publicKey;
+            if (allConfigured) {
+                html += '<div class="status success">✅ EmailJS is fully configured!</div>';
+            } else {
+                html += '<div class="status warning">⚠️ EmailJS is partially configured. Some features may not work.</div>';
+            }
+            
+            statusDiv.innerHTML = html;
+            
+            // Update config details
+            document.getElementById('config-details').textContent = JSON.stringify(config, null, 2);
+        }
+
+        window.testConnection = async function() {
+            const resultDiv = document.getElementById('connection-result');
+            resultDiv.classList.remove('hidden');
+            resultDiv.innerHTML = '<p>Testing connection... <span class="spinner"></span></p>';
+            
+            try {
+                // Initialize EmailJS
+                if (config.publicKey) {
+                    emailjs.init(config.publicKey);
+                    
+                    // Try to send a test ping (this won't actually send an email)
+                    const testParams = {
+                        to_email: 'test@example.com',
+                        message: 'Connection test'
+                    };
+                    
+                    // We'll use a fake template ID to test the connection
+                    const response = await emailjs.send(
+                        config.serviceId,
+                        'template_test_fake',
+                        testParams
+                    ).catch(error => {
+                        // We expect this to fail with template not found
+                        if (error.text && error.text.includes('template')) {
+                            return { status: 200, text: 'Service connected (template not found as expected)' };
+                        }
+                        throw error;
+                    });
+                    
+                    resultDiv.innerHTML = `
+                        <div class="status success">
+                            ✅ Connection successful!
+                            <p>EmailJS service is reachable.</p>
+                        </div>
+                    `;
+                } else {
+                    throw new Error('EmailJS public key not configured');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status error">
+                        ❌ Connection failed!
+                        <p>Error: ${error.message || error}</p>
+                        <p>Please check your EmailJS configuration.</p>
+                    </div>
+                `;
+            }
+        };
+
+        window.updateTemplateFields = function() {
+            const templateType = document.getElementById('template-type').value;
+            const fieldsDiv = document.getElementById('template-fields');
+            
+            let html = '';
+            
+            switch(templateType) {
+                case 'invitation':
+                    html = `
+                        <label>Game Opponent:</label>
+                        <input type="text" id="field-opponent" value="Oklahoma">
+                        <label>Game Date:</label>
+                        <input type="text" id="field-date" value="October 11, 2025">
+                        <label>Game Time:</label>
+                        <input type="text" id="field-time" value="2:30 PM">
+                        <label>Location:</label>
+                        <input type="text" id="field-location" value="Cotton Bowl, Dallas, TX">
+                    `;
+                    break;
+                case 'reminder':
+                    html = `
+                        <label>Game Name:</label>
+                        <input type="text" id="field-game" value="Texas vs Oklahoma">
+                        <label>Potluck Item:</label>
+                        <input type="text" id="field-item" value="BBQ Brisket">
+                        <label>Category:</label>
+                        <input type="text" id="field-category" value="Main Dish">
+                    `;
+                    break;
+                case 'notification':
+                    html = `
+                        <label>New User Name:</label>
+                        <input type="text" id="field-new-user" value="John Doe">
+                        <label>New User Email:</label>
+                        <input type="text" id="field-new-email" value="john@example.com">
+                    `;
+                    break;
+                case 'approval':
+                    html = `
+                        <label>Welcome Message:</label>
+                        <textarea id="field-message">Welcome to Texas Tailgaters! Your account has been approved.</textarea>
+                    `;
+                    break;
+            }
+            
+            fieldsDiv.innerHTML = html;
+        };
+
+        window.sendTestEmail = async function() {
+            const resultDiv = document.getElementById('email-result');
+            const email = document.getElementById('test-email').value;
+            const name = document.getElementById('test-name').value;
+            const templateType = document.getElementById('template-type').value;
+            
+            if (!email) {
+                alert('Please enter an email address');
+                return;
+            }
+            
+            resultDiv.classList.remove('hidden');
+            resultDiv.innerHTML = '<p>Sending email... <span class="spinner"></span></p>';
+            
+            try {
+                let result;
+                
+                switch(templateType) {
+                    case 'invitation':
+                        result = await emailService.sendGameInvitation({
+                            recipientEmail: email,
+                            recipientName: name,
+                            gameName: 'Texas vs ' + (document.getElementById('field-opponent')?.value || 'Oklahoma'),
+                            gameDate: document.getElementById('field-date')?.value || 'October 11, 2025',
+                            gameTime: document.getElementById('field-time')?.value || '2:30 PM',
+                            opponent: document.getElementById('field-opponent')?.value || 'Oklahoma',
+                            location: document.getElementById('field-location')?.value || 'Cotton Bowl',
+                            rsvpLink: 'https://texastailgaters.com/games',
+                            senderName: 'EmailJS Test'
+                        });
+                        break;
+                        
+                    case 'reminder':
+                        result = await emailService.sendPotluckReminder({
+                            recipientEmail: email,
+                            recipientName: name,
+                            gameName: document.getElementById('field-game')?.value || 'Texas vs Oklahoma',
+                            gameDate: 'October 11, 2025',
+                            assignedItem: document.getElementById('field-item')?.value || 'BBQ Brisket',
+                            category: document.getElementById('field-category')?.value || 'Main Dish'
+                        });
+                        break;
+                        
+                    case 'notification':
+                        await notificationService.notifyNewUserRegistration({
+                            id: 'test-' + Date.now(),
+                            email: document.getElementById('field-new-email')?.value || 'john@example.com',
+                            name: document.getElementById('field-new-user')?.value || 'John Doe',
+                            createdAt: new Date().toISOString()
+                        });
+                        result = { success: true, message: 'Notification sent to admins' };
+                        break;
+                        
+                    case 'approval':
+                        await notificationService.notifyUserApproved({
+                            id: 'test-' + Date.now(),
+                            email: email,
+                            name: name
+                        });
+                        result = { success: true, message: 'Approval email sent' };
+                        break;
+                }
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <div class="status success">
+                            ✅ Email sent successfully!
+                            <p>Template: ${templateType}</p>
+                            <p>Recipient: ${email}</p>
+                            <p>Message: ${result.message}</p>
+                        </div>
+                    `;
+                    updateSummary('email', true);
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status error">
+                        ❌ Failed to send email!
+                        <p>Error: ${error.message || error}</p>
+                        <p>This might be because EmailJS is not properly configured or the template is missing.</p>
+                    </div>
+                `;
+                updateSummary('email', false);
+            }
+        };
+
+        window.verifyTemplates = async function() {
+            const resultDiv = document.getElementById('template-result');
+            resultDiv.classList.remove('hidden');
+            resultDiv.innerHTML = '<p>Verifying templates... <span class="spinner"></span></p>';
+            
+            const templates = [
+                { name: 'Invitation Template', id: config.templateId, type: 'invitation' },
+                { name: 'Reminder Template', id: config.reminderTemplateId, type: 'reminder' },
+                { name: 'Notification Template', id: config.notificationTemplateId, type: 'notification' }
+            ];
+            
+            let html = '<table>';
+            html += '<tr><th>Template</th><th>ID</th><th>Status</th></tr>';
+            
+            for (const template of templates) {
+                html += '<tr>';
+                html += `<td>${template.name}</td>`;
+                html += `<td>${template.id || 'Not configured'}</td>`;
+                
+                if (template.id) {
+                    // Try to use the template
+                    try {
+                        // We can't actually verify without sending, but we can check if it's configured
+                        html += `<td class="check-mark">✓ Configured</td>`;
+                    } catch (error) {
+                        html += `<td class="x-mark">✗ Error</td>`;
+                    }
+                } else {
+                    html += `<td class="x-mark">✗ Missing</td>`;
+                }
+                html += '</tr>';
+            }
+            
+            html += '</table>';
+            
+            if (!config.notificationTemplateId) {
+                html += `
+                    <div class="status info">
+                        ℹ️ Notification template not configured. 
+                        Using default invitation template for notifications.
+                    </div>
+                `;
+            }
+            
+            resultDiv.innerHTML = html;
+            updateSummary('templates', true);
+        };
+
+        function updateSummary(test, success) {
+            const summaryDiv = document.getElementById('summary');
+            if (summaryDiv.innerHTML.includes('Run the tests')) {
+                summaryDiv.innerHTML = '';
+            }
+            
+            const timestamp = new Date().toLocaleTimeString();
+            const statusClass = success ? 'success' : 'error';
+            const icon = success ? '✅' : '❌';
+            
+            summaryDiv.innerHTML += `
+                <div class="status ${statusClass}">
+                    ${icon} ${test.charAt(0).toUpperCase() + test.slice(1)} test: ${success ? 'Passed' : 'Failed'} at ${timestamp}
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

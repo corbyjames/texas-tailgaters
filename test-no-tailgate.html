@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test No-Tailgate Functionality</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #bf5700;
+            border-bottom: 2px solid #bf5700;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-item {
+            margin: 15px 0;
+            padding: 10px;
+            border-left: 3px solid #bf5700;
+            background: #fff5f0;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        button {
+            background: #bf5700;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #a04600;
+        }
+        .log {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🏈 No-Tailgate Feature Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Checklist</h2>
+        <div class="test-item">
+            <strong>1. Admin Toggle Visibility</strong>
+            <span class="status pending" id="status-admin">PENDING</span>
+            <p>Admin users should see a CalendarOff icon button to mark games as no-tailgate</p>
+        </div>
+        
+        <div class="test-item">
+            <strong>2. Mark as No-Tailgate</strong>
+            <span class="status pending" id="status-mark">PENDING</span>
+            <p>Clicking the toggle should mark the game as no-tailgate and show visual indicators</p>
+        </div>
+        
+        <div class="test-item">
+            <strong>3. Visual Indicators</strong>
+            <span class="status pending" id="status-visual">PENDING</span>
+            <p>No-tailgate games should show: red badge, grayed out appearance, no action buttons</p>
+        </div>
+        
+        <div class="test-item">
+            <strong>4. Re-enable Tailgate</strong>
+            <span class="status pending" id="status-enable">PENDING</span>
+            <p>Admin can click "Enable Tailgate" to restore normal game state</p>
+        </div>
+        
+        <div class="test-item">
+            <strong>5. Non-Admin View</strong>
+            <span class="status pending" id="status-user">PENDING</span>
+            <p>Regular users should not see admin controls but should see no-tailgate indicators</p>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Manual Test Steps</h2>
+        <ol>
+            <li>Click "Open App as Admin" to test admin functionality</li>
+            <li>Navigate to the Games page</li>
+            <li>Look for the CalendarOff icon button in game cards</li>
+            <li>Click it to mark a game as no-tailgate</li>
+            <li>Verify visual changes and badge appearance</li>
+            <li>Click "Enable Tailgate" to restore the game</li>
+            <li>Log out and log in as a regular user to verify user view</li>
+        </ol>
+        
+        <div style="margin-top: 20px;">
+            <button onclick="openAsAdmin()">Open App as Admin</button>
+            <button onclick="openAsUser()">Open App as User</button>
+            <button onclick="testFirebaseUpdate()">Test Firebase Update</button>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Log</h2>
+        <div class="log" id="log">
+            Test log will appear here...
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, get, update, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database-rtdb.js';
+        import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyBJascYs4rXD4uL5Z8F7RDkMOBhQtjehic",
+            authDomain: "texas-tailgaters.firebaseapp.com",
+            databaseURL: "https://texas-tailgaters-default-rtdb.firebaseio.com",
+            projectId: "texas-tailgaters",
+            storageBucket: "texas-tailgaters.appspot.com",
+            messagingSenderId: "517392756353",
+            appId: "1:517392756353:web:texas-tailgaters-web"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const auth = getAuth(app);
+        
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? 'red' : type === 'success' ? 'green' : 'black';
+            logDiv.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        window.openAsAdmin = function() {
+            window.open('http://localhost:5173', '_blank');
+            log('Opening app - Login with admin@texastailgaters.com / Admin123!', 'info');
+        };
+        
+        window.openAsUser = function() {
+            window.open('http://localhost:5173', '_blank');
+            log('Opening app - Login with test@texastailgaters.com / TestPassword123!', 'info');
+        };
+        
+        window.testFirebaseUpdate = async function() {
+            try {
+                log('Authenticating as admin...', 'info');
+                await signInWithEmailAndPassword(auth, 'admin@texastailgaters.com', 'Admin123!');
+                
+                log('Fetching games from Firebase...', 'info');
+                const gamesRef = ref(database, 'games');
+                const snapshot = await get(gamesRef);
+                
+                if (snapshot.exists()) {
+                    const games = snapshot.val();
+                    const gameIds = Object.keys(games);
+                    
+                    if (gameIds.length > 0) {
+                        const testGameId = gameIds[0];
+                        const testGame = games[testGameId];
+                        
+                        log(`Testing with game: ${testGame.opponent} on ${testGame.date}`, 'info');
+                        
+                        // Toggle no_tailgate status
+                        const newStatus = !testGame.no_tailgate;
+                        const updates = {};
+                        updates[`/games/${testGameId}/no_tailgate`] = newStatus;
+                        updates[`/games/${testGameId}/updated_at`] = new Date().toISOString();
+                        
+                        log(`Setting no_tailgate to: ${newStatus}`, 'info');
+                        await update(ref(database), updates);
+                        
+                        log('✅ Successfully updated game in Firebase!', 'success');
+                        document.getElementById('status-mark').className = 'status success';
+                        document.getElementById('status-mark').textContent = 'PASSED';
+                        
+                        // Listen for real-time updates
+                        const gameRef = ref(database, `games/${testGameId}`);
+                        onValue(gameRef, (snapshot) => {
+                            const data = snapshot.val();
+                            log(`Game updated - no_tailgate: ${data.no_tailgate}`, 'info');
+                        });
+                    } else {
+                        log('No games found in database', 'error');
+                    }
+                } else {
+                    log('No games data found', 'error');
+                }
+            } catch (error) {
+                log(`Error: ${error.message}`, 'error');
+            }
+        };
+        
+        // Auto-run basic checks
+        setTimeout(() => {
+            log('Ready for testing! Use the buttons above to begin.', 'success');
+            log('Admin credentials: admin@texastailgaters.com / Admin123!', 'info');
+            log('User credentials: test@texastailgaters.com / TestPassword123!', 'info');
+        }, 1000);
+    </script>
+</body>
+</html>
