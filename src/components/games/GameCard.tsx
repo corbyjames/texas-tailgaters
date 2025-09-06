@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Users, Trophy, CheckCircle, XCircle, Send, ChevronDown, ChevronUp, Ban, CalendarOff } from 'lucide-react';
+import { ShoppingBag, Users, Trophy, CheckCircle, XCircle, Send, ChevronDown, ChevronUp, Ban, CalendarOff, Clock, Activity } from 'lucide-react';
 import { Game } from '../../types/Game';
 import { GameHeader } from './GameHeader';
 import PotluckService from '../../services/potluckService';
@@ -130,11 +130,15 @@ const GameCard: React.FC<GameCardProps> = ({ game, onGameClick, onInvite, onGame
                 {game.isHome ? 'vs' : '@'} {game.opponent}
               </span>
               {game.homeScore !== undefined && game.awayScore !== undefined && (
-                <span className="font-semibold">
+                <span className="font-semibold text-lg">
                   {game.isHome ? (
-                    <span>UT {game.homeScore} - {game.awayScore}</span>
+                    <span className={game.homeScore > game.awayScore ? 'text-green-600' : game.homeScore < game.awayScore ? 'text-red-600' : 'text-gray-600'}>
+                      Texas {game.homeScore} - {game.awayScore} {game.opponent}
+                    </span>
                   ) : (
-                    <span>{game.awayScore} - UT {game.homeScore}</span>
+                    <span className={game.awayScore > game.homeScore ? 'text-green-600' : game.awayScore < game.homeScore ? 'text-red-600' : 'text-gray-600'}>
+                      {game.opponent} {game.homeScore} - {game.awayScore} Texas
+                    </span>
                   )}
                 </span>
               )}
@@ -197,30 +201,78 @@ const GameCard: React.FC<GameCardProps> = ({ game, onGameClick, onInvite, onGame
                 size="sm"
               />
               
-              {/* Score Display for Completed Games */}
-              {game.status === 'completed' && game.homeScore !== undefined && game.awayScore !== undefined && (
-                <div className="mt-2 flex items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    {game.result === 'W' && <CheckCircle className="w-5 h-5 text-green-600" />}
-                    {game.result === 'L' && <XCircle className="w-5 h-5 text-red-600" />}
-                    {game.result === 'T' && <Trophy className="w-5 h-5 text-yellow-600" />}
-                    <span className={`font-bold text-lg ${
-                      game.result === 'W' ? 'text-green-600' : 
-                      game.result === 'L' ? 'text-red-600' : 
-                      'text-yellow-600'
-                    }`}>
-                      {game.result}
-                    </span>
+              {/* Score Display for Completed and In-Progress Games */}
+              {(game.status === 'completed' || game.status === 'in-progress') && game.homeScore !== undefined && game.awayScore !== undefined && (
+                <div className="mt-3 bg-gray-50 rounded-lg p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {game.status === 'completed' ? (
+                        <div className="flex items-center gap-2">
+                          {game.result === 'W' && <CheckCircle className="w-6 h-6 text-green-600" />}
+                          {game.result === 'L' && <XCircle className="w-6 h-6 text-red-600" />}
+                          {game.result === 'T' && <Trophy className="w-6 h-6 text-yellow-600" />}
+                          <span className={`font-bold text-xl ${
+                            game.result === 'W' ? 'text-green-600' : 
+                            game.result === 'L' ? 'text-red-600' : 
+                            'text-yellow-600'
+                          }`}>
+                            {game.result === 'W' ? 'WIN' : game.result === 'L' ? 'LOSS' : game.result === 'T' ? 'TIE' : 'FINAL'}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <Activity className="w-5 h-5 text-orange-600 animate-pulse" />
+                          <span className="font-bold text-orange-600">LIVE</span>
+                          {game.quarter && (
+                            <span className="text-sm text-gray-600">• {game.quarter}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-2xl font-bold">
+                      {game.isHome ? (
+                        <span className="flex items-center gap-2">
+                          <span className={game.homeScore > game.awayScore ? 'text-green-600' : game.homeScore < game.awayScore ? 'text-red-600' : 'text-gray-800'}>
+                            {game.homeScore}
+                          </span>
+                          <span className="text-gray-400">-</span>
+                          <span className={game.awayScore > game.homeScore ? 'text-green-600' : game.awayScore < game.homeScore ? 'text-red-600' : 'text-gray-800'}>
+                            {game.awayScore}
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-2">
+                          <span className={game.homeScore > game.awayScore ? 'text-green-600' : game.homeScore < game.awayScore ? 'text-red-600' : 'text-gray-800'}>
+                            {game.homeScore}
+                          </span>
+                          <span className="text-gray-400">-</span>
+                          <span className={game.awayScore > game.homeScore ? 'text-green-600' : game.awayScore < game.homeScore ? 'text-red-600' : 'text-gray-800'}>
+                            {game.awayScore}
+                          </span>
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div className="text-lg font-semibold">
+                  <div className="mt-2 text-sm text-gray-600 text-center">
                     {game.isHome ? (
-                      <span>
-                        Texas {game.homeScore} - {game.awayScore} {game.opponent}
-                      </span>
+                      <span>Texas vs {game.opponent}</span>
                     ) : (
-                      <span>
-                        {game.opponent} {game.homeScore} - {game.awayScore} Texas
-                      </span>
+                      <span>{game.opponent} @ Texas</span>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {/* Scheduled Game - No Score Yet */}
+              {game.status === 'scheduled' && !game.homeScore && (
+                <div className="mt-3 bg-blue-50 rounded-lg p-3">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-blue-600" />
+                    <span className="font-medium text-blue-900">
+                      Kickoff: {game.time || 'TBD'}
+                    </span>
+                    {game.tvNetwork && game.tvNetwork !== 'TBD' && (
+                      <span className="ml-2 text-sm text-blue-700">• 📺 {game.tvNetwork}</span>
                     )}
                   </div>
                 </div>

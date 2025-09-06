@@ -6,7 +6,7 @@ export interface Game {
   location?: string;
   isHome: boolean;
   themeId?: string;
-  status: 'planned' | 'unplanned' | 'watch-party' | 'completed';
+  status: 'scheduled' | 'in-progress' | 'planned' | 'unplanned' | 'watch-party' | 'completed';
   setupTime?: string;
   expectedAttendance?: number;
   tvNetwork?: string;
@@ -18,6 +18,11 @@ export interface Game {
   homeScore?: number;
   awayScore?: number;
   result?: 'W' | 'L' | 'T';
+  // In-progress game fields
+  quarter?: string; // e.g., "Q1", "Q2", "Q3", "Q4", "OT", "Half"
+  timeRemaining?: string; // e.g., "5:43"
+  possession?: 'home' | 'away';
+  // Additional fields
   isConferenceGame?: boolean;
   isBowlGame?: boolean;
   bowlName?: string;

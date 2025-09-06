@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Tv, Users, Utensils, ChevronRight, UserCheck, CheckCircle, XCircle, Trophy, Ban, CalendarOff } from 'lucide-react';
+import { Calendar, MapPin, Tv, Users, Utensils, ChevronRight, UserCheck, CheckCircle, XCircle, Trophy, Ban, CalendarOff, Activity, Clock } from 'lucide-react';
 import { Game } from '../../types/Game';
 import PotluckService from '../../services/potluckService';
 import rsvpService from '../../services/rsvpService';
@@ -135,17 +135,33 @@ const MobileGameCard: React.FC<MobileGameCardProps> = ({ game, onGameClick, onGa
                     game.result === 'L' ? 'text-red-600' : 
                     'text-gray-600'
                   }`}>
-                    {game.result || '-'}
+                    {game.result === 'W' ? 'W' : game.result === 'L' ? 'L' : game.result === 'T' ? 'T' : '-'}
                   </span>
                 </div>
                 
                 {/* Score */}
                 {game.homeScore !== undefined && game.awayScore !== undefined && (
-                  <span className="font-semibold text-gray-800">
+                  <span className="font-semibold text-lg">
                     {game.isHome ? (
-                      <span>UT {game.homeScore} - {game.awayScore}</span>
+                      <span>
+                        <span className={game.homeScore > game.awayScore ? 'text-green-600' : game.homeScore < game.awayScore ? 'text-red-600' : 'text-gray-800'}>
+                          {game.homeScore}
+                        </span>
+                        <span className="text-gray-400 mx-1">-</span>
+                        <span className={game.awayScore > game.homeScore ? 'text-green-600' : game.awayScore < game.homeScore ? 'text-red-600' : 'text-gray-800'}>
+                          {game.awayScore}
+                        </span>
+                      </span>
                     ) : (
-                      <span>{game.awayScore} - UT {game.homeScore}</span>
+                      <span>
+                        <span className={game.homeScore > game.awayScore ? 'text-green-600' : game.homeScore < game.awayScore ? 'text-red-600' : 'text-gray-800'}>
+                          {game.homeScore}
+                        </span>
+                        <span className="text-gray-400 mx-1">-</span>
+                        <span className={game.awayScore > game.homeScore ? 'text-green-600' : game.awayScore < game.homeScore ? 'text-red-600' : 'text-gray-800'}>
+                          {game.awayScore}
+                        </span>
+                      </span>
                     )}
                   </span>
                 )}
@@ -292,6 +308,70 @@ const MobileGameCard: React.FC<MobileGameCardProps> = ({ game, onGameClick, onGa
             <p className="text-sm font-medium text-orange-700">
               🎨 {game.theme.name}
             </p>
+          </div>
+        )}
+
+        {/* Score Display for In-Progress Games */}
+        {game.status === 'in-progress' && game.homeScore !== undefined && game.awayScore !== undefined && (
+          <div className="mb-3 bg-orange-50 border border-orange-200 rounded-lg p-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Activity className="w-4 h-4 text-orange-600 animate-pulse" />
+                <span className="font-bold text-orange-600 text-sm">LIVE</span>
+                {game.quarter && (
+                  <span className="text-xs text-gray-600">• {game.quarter}</span>
+                )}
+                {game.timeRemaining && (
+                  <span className="text-xs text-gray-600">{game.timeRemaining}</span>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center justify-center gap-4">
+              <div className="text-center">
+                <div className="text-xs text-gray-600 mb-1">
+                  {game.isHome ? 'Texas' : game.opponent}
+                </div>
+                <div className={`text-2xl font-bold ${
+                  game.isHome 
+                    ? (game.homeScore > game.awayScore ? 'text-green-600' : game.homeScore < game.awayScore ? 'text-red-600' : 'text-gray-800')
+                    : (game.homeScore > game.awayScore ? 'text-green-600' : game.homeScore < game.awayScore ? 'text-red-600' : 'text-gray-800')
+                }`}>
+                  {game.isHome ? game.homeScore : game.homeScore}
+                </div>
+              </div>
+              <div className="text-gray-400 text-xl">-</div>
+              <div className="text-center">
+                <div className="text-xs text-gray-600 mb-1">
+                  {game.isHome ? game.opponent : 'Texas'}
+                </div>
+                <div className={`text-2xl font-bold ${
+                  game.isHome 
+                    ? (game.awayScore > game.homeScore ? 'text-green-600' : game.awayScore < game.homeScore ? 'text-red-600' : 'text-gray-800')
+                    : (game.awayScore > game.homeScore ? 'text-green-600' : game.awayScore < game.homeScore ? 'text-red-600' : 'text-gray-800')
+                }`}>
+                  {game.isHome ? game.awayScore : game.awayScore}
+                </div>
+              </div>
+            </div>
+            {game.possession && (
+              <div className="mt-2 text-center">
+                <span className="text-xs text-gray-600">
+                  Possession: {game.possession === 'home' ? (game.isHome ? 'Texas' : game.opponent) : (game.isHome ? game.opponent : 'Texas')}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Scheduled Game */}
+        {game.status === 'scheduled' && !game.homeScore && (
+          <div className="mb-3 bg-blue-50 rounded-lg p-3">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-blue-600" />
+              <span className="text-sm font-medium text-blue-900">
+                Kickoff: {game.time || 'TBD'}
+              </span>
+            </div>
           </div>
         )}
 
