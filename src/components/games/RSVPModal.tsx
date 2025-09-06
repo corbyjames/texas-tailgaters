@@ -3,6 +3,7 @@ import { X, Users, Calendar, MapPin } from 'lucide-react';
 import rsvpService, { RSVP } from '../../services/rsvpService';
 import { useAuth } from '../../hooks/useAuth';
 import { Game } from '../../types/Game';
+import { createLocalDate } from '../../utils/dateUtils';
 
 interface RSVPModalProps {
   game: Game | null;
@@ -165,7 +166,7 @@ export function RSVPModal({ game, isOpen, onClose }: RSVPModalProps) {
         <div className="bg-gray-50 rounded-lg p-3 mb-4 space-y-2">
           <div className="flex items-center gap-2 text-sm">
             <Calendar className="w-4 h-4 text-gray-500" />
-            <span>{new Date(game.date).toLocaleDateString('en-US', { 
+            <span>{createLocalDate(game.date).toLocaleDateString('en-US', { 
               weekday: 'long', 
               month: 'long', 
               day: 'numeric' 

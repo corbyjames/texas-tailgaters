@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Exact EmailJS Fields</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        .container {
+            background: #1e293b;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+        }
+        h1 {
+            color: #10b981;
+        }
+        .important-box {
+            background: #064e3b;
+            border: 2px solid #10b981;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .important-box h2 {
+            color: #86efac;
+            margin-top: 0;
+        }
+        .test-section {
+            background: #1f2937;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            background: #0f172a;
+            color: #e2e8f0;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        button.success {
+            background: #10b981;
+        }
+        button.success:hover {
+            background: #059669;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            display: none;
+        }
+        .result.show {
+            display: block;
+        }
+        .result.success {
+            border-color: #10b981;
+            color: #86efac;
+        }
+        .result.error {
+            border-color: #ef4444;
+            color: #fca5a5;
+        }
+        .result.info {
+            border-color: #3b82f6;
+            color: #93bbfe;
+        }
+        code {
+            background: #0f172a;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #fbbf24;
+        }
+        .field-input {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 10px;
+            align-items: center;
+            margin: 10px 0;
+        }
+        .field-input label {
+            color: #60a5fa;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Test Exact EmailJS Field Names</h1>
+        
+        <div class="important-box">
+            <h2>✅ Template Test Works!</h2>
+            <p>Since the EmailJS template test works, we need to find the exact field names your template expects.</p>
+            <p><strong>Check your template and tell me what field names you see in the test dialog.</strong></p>
+        </div>
+
+        <div class="test-section">
+            <h2>Enter the EXACT Field Names from EmailJS Test</h2>
+            <p>When you clicked "Test It" in EmailJS, what field names did it show? Enter them exactly as shown:</p>
+            
+            <div class="field-input">
+                <label>Email field name:</label>
+                <input type="text" id="emailFieldName" placeholder="e.g., to_email, email, user_email" value="to_email">
+            </div>
+            
+            <div class="field-input">
+                <label>Actual email value:</label>
+                <input type="email" id="emailValue" placeholder="your@email.com">
+            </div>
+            
+            <h3>Template Variables (if any):</h3>
+            
+            <div class="field-input">
+                <label>Opponent field:</label>
+                <input type="text" id="opponentField" placeholder="e.g., Opposing Team, opponent" value="Opposing Team">
+            </div>
+            
+            <div class="field-input">
+                <label>Date field:</label>
+                <input type="text" id="dateField" placeholder="e.g., Game Date, game_date" value="Game Date">
+            </div>
+            
+            <div class="field-input">
+                <label>Time field:</label>
+                <input type="text" id="timeField" placeholder="e.g., Time, time" value="Time">
+            </div>
+            
+            <button onclick="testExactFields()">Test with These Exact Fields</button>
+            <button onclick="testCommonPatterns()" class="success">Test Common Patterns</button>
+        </div>
+
+        <div id="result" class="result"></div>
+
+        <div class="test-section">
+            <h2>Quick Tests with Different Field Names</h2>
+            <input type="email" id="quickTestEmail" placeholder="Enter your email">
+            
+            <button onclick="testPattern('to_email')">Test: to_email</button>
+            <button onclick="testPattern('email')">Test: email</button>
+            <button onclick="testPattern('user_email')">Test: user_email</button>
+            <button onclick="testPattern('to_name')">Test: to_name</button>
+            <button onclick="testPattern('from_email')">Test: from_email</button>
+        </div>
+
+        <div id="quickResult" class="result"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="module">
+        const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+        const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+        const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+        
+        emailjs.init(publicKey);
+        
+        window.testExactFields = async function() {
+            const emailFieldName = document.getElementById('emailFieldName').value;
+            const emailValue = document.getElementById('emailValue').value;
+            
+            if (!emailValue) {
+                alert('Please enter your email address');
+                return;
+            }
+            
+            const result = document.getElementById('result');
+            result.className = 'result info show';
+            result.textContent = 'Testing with exact field names...\n\n';
+            
+            // Build params object with exact field names
+            const params = {};
+            params[emailFieldName] = emailValue;
+            
+            // Add template variables if provided
+            const opponentField = document.getElementById('opponentField').value;
+            const dateField = document.getElementById('dateField').value;
+            const timeField = document.getElementById('timeField').value;
+            
+            if (opponentField) params[opponentField] = 'Oklahoma';
+            if (dateField) params[dateField] = 'October 11, 2025';
+            if (timeField) params[timeField] = '2:30 PM';
+            
+            result.textContent += `Sending with these exact fields:\n${JSON.stringify(params, null, 2)}\n\n`;
+            
+            try {
+                const response = await emailjs.send(serviceId, templateId, params);
+                result.className = 'result success show';
+                result.textContent += `✅ SUCCESS!\n`;
+                result.textContent += `Status: ${response.status}\n`;
+                result.textContent += `Response: ${response.text}\n\n`;
+                result.textContent += `CHECK YOUR EMAIL!\n`;
+                result.textContent += `If this worked, these are the correct field names!\n\n`;
+                result.textContent += `Update your emailService.ts to use:\n`;
+                result.textContent += `'${emailFieldName}': data.recipientEmail\n`;
+                if (opponentField) result.textContent += `'${opponentField}': data.opponent\n`;
+                if (dateField) result.textContent += `'${dateField}': data.gameDate\n`;
+                if (timeField) result.textContent += `'${timeField}': data.gameTime\n`;
+            } catch (error) {
+                result.className = 'result error show';
+                result.textContent += `❌ Failed with these field names\n`;
+                result.textContent += `Error: ${error.text || error.message}\n`;
+                result.textContent += `Status: ${error.status}\n\n`;
+                
+                if (error.status === 422) {
+                    result.textContent += `These field names don't match what the template expects.\n`;
+                    result.textContent += `Check the EmailJS template test dialog for the exact names.`;
+                }
+            }
+        };
+        
+        window.testCommonPatterns = async function() {
+            const email = document.getElementById('emailValue').value;
+            if (!email) {
+                alert('Please enter your email address');
+                return;
+            }
+            
+            const result = document.getElementById('result');
+            result.className = 'result info show';
+            result.textContent = 'Testing common field patterns...\n\n';
+            
+            const patterns = [
+                {
+                    name: 'Pattern 1: to_email',
+                    params: {
+                        to_email: email,
+                        'Opposing Team': 'Oklahoma',
+                        'Game Date': 'October 11, 2025',
+                        'Time': '2:30 PM'
+                    }
+                },
+                {
+                    name: 'Pattern 2: email',
+                    params: {
+                        email: email,
+                        'Opposing Team': 'Oklahoma',
+                        'Game Date': 'October 11, 2025',
+                        'Time': '2:30 PM'
+                    }
+                },
+                {
+                    name: 'Pattern 3: user_email',
+                    params: {
+                        user_email: email,
+                        'Opposing Team': 'Oklahoma',
+                        'Game Date': 'October 11, 2025',
+                        'Time': '2:30 PM'
+                    }
+                },
+                {
+                    name: 'Pattern 4: from_email (sender as recipient)',
+                    params: {
+                        from_email: email,
+                        'Opposing Team': 'Oklahoma',
+                        'Game Date': 'October 11, 2025',
+                        'Time': '2:30 PM'
+                    }
+                },
+                {
+                    name: 'Pattern 5: to_name (name as email)',
+                    params: {
+                        to_name: email,
+                        'Opposing Team': 'Oklahoma',
+                        'Game Date': 'October 11, 2025',
+                        'Time': '2:30 PM'
+                    }
+                }
+            ];
+            
+            for (const pattern of patterns) {
+                result.textContent += `Testing ${pattern.name}...\n`;
+                
+                try {
+                    const response = await emailjs.send(serviceId, templateId, pattern.params);
+                    result.className = 'result success show';
+                    result.textContent += `  ✅ SUCCESS! This pattern works!\n`;
+                    result.textContent += `  Use these field names in your app:\n`;
+                    result.textContent += `  ${JSON.stringify(pattern.params, null, 2)}\n\n`;
+                    result.textContent += `  CHECK YOUR EMAIL NOW!\n`;
+                    break; // Stop on first success
+                } catch (error) {
+                    result.textContent += `  ❌ Failed (${error.status})\n`;
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        };
+        
+        window.testPattern = async function(fieldName) {
+            const email = document.getElementById('quickTestEmail').value;
+            if (!email) {
+                alert('Please enter your email address');
+                return;
+            }
+            
+            const result = document.getElementById('quickResult');
+            result.className = 'result info show';
+            result.textContent = `Testing with field: ${fieldName}...\n`;
+            
+            const params = {};
+            params[fieldName] = email;
+            
+            result.textContent += `Params: ${JSON.stringify(params)}\n\n`;
+            
+            try {
+                const response = await emailjs.send(serviceId, templateId, params);
+                result.className = 'result success show';
+                result.textContent += `✅ SUCCESS with "${fieldName}"!\n`;
+                result.textContent += `This is the correct email field name!\n`;
+                result.textContent += `Check your email at: ${email}`;
+            } catch (error) {
+                result.className = 'result error show';
+                result.textContent += `❌ Failed with "${fieldName}"\n`;
+                result.textContent += `Error: ${error.status} - ${error.text || error.message}`;
+            }
+        };
+        
+        console.log('%c🎯 Finding Exact Field Names', 'color: #10b981; font-size: 18px; font-weight: bold');
+        console.log('Since the template test works, we need to match the exact field names.');
+        console.log('Check what fields appear in the EmailJS "Test It" dialog.');
+    </script>
+</body>
+</html>

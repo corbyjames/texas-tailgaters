@@ -3,6 +3,7 @@ import { X, Mail, MessageSquare, Phone, Calendar, AlertCircle } from 'lucide-rea
 import { emailService } from '../../services/emailService';
 import { smsService } from '../../services/smsService';
 import { useAuth } from '../../hooks/useAuth';
+import { createLocalDate } from '../../utils/dateUtils';
 import type { Game } from '../../types/Game';
 
 interface InvitationModalWithSMSProps {
@@ -87,7 +88,7 @@ export function InvitationModalWithSMS({
     message += `📅 Schedule:\n`;
     
     displayGames.slice(0, 5).forEach(g => {
-      const date = new Date(g.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const date = createLocalDate(g.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       message += `• ${date} - ${g.isHome ? 'vs' : '@'} ${g.opponent}\n`;
     });
     
@@ -124,7 +125,7 @@ export function InvitationModalWithSMS({
       // Single game invite
       gameData = {
         gameName: `${game.opponent} Game`,
-        gameDate: new Date(game.date).toLocaleDateString('en-US', { 
+        gameDate: createLocalDate(game.date).toLocaleDateString('en-US', { 
           weekday: 'short', 
           month: 'short', 
           day: 'numeric' 
@@ -331,7 +332,7 @@ export function InvitationModalWithSMS({
                   <p className="font-semibold mt-2">📅 Upcoming Games:</p>
                   {displayGames.slice(0, 3).map((g, idx) => (
                     <p key={idx} className="ml-2">
-                      • {new Date(g.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {g.isHome ? 'vs' : '@'} {g.opponent}
+                      • {createLocalDate(g.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {g.isHome ? 'vs' : '@'} {g.opponent}
                     </p>
                   ))}
                   {displayGames.length > 3 && <p className="ml-2">...and {displayGames.length - 3} more games!</p>}
@@ -341,7 +342,7 @@ export function InvitationModalWithSMS({
                 <>
                   <p>🏈 Texas Tailgaters Invite!</p>
                   <p>You're invited to the {game.opponent} game!</p>
-                  <p>📅 {new Date(game.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</p>
+                  <p>📅 {createLocalDate(game.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</p>
                   <p>⏰ {game.time || 'TBD'}</p>
                   <p>📍 {game.location || 'Memorial Stadium'}</p>
                   {game.theme?.name && <p>🎨 Theme: {game.theme.name}</p>}

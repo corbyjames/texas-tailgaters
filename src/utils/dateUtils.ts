@@ -38,3 +38,14 @@ export function parseGameDate(gameDate: string): Date {
   date.setHours(0, 0, 0, 0);
   return date;
 }
+
+/**
+ * Safely create a Date object from a date string, avoiding timezone issues
+ * This ensures dates like "2024-09-07" are interpreted correctly as September 7th
+ * @param dateString - The date string (e.g., "2024-09-07")
+ */
+export function createLocalDate(dateString: string): Date {
+  // Add T12:00:00 to treat the date as noon local time
+  // This prevents timezone shifts that can change the date
+  return new Date(dateString + 'T12:00:00');
+}

@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Welcome Template - EmailJS</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        .container {
+            background: #1e293b;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+        }
+        h1 {
+            color: #60a5fa;
+        }
+        .form-group {
+            margin: 20px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            background: #0f172a;
+            color: #e2e8f0;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        button:disabled {
+            background: #475569;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            display: none;
+        }
+        .result.success {
+            background: #064e3b;
+            border: 1px solid #10b981;
+            color: #86efac;
+            display: block;
+        }
+        .result.error {
+            background: #7f1d1d;
+            border: 1px solid #ef4444;
+            color: #fca5a5;
+            display: block;
+        }
+        .result.info {
+            background: #1e3a8a;
+            border: 1px solid #3b82f6;
+            color: #93bbfe;
+            display: block;
+        }
+        .info-box {
+            background: #1e3a8a;
+            border: 1px solid #3b82f6;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .template-params {
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+        code {
+            background: #0f172a;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #fbbf24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📧 Test Welcome Template</h1>
+        
+        <div class="info-box">
+            <h3>ℹ️ Using Welcome Template</h3>
+            <p>This will test the welcome template with basic message fields.</p>
+            <p>Template ID: <code>template_teeze8x</code> (Welcome template)</p>
+        </div>
+
+        <form id="welcomeForm">
+            <div class="form-group">
+                <label for="toEmail">To Email *</label>
+                <input type="email" id="toEmail" required placeholder="recipient@example.com">
+            </div>
+            
+            <div class="form-group">
+                <label for="toName">Recipient Name *</label>
+                <input type="text" id="toName" required placeholder="John Doe">
+            </div>
+            
+            <div class="form-group">
+                <label for="fromName">From Name</label>
+                <input type="text" id="fromName" placeholder="Texas Tailgaters" value="Texas Tailgaters">
+            </div>
+            
+            <div class="form-group">
+                <label for="subject">Subject</label>
+                <input type="text" id="subject" placeholder="Welcome to Texas Tailgaters!" value="Welcome to Texas Tailgaters!">
+            </div>
+            
+            <div class="form-group">
+                <label for="message">Message *</label>
+                <textarea id="message" rows="6" required placeholder="Enter your message here...">Welcome to Texas Tailgaters!
+
+We're excited to have you join our community. Get ready for an amazing season of football, food, and fun!
+
+Hook 'em Horns! 🤘</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="replyTo">Reply To Email</label>
+                <input type="email" id="replyTo" placeholder="texastailgaters@gmail.com" value="texastailgaters@gmail.com">
+            </div>
+            
+            <button type="submit">Send Welcome Email</button>
+            <button type="button" onclick="fillTestData()">Fill Test Data</button>
+            <button type="button" onclick="showTemplateParams()">Show Template Parameters</button>
+        </form>
+
+        <div id="templateParams" class="template-params" style="display: none;"></div>
+        <div id="result" class="result"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="module">
+        // Get EmailJS config from environment
+        const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+        const welcomeTemplateId = 'template_teeze8x'; // Using the welcome template
+        const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+        
+        // Initialize EmailJS
+        emailjs.init(publicKey);
+        
+        const form = document.getElementById('welcomeForm');
+        const resultDiv = document.getElementById('result');
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Get form values
+            const toEmail = document.getElementById('toEmail').value;
+            const toName = document.getElementById('toName').value;
+            const fromName = document.getElementById('fromName').value || 'Texas Tailgaters';
+            const subject = document.getElementById('subject').value || 'Welcome to Texas Tailgaters!';
+            const message = document.getElementById('message').value;
+            const replyTo = document.getElementById('replyTo').value || 'texastailgaters@gmail.com';
+            
+            // Prepare template parameters with multiple field name variations
+            const templateParams = {
+                // Email variations
+                to_email: toEmail,
+                user_email: toEmail,
+                email: toEmail,
+                recipient_email: toEmail,
+                'Email': toEmail,
+                
+                // Name variations
+                to_name: toName,
+                user_name: toName,
+                name: toName,
+                recipient_name: toName,
+                'Name': toName,
+                
+                // From name variations
+                from_name: fromName,
+                sender_name: fromName,
+                'From Name': fromName,
+                
+                // Subject variations
+                subject: subject,
+                email_subject: subject,
+                'Subject': subject,
+                
+                // Message variations
+                message: message,
+                email_message: message,
+                email_body: message,
+                body: message,
+                content: message,
+                'Message': message,
+                
+                // Reply to variations
+                reply_to: replyTo,
+                replyTo: replyTo,
+                reply_email: replyTo,
+                'Reply To': replyTo
+            };
+            
+            // Show loading
+            resultDiv.className = 'result info';
+            resultDiv.innerHTML = '📧 Sending welcome email...';
+            
+            // Log what we're sending
+            console.log('Sending with template ID:', welcomeTemplateId);
+            console.log('Template parameters:', templateParams);
+            
+            try {
+                const response = await emailjs.send(
+                    serviceId,
+                    welcomeTemplateId,
+                    templateParams
+                );
+                
+                console.log('EmailJS Response:', response);
+                
+                if (response.status === 200) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        ✅ <strong>Success!</strong><br>
+                        Welcome email sent to ${toEmail}<br>
+                        Status: ${response.status}<br>
+                        Response: ${response.text}<br><br>
+                        <strong>Check your inbox!</strong> The email should arrive shortly.
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        ⚠️ <strong>Unexpected Response</strong><br>
+                        Status: ${response.status}<br>
+                        Text: ${response.text}
+                    `;
+                }
+            } catch (error) {
+                console.error('EmailJS Error:', error);
+                
+                resultDiv.className = 'result error';
+                let errorMsg = '❌ <strong>Failed to send email</strong><br>';
+                
+                if (error.status === 422) {
+                    errorMsg += 'Template configuration error (422). ';
+                    errorMsg += 'The template might be expecting different field names.<br>';
+                    errorMsg += 'Check the EmailJS dashboard for the correct variable names.';
+                } else if (error.status === 404) {
+                    errorMsg += 'Template not found (404). ';
+                    errorMsg += 'Make sure template_teeze8x exists in your EmailJS account.';
+                } else if (error.status === 401) {
+                    errorMsg += 'Authentication failed (401). Check your public key.';
+                } else if (error.text) {
+                    errorMsg += `Error: ${error.text}`;
+                } else if (error.message) {
+                    errorMsg += `Error: ${error.message}`;
+                } else {
+                    errorMsg += `Error: ${JSON.stringify(error)}`;
+                }
+                
+                errorMsg += '<br><br>Check the browser console for details.';
+                resultDiv.innerHTML = errorMsg;
+            }
+        });
+        
+        window.fillTestData = function() {
+            document.getElementById('toEmail').value = 'test@example.com';
+            document.getElementById('toName').value = 'Test User';
+            document.getElementById('fromName').value = 'Texas Tailgaters Admin';
+            document.getElementById('subject').value = 'Welcome to Texas Tailgaters!';
+            document.getElementById('message').value = `Welcome to Texas Tailgaters!
+
+We're thrilled to have you as part of our tailgating community!
+
+Here's what you can expect:
+- Game day invitations and updates
+- Potluck assignments and coordination
+- Exclusive tailgate location details
+- Fun themes and special events
+
+Our next game is coming up soon, so keep an eye on your inbox for details.
+
+If you have any questions, just reply to this email.
+
+Hook 'em Horns! 🤘
+
+Best regards,
+The Texas Tailgaters Team`;
+            document.getElementById('replyTo').value = 'texastailgaters@gmail.com';
+        };
+        
+        window.showTemplateParams = function() {
+            const params = {
+                to_email: document.getElementById('toEmail').value || '[email]',
+                to_name: document.getElementById('toName').value || '[name]',
+                from_name: document.getElementById('fromName').value || 'Texas Tailgaters',
+                subject: document.getElementById('subject').value || '[subject]',
+                message: document.getElementById('message').value || '[message]',
+                reply_to: document.getElementById('replyTo').value || 'texastailgaters@gmail.com'
+            };
+            
+            const paramsDiv = document.getElementById('templateParams');
+            paramsDiv.style.display = 'block';
+            paramsDiv.innerHTML = `<strong>Template Parameters:</strong>\n${JSON.stringify(params, null, 2)}`;
+        };
+        
+        // Log configuration
+        console.log('EmailJS Configuration:');
+        console.log('- Service ID:', serviceId);
+        console.log('- Template ID:', welcomeTemplateId);
+        console.log('- Public Key:', publicKey ? 'Set' : 'Not set');
+        
+        // Auto-fill with test data for convenience
+        fillTestData();
+    </script>
+</body>
+</html>

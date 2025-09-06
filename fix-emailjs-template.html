@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix EmailJS Template - Step by Step Guide</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        .container {
+            background: #1e293b;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+        }
+        h1 {
+            color: #60a5fa;
+            margin-bottom: 10px;
+        }
+        .alert {
+            background: #7f1d1d;
+            border: 2px solid #ef4444;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .alert h2 {
+            color: #fca5a5;
+            margin-top: 0;
+        }
+        .fix-instructions {
+            background: #064e3b;
+            border: 2px solid #10b981;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .fix-instructions h2 {
+            color: #86efac;
+            margin-top: 0;
+        }
+        .step {
+            background: #1f2937;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 6px;
+            border-left: 4px solid #60a5fa;
+        }
+        .step-number {
+            display: inline-block;
+            background: #60a5fa;
+            color: #0f172a;
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            line-height: 30px;
+            border-radius: 50%;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        code {
+            background: #0f172a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #fbbf24;
+        }
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .before, .after {
+            padding: 15px;
+            border-radius: 6px;
+        }
+        .before {
+            background: #7f1d1d;
+            border: 1px solid #ef4444;
+        }
+        .after {
+            background: #064e3b;
+            border: 1px solid #10b981;
+        }
+        .before h3 {
+            color: #fca5a5;
+        }
+        .after h3 {
+            color: #86efac;
+        }
+        pre {
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        button {
+            background: #60a5fa;
+            color: #0f172a;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #3b82f6;
+        }
+        .link-button {
+            background: #10b981;
+        }
+        .link-button:hover {
+            background: #059669;
+        }
+        .test-section {
+            background: #1f2937;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            display: none;
+        }
+        #result.success {
+            background: #064e3b;
+            border: 1px solid #10b981;
+            display: block;
+        }
+        #result.error {
+            background: #7f1d1d;
+            border: 1px solid #ef4444;
+            display: block;
+        }
+        .variable-reference {
+            background: #1f2937;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .variable-reference h3 {
+            color: #94a3b8;
+            margin-top: 0;
+        }
+        .variable-list {
+            display: grid;
+            gap: 10px;
+        }
+        .variable-item {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 20px;
+            padding: 10px;
+            background: #0f172a;
+            border-radius: 4px;
+        }
+        .variable-name {
+            color: #fbbf24;
+            font-family: monospace;
+        }
+        .variable-desc {
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Fix EmailJS Template Variables</h1>
+        
+        <div class="alert">
+            <h2>⚠️ Problem Identified</h2>
+            <p>Your EmailJS template is showing <code>[Opposing Team]</code>, <code>[Game Date]</code>, and <code>[Time]</code> as literal text because the template has square brackets typed directly into it.</p>
+            <p><strong>EmailJS uses double curly braces <code>{{variable_name}}</code> for variables, not square brackets!</strong></p>
+        </div>
+
+        <div class="fix-instructions">
+            <h2>✅ How to Fix Your Template</h2>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <strong>Open EmailJS Dashboard</strong>
+                <p>Go to your EmailJS account and navigate to the templates section.</p>
+                <button class="link-button" onclick="window.open('https://dashboard.emailjs.com/admin/templates', '_blank')">
+                    Open EmailJS Templates →
+                </button>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                <strong>Edit Template: <code>template_teeze8x</code></strong>
+                <p>Find and click on your game invitation template to edit it.</p>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                <strong>Replace the Square Bracket Text</strong>
+                <p>Find all instances of square brackets and replace them with the correct EmailJS syntax:</p>
+                
+                <div class="before-after">
+                    <div class="before">
+                        <h3>❌ WRONG (Current)</h3>
+                        <pre>[Opposing Team]
+[Game Date]
+[Time]</pre>
+                    </div>
+                    <div class="after">
+                        <h3>✅ CORRECT (Change to)</h3>
+                        <pre>{{opponent}}
+{{game_date}}
+{{time}}</pre>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">4</span>
+                <strong>Save Your Template</strong>
+                <p>Click the save button in EmailJS to update your template.</p>
+            </div>
+        </div>
+
+        <div class="variable-reference">
+            <h3>📋 Available Variables for Your Template</h3>
+            <p>These are the variables being sent from your application:</p>
+            
+            <div class="variable-list">
+                <div class="variable-item">
+                    <div class="variable-name">{{opponent}}</div>
+                    <div class="variable-desc">The opposing team name (e.g., "Oklahoma")</div>
+                </div>
+                <div class="variable-item">
+                    <div class="variable-name">{{game_date}}</div>
+                    <div class="variable-desc">The game date (e.g., "October 11, 2025")</div>
+                </div>
+                <div class="variable-item">
+                    <div class="variable-name">{{time}}</div>
+                    <div class="variable-desc">The game time (e.g., "2:30 PM")</div>
+                </div>
+                <div class="variable-item">
+                    <div class="variable-name">{{location}}</div>
+                    <div class="variable-desc">The game location (e.g., "Cotton Bowl, Dallas, TX")</div>
+                </div>
+                <div class="variable-item">
+                    <div class="variable-name">{{game_name}}</div>
+                    <div class="variable-desc">Full game name (e.g., "Texas vs Oklahoma")</div>
+                </div>
+                <div class="variable-item">
+                    <div class="variable-name">{{theme}}</div>
+                    <div class="variable-desc">Tailgate theme if any</div>
+                </div>
+                <div class="variable-item">
+                    <div class="variable-name">{{setup_time}}</div>
+                    <div class="variable-desc">Setup time for the tailgate</div>
+                </div>
+                <div class="variable-item">
+                    <div class="variable-name">{{special_notes}}</div>
+                    <div class="variable-desc">Any special notes or instructions</div>
+                </div>
+                <div class="variable-item">
+                    <div class="variable-name">{{rsvp_link}}</div>
+                    <div class="variable-desc">Link to RSVP for the game</div>
+                </div>
+                <div class="variable-item">
+                    <div class="variable-name">{{email}}</div>
+                    <div class="variable-desc">Recipient's email address</div>
+                </div>
+                <div class="variable-item">
+                    <div class="variable-name">{{name}}</div>
+                    <div class="variable-desc">Recipient's name</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🧪 Test After Fixing</h2>
+            <p>After updating your template in EmailJS, test it here:</p>
+            
+            <input type="email" id="testEmail" placeholder="Enter your email to test" style="width: 100%; padding: 10px; margin: 10px 0; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
+            
+            <button onclick="sendTestEmail()">Send Test Email</button>
+            
+            <div id="result"></div>
+        </div>
+
+        <div class="variable-reference">
+            <h3>💡 Example Template Content</h3>
+            <p>Here's an example of how your template should look in EmailJS:</p>
+            
+            <pre style="color: #e2e8f0;">Subject: Game Day Invitation - Texas vs {{opponent}}
+
+Dear {{name}},
+
+You're invited to our tailgate for the {{game_name}} game!
+
+📅 Date: {{game_date}}
+⏰ Time: {{time}}
+📍 Location: {{location}}
+
+🎉 Theme: {{theme}}
+🚗 Setup Time: {{setup_time}}
+📝 Notes: {{special_notes}}
+
+RSVP here: {{rsvp_link}}
+
+Hook 'em! 🤘</pre>
+        </div>
+    </div>
+
+    <script type="module">
+        window.sendTestEmail = async function() {
+            const email = document.getElementById('testEmail').value;
+            if (!email) {
+                alert('Please enter your email address');
+                return;
+            }
+            
+            const result = document.getElementById('result');
+            result.className = '';
+            result.style.display = 'block';
+            result.innerHTML = '📧 Sending test email...';
+            
+            try {
+                // Import EmailJS
+                const { emailService } = await import('./src/services/emailService.ts');
+                
+                const testData = {
+                    recipientEmail: email,
+                    recipientName: 'Test User',
+                    opponent: 'Oklahoma',
+                    gameDate: 'October 11, 2025',
+                    gameTime: '2:30 PM',
+                    gameName: 'Texas vs Oklahoma',
+                    location: 'Cotton Bowl, Dallas, TX',
+                    theme: 'Red River Rivalry BBQ',
+                    setupTime: '10:00 AM',
+                    specialNotes: 'This is a test email after fixing the template!',
+                    rsvpLink: 'https://texastailgaters.com/games'
+                };
+                
+                const response = await emailService.sendGameInvitation(testData);
+                
+                if (response.success) {
+                    result.className = 'success';
+                    result.innerHTML = `
+                        ✅ <strong>Test email sent successfully!</strong><br>
+                        Check your inbox at ${email}<br><br>
+                        If the fields are populated correctly, your template is fixed! 🎉<br>
+                        If you still see [Opposing Team] etc., make sure you saved the template in EmailJS.
+                    `;
+                } else {
+                    result.className = 'error';
+                    result.innerHTML = `
+                        ❌ <strong>Failed to send test email</strong><br>
+                        ${response.message}<br><br>
+                        Make sure your template is saved in EmailJS before testing.
+                    `;
+                }
+            } catch (error) {
+                result.className = 'error';
+                result.innerHTML = `
+                    ❌ <strong>Error:</strong> ${error.message || error}<br>
+                    Check the browser console for details.
+                `;
+                console.error('Test email error:', error);
+            }
+        };
+        
+        // Log helpful info
+        console.log('%c📧 EmailJS Template Fix Guide', 'color: #60a5fa; font-size: 18px; font-weight: bold');
+        console.log('Template ID:', 'template_teeze8x');
+        console.log('Service ID:', import.meta.env.VITE_EMAILJS_SERVICE_ID);
+        console.log('\n%cRemember: Use {{variable}} not [variable]!', 'color: #fbbf24; font-size: 14px');
+    </script>
+</body>
+</html>

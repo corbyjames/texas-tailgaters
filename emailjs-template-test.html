@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EmailJS Template Variable Test</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+        h1 {
+            color: #4ec9b0;
+        }
+        h2 {
+            color: #9cdcfe;
+        }
+        .test-section {
+            background: #2d2d30;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #464647;
+        }
+        button {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #1177bb;
+        }
+        .result {
+            background: #1e1e1e;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: 1px solid #464647;
+            white-space: pre-wrap;
+        }
+        .success {
+            border-color: #4ec9b0;
+            color: #4ec9b0;
+        }
+        .error {
+            border-color: #f48771;
+            color: #f48771;
+        }
+        .info {
+            border-color: #9cdcfe;
+            color: #9cdcfe;
+        }
+        input {
+            background: #3c3c3c;
+            color: #d4d4d4;
+            border: 1px solid #464647;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .field-test {
+            display: grid;
+            grid-template-columns: 1fr 2fr 100px;
+            gap: 10px;
+            align-items: center;
+            margin: 10px 0;
+        }
+        .field-test label {
+            color: #9cdcfe;
+        }
+        .status {
+            text-align: center;
+            font-weight: bold;
+        }
+        .status.pending {
+            color: #dcdcaa;
+        }
+        .status.success {
+            color: #4ec9b0;
+        }
+        .status.failed {
+            color: #f48771;
+        }
+        pre {
+            background: #1e1e1e;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .warning {
+            background: #3d3319;
+            border: 1px solid #dcdcaa;
+            color: #dcdcaa;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔬 EmailJS Template Variable Diagnostic</h1>
+    
+    <div class="warning">
+        <strong>⚠️ Important:</strong> Based on your email showing [Opposing Team] in square brackets, 
+        your EmailJS template might be using literal text instead of variables. This test will help diagnose the issue.
+    </div>
+
+    <div class="test-section">
+        <h2>1. Test Individual Field Names</h2>
+        <p>This will test each field name individually to see which ones work:</p>
+        
+        <input type="email" id="testEmail" placeholder="Enter your email address" value="">
+        
+        <div class="field-test">
+            <label>opponent:</label>
+            <input type="text" value="Oklahoma" disabled>
+            <span class="status pending" id="status-opponent">⏳</span>
+        </div>
+        
+        <div class="field-test">
+            <label>Opposing Team:</label>
+            <input type="text" value="Oklahoma" disabled>
+            <span class="status pending" id="status-opposing-team">⏳</span>
+        </div>
+        
+        <div class="field-test">
+            <label>opposing_team:</label>
+            <input type="text" value="Oklahoma" disabled>
+            <span class="status pending" id="status-opposing-team-underscore">⏳</span>
+        </div>
+        
+        <div class="field-test">
+            <label>game_date:</label>
+            <input type="text" value="October 11, 2025" disabled>
+            <span class="status pending" id="status-game-date">⏳</span>
+        </div>
+        
+        <div class="field-test">
+            <label>Game Date:</label>
+            <input type="text" value="October 11, 2025" disabled>
+            <span class="status pending" id="status-game-date-space">⏳</span>
+        </div>
+        
+        <div class="field-test">
+            <label>time:</label>
+            <input type="text" value="2:30 PM" disabled>
+            <span class="status pending" id="status-time">⏳</span>
+        </div>
+        
+        <div class="field-test">
+            <label>Time:</label>
+            <input type="text" value="2:30 PM" disabled>
+            <span class="status pending" id="status-time-capital">⏳</span>
+        </div>
+        
+        <button onclick="testAllFields()">Test All Field Names</button>
+        <div id="fieldTestResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Test With All Possible Variations</h2>
+        <p>This sends an email with EVERY possible field name variation:</p>
+        
+        <button onclick="sendKitchenSink()">Send Kitchen Sink Test</button>
+        <div id="kitchenSinkResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Template Syntax Check</h2>
+        <p>Your template appears to be showing literal [Opposing Team] text. This suggests:</p>
+        <ul>
+            <li>The template might have literal square brackets typed in: <code>[Opposing Team]</code></li>
+            <li>Instead of EmailJS variables: <code>{{Opposing Team}}</code> or <code>{{opposing_team}}</code></li>
+            <li>Or the field names don't match what the template expects</li>
+        </ul>
+        
+        <p><strong>To fix this in EmailJS:</strong></p>
+        <ol>
+            <li>Log into your EmailJS dashboard</li>
+            <li>Go to Email Templates</li>
+            <li>Edit template: <code>template_teeze8x</code></li>
+            <li>Look for <code>[Opposing Team]</code> and replace with <code>{{opponent}}</code> or <code>{{Opposing Team}}</code></li>
+            <li>Look for <code>[Game Date]</code> and replace with <code>{{game_date}}</code> or <code>{{Game Date}}</code></li>
+            <li>Look for <code>[Time]</code> and replace with <code>{{time}}</code> or <code>{{Time}}</code></li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Raw Template Test</h2>
+        <p>Send a test with raw JSON to see what EmailJS receives:</p>
+        
+        <button onclick="sendRawTest()">Send Raw Test</button>
+        <div id="rawResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Results Summary</h2>
+        <div id="summary" class="result info">
+            Run the tests above to diagnose the template issue.
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="module">
+        window.serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+        window.templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+        window.publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+        
+        // Initialize EmailJS
+        emailjs.init(window.publicKey);
+        
+        window.testAllFields = async function() {
+            const email = document.getElementById('testEmail').value;
+            if (!email) {
+                alert('Please enter your email address');
+                return;
+            }
+            
+            const result = document.getElementById('fieldTestResult');
+            result.className = 'result info';
+            result.textContent = 'Testing field names...\n\n';
+            
+            const fieldTests = [
+                { key: 'opponent', value: 'Oklahoma', statusId: 'status-opponent' },
+                { key: 'Opposing Team', value: 'Oklahoma', statusId: 'status-opposing-team' },
+                { key: 'opposing_team', value: 'Oklahoma', statusId: 'status-opposing-team-underscore' },
+                { key: 'game_date', value: 'October 11, 2025', statusId: 'status-game-date' },
+                { key: 'Game Date', value: 'October 11, 2025', statusId: 'status-game-date-space' },
+                { key: 'time', value: '2:30 PM', statusId: 'status-time' },
+                { key: 'Time', value: '2:30 PM', statusId: 'status-time-capital' }
+            ];
+            
+            let workingFields = [];
+            let failedFields = [];
+            
+            for (const test of fieldTests) {
+                const statusEl = document.getElementById(test.statusId);
+                statusEl.className = 'status pending';
+                statusEl.textContent = '⏳';
+                
+                try {
+                    const params = {
+                        email: email,
+                        user_email: email,
+                        to_email: email,
+                        [test.key]: test.value
+                    };
+                    
+                    const response = await emailjs.send(window.serviceId, window.templateId, params);
+                    
+                    if (response.status === 200) {
+                        workingFields.push(test.key);
+                        statusEl.className = 'status success';
+                        statusEl.textContent = '✅';
+                        result.textContent += `✅ "${test.key}" - SUCCESS\n`;
+                    }
+                } catch (error) {
+                    failedFields.push(test.key);
+                    statusEl.className = 'status failed';
+                    statusEl.textContent = '❌';
+                    result.textContent += `❌ "${test.key}" - FAILED: ${error.text || error.message}\n`;
+                }
+                
+                // Small delay between tests
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            result.textContent += '\n\nSUMMARY:\n';
+            result.textContent += `Working fields: ${workingFields.join(', ') || 'None'}\n`;
+            result.textContent += `Failed fields: ${failedFields.join(', ') || 'None'}\n`;
+            
+            updateSummary('Field tests completed', workingFields.length > 0 ? 'success' : 'error');
+        };
+        
+        window.sendKitchenSink = async function() {
+            const email = document.getElementById('testEmail').value;
+            if (!email) {
+                alert('Please enter your email address');
+                return;
+            }
+            
+            const result = document.getElementById('kitchenSinkResult');
+            result.className = 'result info';
+            result.textContent = 'Sending email with all possible field variations...\n';
+            
+            const allParams = {
+                // Email variations
+                email: email,
+                user_email: email,
+                to_email: email,
+                recipient_email: email,
+                'Email': email,
+                'User Email': email,
+                
+                // Opponent variations
+                opponent: 'Oklahoma',
+                'Opposing Team': 'Oklahoma',
+                'opposing_team': 'Oklahoma',
+                'OpposingTeam': 'Oklahoma',
+                'opposing-team': 'Oklahoma',
+                'team': 'Oklahoma',
+                'Team': 'Oklahoma',
+                
+                // Date variations
+                game_date: 'October 11, 2025',
+                'Game Date': 'October 11, 2025',
+                'GameDate': 'October 11, 2025',
+                'game-date': 'October 11, 2025',
+                'date': 'October 11, 2025',
+                'Date': 'October 11, 2025',
+                
+                // Time variations
+                time: '2:30 PM',
+                'Time': '2:30 PM',
+                'game_time': '2:30 PM',
+                'Game Time': '2:30 PM',
+                'GameTime': '2:30 PM',
+                'game-time': '2:30 PM',
+                
+                // Location variations
+                location: 'Cotton Bowl, Dallas, TX',
+                'Location': 'Cotton Bowl, Dallas, TX',
+                'venue': 'Cotton Bowl, Dallas, TX',
+                'Venue': 'Cotton Bowl, Dallas, TX',
+                
+                // Additional fields
+                message: 'This is a kitchen sink test with all field variations',
+                from_name: 'EmailJS Diagnostic',
+                game_name: 'Texas vs Oklahoma'
+            };
+            
+            result.textContent += '\nSending with these parameters:\n';
+            result.textContent += JSON.stringify(allParams, null, 2) + '\n\n';
+            
+            try {
+                const response = await emailjs.send(window.serviceId, window.templateId, allParams);
+                result.className = 'result success';
+                result.textContent += `\n✅ Email sent successfully!\n`;
+                result.textContent += `Status: ${response.status}\n`;
+                result.textContent += `Response: ${response.text}\n\n`;
+                result.textContent += `CHECK YOUR EMAIL:\n`;
+                result.textContent += `- If fields show actual values: The working field names are in the list above\n`;
+                result.textContent += `- If fields show [Opposing Team]: The template has literal brackets typed in\n`;
+                
+                updateSummary('Kitchen sink test sent successfully', 'success');
+            } catch (error) {
+                result.className = 'result error';
+                result.textContent += `\n❌ Failed to send: ${error.text || error.message}\n`;
+                updateSummary('Kitchen sink test failed', 'error');
+            }
+        };
+        
+        window.sendRawTest = async function() {
+            const email = document.getElementById('testEmail').value;
+            if (!email) {
+                alert('Please enter your email address');
+                return;
+            }
+            
+            const result = document.getElementById('rawResult');
+            result.className = 'result info';
+            result.textContent = 'Sending raw test...\n';
+            
+            try {
+                const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        service_id: window.serviceId,
+                        template_id: window.templateId,
+                        user_id: window.publicKey,
+                        template_params: {
+                            email: email,
+                            opponent: 'Raw Test Team',
+                            'Opposing Team': 'Raw Test Team',
+                            game_date: 'Raw Test Date',
+                            'Game Date': 'Raw Test Date',
+                            time: 'Raw Test Time',
+                            'Time': 'Raw Test Time'
+                        }
+                    })
+                });
+                
+                const responseText = await response.text();
+                
+                if (response.ok) {
+                    result.className = 'result success';
+                    result.textContent = `✅ Raw test sent successfully!\nResponse: ${responseText}`;
+                } else {
+                    result.className = 'result error';
+                    result.textContent = `❌ Raw test failed!\nStatus: ${response.status}\nResponse: ${responseText}`;
+                }
+            } catch (error) {
+                result.className = 'result error';
+                result.textContent = `❌ Raw test error: ${error.message}`;
+            }
+        };
+        
+        function updateSummary(message, type) {
+            const summary = document.getElementById('summary');
+            summary.className = `result ${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            summary.textContent = `[${timestamp}] ${message}`;
+        }
+        
+        // Log configuration on load
+        console.log('EmailJS Configuration:');
+        console.log('Service ID:', window.serviceId);
+        console.log('Template ID:', window.templateId);
+        console.log('Public Key:', window.publicKey ? 'Set' : 'Not set');
+    </script>
+</body>
+</html>

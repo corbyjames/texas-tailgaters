@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Exact Template Match</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #BF5700;
+            text-align: center;
+        }
+        .success-note {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 10px 0;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            background: #BF5700;
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        button:hover {
+            background: #8F3E00;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            display: none;
+        }
+        #result.show {
+            display: block;
+        }
+        #result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        #result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        #result.info {
+            background: #cce5ff;
+            border: 1px solid #b8daff;
+            color: #004085;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Test Exact Template Match</h1>
+        
+        <div class="success-note">
+            <strong>Service Test: ✅ 200 OK</strong><br>
+            Now testing if emails actually deliver with exact template field names.
+        </div>
+        
+        <input type="email" id="emailInput" placeholder="Enter your email address" autofocus>
+        
+        <button onclick="testExactFields()" id="testBtn">Test with Exact Template Fields</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="module">
+        // Get EmailJS config
+        const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || 'service_qmc9ndt';
+        const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || 'template_teeze8x';
+        const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+        
+        // Initialize EmailJS
+        emailjs.init(PUBLIC_KEY);
+        
+        window.testExactFields = async function() {
+            const email = document.getElementById('emailInput').value;
+            const button = document.getElementById('testBtn');
+            const result = document.getElementById('result');
+            
+            if (!email) {
+                alert('Please enter your email address');
+                return;
+            }
+            
+            button.disabled = true;
+            button.textContent = 'Sending...';
+            
+            // Use ONLY the field that your template expects: {{email}}
+            const params = {
+                email: email,
+                'Opposing Team': 'Oklahoma', 
+                'Game Date': 'October 11, 2025',
+                'Time': '2:30 PM'
+            };
+            
+            result.className = 'info show';
+            result.textContent = `Sending email to: ${email}\n\nParameters:\n${JSON.stringify(params, null, 2)}\n\nWaiting for response...`;
+            
+            try {
+                console.log('Sending with params:', params);
+                const response = await emailjs.send(SERVICE_ID, TEMPLATE_ID, params);
+                console.log('Response:', response);
+                
+                result.className = 'success show';
+                result.textContent = `✅ EmailJS API Response:
+                
+Status: ${response.status}
+Text: ${response.text}
+Full Response: ${JSON.stringify(response, null, 2)}
+
+Service: ${SERVICE_ID}
+Template: ${TEMPLATE_ID}
+
+NEXT STEPS:
+1. Check your email inbox: ${email}
+2. Check SPAM/JUNK folder
+3. Check Promotions/Updates tabs (Gmail)
+4. Check Email History: https://dashboard.emailjs.com/admin/emails/history
+
+If email not received:
+- The template test works but this doesn't = field name issue
+- Neither works = email delivery issue (check spam filters)`;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                
+                result.className = 'error show';
+                result.textContent = `❌ Error:
+                
+Status: ${error.status || 'Unknown'}
+Text: ${error.text || 'Unknown'}
+Message: ${error.message || 'Unknown'}
+
+This means:
+- 422: Template expects different field names
+- 401: Authentication issue
+- 404: Service or template not found
+
+Full error: ${JSON.stringify(error, null, 2)}`;
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Test with Exact Template Fields';
+            }
+        };
+        
+        // Allow Enter key
+        document.getElementById('emailInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                testExactFields();
+            }
+        });
+        
+        console.log('Configuration:');
+        console.log('Service ID:', SERVICE_ID);
+        console.log('Template ID:', TEMPLATE_ID); 
+        console.log('Public Key:', PUBLIC_KEY ? 'Set' : 'Not set');
+    </script>
+</body>
+</html>

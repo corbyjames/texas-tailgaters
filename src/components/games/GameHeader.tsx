@@ -40,7 +40,8 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+    // Add T12:00:00 to treat the date as noon local time, avoiding timezone issues
+    const date = new Date(dateString + 'T12:00:00');
     return date.toLocaleDateString('en-US', { 
       weekday: showFullInfo ? 'long' : undefined,
       month: showFullInfo ? 'long' : 'short', 

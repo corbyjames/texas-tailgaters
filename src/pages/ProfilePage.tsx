@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import rsvpService, { RSVP } from '../services/rsvpService';
 import { useGames } from '../hooks/useGames';
-import { isGameUpcoming } from '../utils/dateUtils';
+import { isGameUpcoming, createLocalDate } from '../utils/dateUtils';
 
 export default function ProfilePage() {
   const { user, signOut } = useAuth();
@@ -323,7 +323,7 @@ export default function ProfilePage() {
                         {game.isHome ? 'vs' : '@'} {game.opponent}
                       </p>
                       <p className="text-sm text-gray-600">
-                        {new Date(game.date).toLocaleDateString('en-US', { 
+                        {createLocalDate(game.date).toLocaleDateString('en-US', { 
                           weekday: 'short', 
                           month: 'short', 
                           day: 'numeric' 

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Direct EmailJS Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #BF5700;
+            text-align: center;
+        }
+        .info {
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+            color: #1565c0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 10px 0;
+            box-sizing: border-box;
+        }
+        button {
+            background: #BF5700;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #8F3E00;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        #result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            display: block;
+        }
+        #result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            display: block;
+        }
+        #result.info {
+            background: #cce5ff;
+            border: 1px solid #b8daff;
+            color: #004085;
+            display: block;
+        }
+        .test-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Direct EmailJS Test</h1>
+        
+        <div class="info">
+            <strong>Testing with your template configuration:</strong><br>
+            • Service ID: service_qmc9ndt<br>
+            • Template ID: template_teeze8x<br>
+            • To Email field: {{email}}
+        </div>
+        
+        <input type="email" id="emailInput" placeholder="Enter your email address" autofocus>
+        
+        <div class="test-buttons">
+            <button onclick="testMinimal()" id="minimalBtn">Test Minimal</button>
+            <button onclick="testWithEmail()" id="emailBtn">Test with 'email'</button>
+            <button onclick="testWithToEmail()" id="toEmailBtn">Test with 'to_email'</button>
+            <button onclick="testWithAll()" id="allBtn">Test with All Fields</button>
+        </div>
+        
+        <div id="result"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="module">
+        // Get EmailJS config from environment
+        const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+        const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+        const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+        
+        // Initialize EmailJS
+        emailjs.init(PUBLIC_KEY);
+        
+        function showResult(message, type = 'info') {
+            const result = document.getElementById('result');
+            result.className = type;
+            result.textContent = message;
+        }
+        
+        function disableButtons(disabled) {
+            document.querySelectorAll('button').forEach(btn => btn.disabled = disabled);
+        }
+        
+        window.testMinimal = async function() {
+            const email = document.getElementById('emailInput').value;
+            if (!email) {
+                alert('Please enter your email address');
+                return;
+            }
+            
+            disableButtons(true);
+            showResult('Testing minimal configuration...', 'info');
+            
+            const params = {
+                email: email
+            };
+            
+            try {
+                showResult(`Sending with params:\n${JSON.stringify(params, null, 2)}\n\nWaiting for EmailJS API...`, 'info');
+                const response = await emailjs.send(SERVICE_ID, TEMPLATE_ID, params);
+                
+                const responseDetails = `✅ API RESPONSE RECEIVED!
+                
+STATUS CODE: ${response.status}
+RESPONSE TEXT: ${response.text}
+FULL RESPONSE: ${JSON.stringify(response, null, 2)}
+
+IMPORTANT:
+- Status 200 means EmailJS ACCEPTED the request
+- It does NOT mean the email was delivered
+- Check EmailJS dashboard for actual delivery status
+
+To verify delivery:
+1. Check: https://dashboard.emailjs.com/admin/emails/history
+2. Look for email to: ${email}
+3. Check SPAM/JUNK folder`;
+                
+                showResult(responseDetails, 'success');
+            } catch (error) {
+                showResult(`❌ API ERROR!\n\nStatus: ${error.status}\nError: ${error.text || error.message}\n\nFull error: ${JSON.stringify(error, null, 2)}`, 'error');
+            } finally {
+                disableButtons(false);
+            }
+        };
+        
+        window.testWithEmail = async function() {
+            const email = document.getElementById('emailInput').value;
+            if (!email) {
+                alert('Please enter your email address');
+                return;
+            }
+            
+            disableButtons(true);
+            showResult('Testing with email field...', 'info');
+            
+            const params = {
+                email: email,
+                'Opposing Team': 'Oklahoma',
+                'Game Date': 'October 11, 2025',
+                'Time': '2:30 PM'
+            };
+            
+            try {
+                showResult(`Sending with params:\n${JSON.stringify(params, null, 2)}\n\nWaiting...`, 'info');
+                const response = await emailjs.send(SERVICE_ID, TEMPLATE_ID, params);
+                
+                // Display complete response details
+                const responseDetails = `✅ API RESPONSE RECEIVED!
+                
+STATUS CODE: ${response.status}
+RESPONSE TEXT: ${response.text}
+FULL RESPONSE: ${JSON.stringify(response, null, 2)}
+
+WHAT THIS MEANS:
+- Status 200 = EmailJS accepted the request
+- "OK" = Email was queued for sending
+- This does NOT guarantee delivery
+
+CHECK:
+1. EmailJS Dashboard: https://dashboard.emailjs.com/admin/emails/history
+2. Your email inbox: ${email}
+3. Your SPAM/JUNK folder
+4. Gmail Promotions/Updates tabs
+
+Params sent:
+${JSON.stringify(params, null, 2)}`;
+                
+                showResult(responseDetails, 'success');
+            } catch (error) {
+                const errorDetails = `❌ API ERROR!
+                
+STATUS CODE: ${error.status || 'None'}
+ERROR TEXT: ${error.text || 'None'}
+ERROR MESSAGE: ${error.message || 'None'}
+FULL ERROR: ${JSON.stringify(error, null, 2)}
+
+WHAT THIS MEANS:
+- 401 = Authentication failed (check PUBLIC_KEY)
+- 404 = Service or template not found
+- 422 = Template expects different field names
+- 429 = Rate limit exceeded
+- 500 = EmailJS server error
+
+Params sent:
+${JSON.stringify(params, null, 2)}`;
+                
+                showResult(errorDetails, 'error');
+            } finally {
+                disableButtons(false);
+            }
+        };
+        
+        window.testWithToEmail = async function() {
+            const email = document.getElementById('emailInput').value;
+            if (!email) {
+                alert('Please enter your email address');
+                return;
+            }
+            
+            disableButtons(true);
+            showResult('Testing with to_email field...', 'info');
+            
+            const params = {
+                to_email: email,
+                'Opposing Team': 'Oklahoma',
+                'Game Date': 'October 11, 2025',
+                'Time': '2:30 PM'
+            };
+            
+            try {
+                showResult(`Sending with params:\n${JSON.stringify(params, null, 2)}\n\nWaiting...`, 'info');
+                const response = await emailjs.send(SERVICE_ID, TEMPLATE_ID, params);
+                showResult(`✅ SUCCESS!\nStatus: ${response.status}\nText: ${response.text}\n\nCheck your email at: ${email}`, 'success');
+            } catch (error) {
+                showResult(`❌ FAILED!\nStatus: ${error.status}\nError: ${error.text || error.message}\n\nThis likely failed because template expects 'email' not 'to_email'`, 'error');
+            } finally {
+                disableButtons(false);
+            }
+        };
+        
+        window.testWithAll = async function() {
+            const email = document.getElementById('emailInput').value;
+            if (!email) {
+                alert('Please enter your email address');
+                return;
+            }
+            
+            disableButtons(true);
+            showResult('Testing with all fields...', 'info');
+            
+            const params = {
+                // Primary field based on template
+                email: email,
+                // Fallbacks
+                to_email: email,
+                user_email: email,
+                // Template variables
+                'Opposing Team': 'Oklahoma',
+                'Game Date': 'October 11, 2025',
+                'Time': '2:30 PM',
+                // Additional fields
+                name: 'Test User',
+                from_name: 'Texas Tailgaters',
+                game_name: 'Texas vs Oklahoma',
+                location: 'Cotton Bowl, Dallas, TX',
+                theme: 'Red River Rivalry',
+                setup_time: '10:00 AM',
+                special_notes: 'Testing email configuration',
+                rsvp_link: 'https://texastailgaters.com/games'
+            };
+            
+            try {
+                showResult(`Sending with ALL params:\n${JSON.stringify(params, null, 2)}\n\nWaiting...`, 'info');
+                const response = await emailjs.send(SERVICE_ID, TEMPLATE_ID, params);
+                showResult(`✅ SUCCESS with all fields!\nStatus: ${response.status}\nText: ${response.text}\n\nCheck your email at: ${email}`, 'success');
+            } catch (error) {
+                showResult(`❌ FAILED!\nStatus: ${error.status}\nError: ${error.text || error.message}`, 'error');
+            } finally {
+                disableButtons(false);
+            }
+        };
+        
+        // Log config
+        console.log('Direct EmailJS Test Ready');
+        console.log('Service ID:', SERVICE_ID);
+        console.log('Template ID:', TEMPLATE_ID);
+        console.log('Public Key:', PUBLIC_KEY ? 'Set' : 'Not set');
+    </script>
+</body>
+</html>

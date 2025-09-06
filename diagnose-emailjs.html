@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EmailJS Diagnostic</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+        h1 { color: #4ec9b0; }
+        .section {
+            background: #2d2d30;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #464647;
+        }
+        button {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover { background: #1177bb; }
+        input {
+            background: #3c3c3c;
+            color: #d4d4d4;
+            border: 1px solid #464647;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .result {
+            background: #1e1e1e;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: 1px solid #464647;
+            white-space: pre-wrap;
+            font-size: 12px;
+        }
+        .success { border-color: #4ec9b0; color: #4ec9b0; }
+        .error { border-color: #f48771; color: #f48771; }
+        .info { border-color: #9cdcfe; color: #9cdcfe; }
+        .config-value {
+            background: #1e1e1e;
+            padding: 4px 8px;
+            border-radius: 3px;
+            color: #dcdcaa;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 EmailJS Diagnostic</h1>
+    
+    <div class="section">
+        <h2>Configuration Check</h2>
+        <div id="configCheck" class="result info"></div>
+    </div>
+
+    <div class="section">
+        <h2>Test 1: Direct API Call (No SDK)</h2>
+        <input type="email" id="email1" placeholder="Enter your email">
+        <button onclick="testDirectAPI()">Test Direct API</button>
+        <div id="result1" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>Test 2: EmailJS SDK</h2>
+        <input type="email" id="email2" placeholder="Enter your email">
+        <button onclick="testSDK()">Test with SDK</button>
+        <div id="result2" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>Test 3: Minimal Fields</h2>
+        <input type="email" id="email3" placeholder="Enter your email">
+        <button onclick="testMinimal()">Test Minimal</button>
+        <div id="result3" class="result"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="module">
+        // Configuration
+        const SERVICE_ID = 'service_9tubvz5';
+        const TEMPLATE_ID = 'template_teeze8x';
+        const PUBLIC_KEY = 'gGkaMKD7bmPQB6bqz';
+        
+        // Display configuration
+        document.getElementById('configCheck').innerHTML = `
+EmailJS Configuration:
+━━━━━━━━━━━━━━━━━━━━━
+Service ID:  ${SERVICE_ID}
+Template ID: ${TEMPLATE_ID}
+Public Key:  ${PUBLIC_KEY}
+
+Environment Variables:
+━━━━━━━━━━━━━━━━━━━━━
+VITE_EMAILJS_SERVICE_ID:  ${import.meta.env.VITE_EMAILJS_SERVICE_ID || 'NOT SET'}
+VITE_EMAILJS_TEMPLATE_ID: ${import.meta.env.VITE_EMAILJS_TEMPLATE_ID || 'NOT SET'}
+VITE_EMAILJS_PUBLIC_KEY:  ${import.meta.env.VITE_EMAILJS_PUBLIC_KEY || 'NOT SET'}
+        `;
+        
+        // Initialize EmailJS
+        emailjs.init(PUBLIC_KEY);
+        console.log('EmailJS initialized with:', PUBLIC_KEY);
+        
+        // Test 1: Direct API Call
+        window.testDirectAPI = async function() {
+            const email = document.getElementById('email1').value;
+            if (!email) { alert('Enter email'); return; }
+            
+            const result = document.getElementById('result1');
+            result.className = 'result info';
+            result.textContent = 'Calling API directly (no SDK)...\n';
+            
+            const payload = {
+                service_id: SERVICE_ID,
+                template_id: TEMPLATE_ID,
+                user_id: PUBLIC_KEY,
+                template_params: {
+                    email: email,
+                    'Opposing Team': 'API Test',
+                    'Game Date': 'Today',
+                    'Time': 'Now'
+                }
+            };
+            
+            result.textContent += `\nPayload:\n${JSON.stringify(payload, null, 2)}\n\n`;
+            
+            try {
+                const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const text = await response.text();
+                
+                if (response.ok) {
+                    result.className = 'result success';
+                    result.textContent += `✅ SUCCESS\nStatus: ${response.status}\nResponse: ${text}\n\n`;
+                    result.textContent += `CHECK:\n1. Email inbox: ${email}\n2. Spam folder\n3. EmailJS History: https://dashboard.emailjs.com/admin/emails/history`;
+                } else {
+                    result.className = 'result error';
+                    result.textContent += `❌ FAILED\nStatus: ${response.status}\nResponse: ${text}`;
+                }
+            } catch (error) {
+                result.className = 'result error';
+                result.textContent += `❌ Network Error: ${error.message}`;
+            }
+        };
+        
+        // Test 2: EmailJS SDK
+        window.testSDK = async function() {
+            const email = document.getElementById('email2').value;
+            if (!email) { alert('Enter email'); return; }
+            
+            const result = document.getElementById('result2');
+            result.className = 'result info';
+            result.textContent = 'Testing with EmailJS SDK...\n';
+            
+            const params = {
+                email: email,
+                'Opposing Team': 'SDK Test',
+                'Game Date': 'Today',
+                'Time': 'Now'
+            };
+            
+            result.textContent += `\nParams:\n${JSON.stringify(params, null, 2)}\n\n`;
+            
+            try {
+                const response = await emailjs.send(SERVICE_ID, TEMPLATE_ID, params);
+                result.className = 'result success';
+                result.textContent += `✅ SUCCESS\nStatus: ${response.status}\nText: ${response.text}\n\n`;
+                result.textContent += `CHECK EmailJS History and your inbox: ${email}`;
+            } catch (error) {
+                result.className = 'result error';
+                result.textContent += `❌ FAILED\nStatus: ${error.status}\nError: ${error.text || error.message}\n`;
+                result.textContent += `\nFull error:\n${JSON.stringify(error, null, 2)}`;
+            }
+        };
+        
+        // Test 3: Minimal
+        window.testMinimal = async function() {
+            const email = document.getElementById('email3').value;
+            if (!email) { alert('Enter email'); return; }
+            
+            const result = document.getElementById('result3');
+            result.className = 'result info';
+            result.textContent = 'Testing with minimal fields...\n';
+            
+            // Try different email field names
+            const tests = [
+                { name: 'email only', params: { email: email } },
+                { name: 'to_email only', params: { to_email: email } },
+                { name: 'user_email only', params: { user_email: email } },
+                { name: 'all email fields', params: { email: email, to_email: email, user_email: email } }
+            ];
+            
+            for (const test of tests) {
+                result.textContent += `\nTrying: ${test.name}\n`;
+                try {
+                    const response = await emailjs.send(SERVICE_ID, TEMPLATE_ID, test.params);
+                    result.className = 'result success';
+                    result.textContent += `✅ SUCCESS with "${test.name}"\n`;
+                    result.textContent += `This is the working configuration!\n`;
+                    break;
+                } catch (error) {
+                    result.textContent += `❌ Failed: ${error.status}\n`;
+                }
+                await new Promise(r => setTimeout(r, 500));
+            }
+        };
+    </script>
+</body>
+</html>

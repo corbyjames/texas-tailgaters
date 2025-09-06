@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Corrected EmailJS Template</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        .container {
+            background: #1e293b;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+        }
+        h1 {
+            color: #10b981;
+        }
+        .success-box {
+            background: #064e3b;
+            border: 2px solid #10b981;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .form-group {
+            margin: 20px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            background: #0f172a;
+            color: #e2e8f0;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        button {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #059669;
+        }
+        button.secondary {
+            background: #3b82f6;
+        }
+        button.secondary:hover {
+            background: #2563eb;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            display: none;
+        }
+        .result.success {
+            background: #064e3b;
+            border: 1px solid #10b981;
+            color: #86efac;
+            display: block;
+        }
+        .result.error {
+            background: #7f1d1d;
+            border: 1px solid #ef4444;
+            color: #fca5a5;
+            display: block;
+        }
+        .result.info {
+            background: #1e3a8a;
+            border: 1px solid #3b82f6;
+            color: #93bbfe;
+            display: block;
+        }
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 600px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+        }
+        code {
+            background: #0f172a;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #fbbf24;
+        }
+        .template-preview {
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✅ Test Corrected Template</h1>
+        
+        <div class="success-box">
+            <h3>🎉 Template Updated with Double Curly Brackets!</h3>
+            <p>Your template now uses the correct <code>{{variable}}</code> syntax. Let's test it!</p>
+        </div>
+
+        <form id="testForm">
+            <h2>Game Invitation Test</h2>
+            
+            <div class="two-column">
+                <div class="form-group">
+                    <label for="recipientEmail">Your Email *</label>
+                    <input type="email" id="recipientEmail" required placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="recipientName">Your Name</label>
+                    <input type="text" id="recipientName" placeholder="Your Name" value="Longhorn Fan">
+                </div>
+            </div>
+
+            <div class="two-column">
+                <div class="form-group">
+                    <label for="opponent">Opposing Team</label>
+                    <input type="text" id="opponent" value="Oklahoma" readonly style="background: #334155;">
+                </div>
+                <div class="form-group">
+                    <label for="gameDate">Game Date</label>
+                    <input type="text" id="gameDate" value="October 11, 2025" readonly style="background: #334155;">
+                </div>
+            </div>
+            
+            <div class="two-column">
+                <div class="form-group">
+                    <label for="gameTime">Game Time</label>
+                    <input type="text" id="gameTime" value="2:30 PM" readonly style="background: #334155;">
+                </div>
+                <div class="form-group">
+                    <label for="location">Location</label>
+                    <input type="text" id="location" value="Cotton Bowl, Dallas, TX" readonly style="background: #334155;">
+                </div>
+            </div>
+
+            <button type="submit">🚀 Send Test Email</button>
+            <button type="button" class="secondary" onclick="sendQuickTest()">⚡ Quick Test (Pre-filled)</button>
+        </form>
+
+        <div id="result" class="result"></div>
+
+        <div class="template-preview" id="preview" style="display: none;">
+            <h3>📧 Data Being Sent:</h3>
+            <pre id="previewContent"></pre>
+        </div>
+    </div>
+
+    <script type="module">
+        import { emailService } from './src/services/emailService.ts';
+        
+        const form = document.getElementById('testForm');
+        const resultDiv = document.getElementById('result');
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await sendEmail();
+        });
+        
+        async function sendEmail() {
+            const email = document.getElementById('recipientEmail').value;
+            if (!email) {
+                alert('Please enter your email address');
+                return;
+            }
+            
+            const data = {
+                recipientEmail: email,
+                recipientName: document.getElementById('recipientName').value || 'Longhorn Fan',
+                opponent: document.getElementById('opponent').value,
+                gameDate: document.getElementById('gameDate').value,
+                gameTime: document.getElementById('gameTime').value,
+                gameName: `Texas vs ${document.getElementById('opponent').value}`,
+                location: document.getElementById('location').value,
+                theme: 'Red River Rivalry BBQ',
+                setupTime: '10:00 AM',
+                specialNotes: 'Template test with correct double curly bracket syntax!',
+                rsvpLink: 'https://texastailgaters.com/games'
+            };
+            
+            // Show preview
+            const preview = document.getElementById('preview');
+            const previewContent = document.getElementById('previewContent');
+            preview.style.display = 'block';
+            previewContent.textContent = JSON.stringify({
+                'Opposing Team': data.opponent,
+                'Game Date': data.gameDate,
+                'Time': data.gameTime,
+                'location': data.location,
+                'email': data.recipientEmail,
+                'name': data.recipientName
+            }, null, 2);
+            
+            // Show loading
+            resultDiv.className = 'result info';
+            resultDiv.innerHTML = '📧 Sending email with corrected template...';
+            
+            try {
+                const result = await emailService.sendGameInvitation(data);
+                
+                if (result.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        ✅ <strong>SUCCESS! Email sent!</strong><br><br>
+                        📬 Check your inbox at: <strong>${email}</strong><br><br>
+                        The email should now show:<br>
+                        • Opposing Team: <strong>${data.opponent}</strong> (not {Opposing Team})<br>
+                        • Game Date: <strong>${data.gameDate}</strong> (not {Game Date})<br>
+                        • Time: <strong>${data.gameTime}</strong> (not {Time})<br><br>
+                        🎉 If you see the actual values, your template is working correctly!
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        ❌ <strong>Failed to send</strong><br>
+                        ${result.message}<br><br>
+                        Please check that the template was saved with double curly brackets.
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    ❌ <strong>Error:</strong> ${error.message || error}<br>
+                    Check the console for details.
+                `;
+                console.error('Email error:', error);
+            }
+        }
+        
+        window.sendQuickTest = async function() {
+            document.getElementById('recipientEmail').value = 'test@example.com';
+            document.getElementById('recipientName').value = 'Test User';
+            await sendEmail();
+        };
+        
+        // Log info
+        console.log('%c✅ Testing Corrected Template', 'color: #10b981; font-size: 18px; font-weight: bold');
+        console.log('Template should now use {{variable}} syntax');
+        console.log('Fields being sent:');
+        console.log('- {{Opposing Team}} → "Oklahoma"');
+        console.log('- {{Game Date}} → "October 11, 2025"');
+        console.log('- {{Time}} → "2:30 PM"');
+    </script>
+</body>
+</html>

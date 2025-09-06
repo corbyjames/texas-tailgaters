@@ -4,7 +4,7 @@ import { useGames } from '../hooks/useGames';
 import { usePotluck } from '../hooks/usePotluck';
 import { useAuth } from '../hooks/useAuth';
 import { PotluckItem } from '../types/Game';
-import { isGameUpcoming } from '../utils/dateUtils';
+import { isGameUpcoming, createLocalDate } from '../utils/dateUtils';
 
 const POTLUCK_CATEGORIES = [
   { value: 'main', label: 'Main', icon: '🍖', color: 'bg-red-100 text-red-800' },
@@ -168,7 +168,7 @@ export default function MobilePotluckPageFixed() {
           >
             {games.map(game => (
               <option key={game.id} value={game.id}>
-                {game.opponent} - {new Date(game.date).toLocaleDateString()}
+                {game.opponent} - {createLocalDate(game.date).toLocaleDateString()}
               </option>
             ))}
           </select>

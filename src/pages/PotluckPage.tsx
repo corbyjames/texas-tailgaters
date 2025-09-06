@@ -7,7 +7,7 @@ import { Game, PotluckItem } from '../types/Game';
 import { teamLogos } from '../services/teamLogos';
 import MobilePotluckPage from './MobilePotluckPageFixed';
 import { PotluckSignupModal } from '../components/potluck/PotluckSignupModal';
-import { isGameUpcoming } from '../utils/dateUtils';
+import { isGameUpcoming, createLocalDate } from '../utils/dateUtils';
 
 const POTLUCK_CATEGORIES = [
   { value: 'main', label: 'Main Dish', icon: '🍖', color: 'bg-red-100 text-red-800' },
@@ -246,7 +246,7 @@ export default function PotluckPage() {
                 ) : (
                   games.map(game => (
                     <option key={game.id} value={game.id}>
-                      {new Date(game.date).toLocaleDateString()} - vs {game.opponent}
+                      {createLocalDate(game.date).toLocaleDateString()} - vs {game.opponent}
                     </option>
                   ))
                 )}
@@ -281,7 +281,7 @@ export default function PotluckPage() {
                   </h2>
                   <p className="text-gray-600">
                     <Calendar className="inline w-4 h-4 mr-1" />
-                    {new Date(selectedGame.date).toLocaleDateString('en-US', { 
+                    {createLocalDate(selectedGame.date).toLocaleDateString('en-US', { 
                       weekday: 'long', 
                       year: 'numeric', 
                       month: 'long', 

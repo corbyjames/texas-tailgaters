@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { emailService } from '../../services/emailService';
+import { createLocalDate } from '../../utils/dateUtils';
 import type { Game } from '../../types/Game';
 
 interface InvitationModalProps {
@@ -39,7 +40,7 @@ export function InvitationModal({ game, isOpen, onClose }: InvitationModalProps)
 
     const gameData = {
       gameName: `${game.opponent} Game`,
-      gameDate: new Date(game.date).toLocaleDateString('en-US', { 
+      gameDate: createLocalDate(game.date).toLocaleDateString('en-US', { 
         weekday: 'long', 
         year: 'numeric', 
         month: 'long', 

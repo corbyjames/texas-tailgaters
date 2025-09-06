@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Email - Final Version</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #BF5700;
+            text-align: center;
+        }
+        .success-note {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 10px 0;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            background: #BF5700;
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        button:hover {
+            background: #8F3E00;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        #result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            display: block;
+        }
+        #result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            display: block;
+        }
+        .loading {
+            text-align: center;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏈 Test Texas Tailgaters Email</h1>
+        
+        <div class="success-note">
+            ✅ <strong>Configuration Fixed!</strong><br>
+            Template now uses {{email}} field correctly with double curly brackets.
+        </div>
+        
+        <input type="email" id="emailInput" placeholder="Enter your email address" autofocus>
+        
+        <button onclick="sendTestEmail()" id="sendButton">Send Test Email</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script type="module">
+        import { emailService } from './src/services/emailService.ts';
+        
+        window.sendTestEmail = async function() {
+            const email = document.getElementById('emailInput').value;
+            const button = document.getElementById('sendButton');
+            const result = document.getElementById('result');
+            
+            if (!email) {
+                alert('Please enter your email address');
+                return;
+            }
+            
+            // Disable button and show loading
+            button.disabled = true;
+            button.textContent = 'Sending...';
+            result.className = '';
+            result.style.display = 'none';
+            
+            const testData = {
+                recipientEmail: email,
+                recipientName: 'Longhorn Fan',
+                opponent: 'Oklahoma',
+                gameDate: 'October 11, 2025',
+                gameTime: '2:30 PM',
+                gameName: 'Texas vs Oklahoma',
+                location: 'Cotton Bowl, Dallas, TX',
+                theme: 'Red River Rivalry BBQ',
+                setupTime: '10:00 AM',
+                specialNotes: 'Email configuration test - working correctly!',
+                rsvpLink: 'https://texastailgaters.com/games'
+            };
+            
+            try {
+                const response = await emailService.sendGameInvitation(testData);
+                
+                if (response.success) {
+                    result.className = 'success';
+                    result.innerHTML = `
+                        <strong>✅ Email Sent Successfully!</strong><br><br>
+                        Check your inbox at: <strong>${email}</strong><br><br>
+                        The email should show:<br>
+                        • Game: Texas vs Oklahoma<br>
+                        • Date: October 11, 2025<br>
+                        • Time: 2:30 PM<br>
+                        • Location: Cotton Bowl, Dallas, TX<br><br>
+                        <em>Also check your spam/junk folder if it doesn't arrive.</em>
+                    `;
+                } else {
+                    result.className = 'error';
+                    result.innerHTML = `
+                        <strong>❌ Failed to send email</strong><br>
+                        ${response.message}
+                    `;
+                }
+            } catch (error) {
+                result.className = 'error';
+                result.innerHTML = `
+                    <strong>❌ Error occurred</strong><br>
+                    ${error.message || error}
+                `;
+                console.error('Email error:', error);
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Send Test Email';
+            }
+        };
+        
+        // Allow Enter key to send
+        document.getElementById('emailInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendTestEmail();
+            }
+        });
+        
+        // Log configuration
+        console.log('Test Email Page Ready');
+        console.log('Template uses {{email}} field');
+        console.log('All variables use double curly brackets');
+    </script>
+</body>
+</html>

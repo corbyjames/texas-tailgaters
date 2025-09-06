@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple EmailJS Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        #status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            display: block;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Simple EmailJS Test</h1>
+        
+        <p style="text-align: center; color: #666;">
+            Using hardcoded credentials:<br>
+            Service: service_9tubvz5<br>
+            Template: template_teeze8x<br>
+            Public Key: gGkaMKD7bmPQB6bqz
+        </p>
+        
+        <input type="email" id="emailInput" placeholder="Enter your email address">
+        
+        <button onclick="testEmail()" id="testBtn">Send Test Email</button>
+        
+        <div id="status"></div>
+        
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
+        
+        <h3>Console Output:</h3>
+        <pre id="console"></pre>
+    </div>
+
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    
+    <script type="text/javascript">
+        // Hardcoded configuration
+        const SERVICE_ID = 'service_9tubvz5';
+        const TEMPLATE_ID = 'template_teeze8x';
+        const PUBLIC_KEY = 'gGkaMKD7bmPQB6bqz';
+        
+        // Custom console log
+        function log(message) {
+            const consoleDiv = document.getElementById('console');
+            const timestamp = new Date().toLocaleTimeString();
+            consoleDiv.textContent += `[${timestamp}] ${message}\n`;
+            console.log(message);
+        }
+        
+        // Initialize EmailJS
+        (function() {
+            log('Initializing EmailJS...');
+            emailjs.init(PUBLIC_KEY);
+            log('EmailJS initialized with public key: ' + PUBLIC_KEY);
+        })();
+        
+        // Test function
+        function testEmail() {
+            const email = document.getElementById('emailInput').value;
+            const button = document.getElementById('testBtn');
+            const status = document.getElementById('status');
+            
+            if (!email) {
+                alert('Please enter your email address');
+                return;
+            }
+            
+            log('Starting email test to: ' + email);
+            
+            // Disable button
+            button.disabled = true;
+            button.textContent = 'Sending...';
+            
+            // Show status
+            status.className = 'info';
+            status.innerHTML = 'Sending email...';
+            
+            // Prepare parameters
+            const templateParams = {
+                email: email,
+                'Opposing Team': 'Test Team',
+                'Game Date': 'Test Date',
+                'Time': 'Test Time'
+            };
+            
+            log('Template params: ' + JSON.stringify(templateParams));
+            
+            // Send email
+            emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams)
+                .then(function(response) {
+                    log('SUCCESS! Status: ' + response.status + ', Text: ' + response.text);
+                    
+                    status.className = 'success';
+                    status.innerHTML = `
+                        <strong>✅ Email Sent Successfully!</strong><br><br>
+                        Status: ${response.status}<br>
+                        Response: ${response.text}<br><br>
+                        <strong>Please check:</strong><br>
+                        1. Your email inbox: ${email}<br>
+                        2. Spam/Junk folder<br>
+                        3. <a href="https://dashboard.emailjs.com/admin/emails/history" target="_blank">EmailJS History</a>
+                    `;
+                    
+                    button.disabled = false;
+                    button.textContent = 'Send Test Email';
+                })
+                .catch(function(error) {
+                    log('FAILED! Error: ' + JSON.stringify(error));
+                    
+                    status.className = 'error';
+                    status.innerHTML = `
+                        <strong>❌ Failed to Send Email</strong><br><br>
+                        Status: ${error.status || 'Unknown'}<br>
+                        Error: ${error.text || error.message || 'Unknown error'}<br><br>
+                        <strong>Common issues:</strong><br>
+                        • Wrong public key<br>
+                        • Service not connected<br>
+                        • Template field mismatch<br>
+                        • Check <a href="https://dashboard.emailjs.com/admin/emails/history" target="_blank">EmailJS History</a>
+                    `;
+                    
+                    button.disabled = false;
+                    button.textContent = 'Send Test Email';
+                });
+        }
+        
+        // Test on page load
+        window.onload = function() {
+            log('Page loaded');
+            log('EmailJS version: ' + (emailjs.version || 'Unknown'));
+            
+            // Test if EmailJS is loaded
+            if (typeof emailjs === 'undefined') {
+                log('ERROR: EmailJS is not loaded!');
+                alert('EmailJS library failed to load!');
+            } else {
+                log('EmailJS library loaded successfully');
+            }
+        };
+    </script>
+</body>
+</html>
