@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, AlertCircle, CheckCircle, Clock, X, Filter, ChevronDown, ChevronUp } from 'lucide-react';
+import { MessageSquare, AlertCircle, CheckCircle, Clock, X, Filter, ChevronDown, ChevronUp, MessageCircle, Send } from 'lucide-react';
 import feedbackService, { Feedback } from '../../services/feedbackService';
 import { useAuth } from '../../hooks/useAuth';
+import { FeedbackResponseModal } from '../feedback/FeedbackResponseModal';
 
 export function FeedbackManager() {
   const { user } = useAuth();
@@ -14,6 +15,7 @@ export function FeedbackManager() {
   const [filterPriority, setFilterPriority] = useState<Feedback['priority'] | 'all'>('all');
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
+  const [showResponseModal, setShowResponseModal] = useState(false);
 
   useEffect(() => {
     loadFeedback();
@@ -27,10 +29,12 @@ export function FeedbackManager() {
 
     window.addEventListener('feedbackSubmitted', handleFeedbackUpdate);
     window.addEventListener('feedbackUpdated', handleFeedbackUpdate);
+    window.addEventListener('feedbackResponseAdded', handleFeedbackUpdate);
 
     return () => {
       window.removeEventListener('feedbackSubmitted', handleFeedbackUpdate);
       window.removeEventListener('feedbackUpdated', handleFeedbackUpdate);
+      window.removeEventListener('feedbackResponseAdded', handleFeedbackUpdate);
     };
   }, []);
 
@@ -285,25 +289,64 @@ export function FeedbackManager() {
                     </div>
                   )}
 
-                  {/* Status Actions */}
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Update Status</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {(['new', 'reviewed', 'in-progress', 'resolved', 'closed'] as Feedback['status'][]).map(status => (
-                        <button
-                          key={status}
-                          onClick={() => updateStatus(item.id!, status)}
-                          disabled={item.status === status}
-                          className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                            item.status === status
-                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                              : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                          }`}
-                        >
-                          {status.replace('-', ' ')}
-                        </button>
-                      ))}
+                  {/* Admin Response if exists */}
+                  {item.adminResponse && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Admin Response</h4>
+                      <div className="bg-blue-50 rounded-lg p-3 border-l-4 border-blue-500">
+                        <p className="text-blue-900">{item.adminResponse}</p>
+                        {item.adminRespondedAt && (
+                          <p className="text-xs text-blue-700 mt-2">
+                            Responded on {new Date(item.adminRespondedAt).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
                     </div>
+                  )}
+
+                  {/* Resolution if exists */}
+                  {item.resolution && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Resolution</h4>
+                      <div className="bg-green-50 rounded-lg p-3">
+                        <p className="text-green-900">{item.resolution}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Status Actions */}
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Quick Status Update</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {(['new', 'reviewed', 'in-progress', 'resolved', 'closed'] as Feedback['status'][]).map(status => (
+                          <button
+                            key={status}
+                            onClick={() => updateStatus(item.id!, status)}
+                            disabled={item.status === status}
+                            className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                              item.status === status
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                            }`}
+                          >
+                            {status.replace('-', ' ')}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {/* Respond Button */}
+                    <button
+                      onClick={() => {
+                        setSelectedFeedback(item);
+                        setShowResponseModal(true);
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      Respond
+                    </button>
                   </div>
                 </div>
               )}
@@ -311,6 +354,20 @@ export function FeedbackManager() {
           ))
         )}
       </div>
+
+      {/* Response Modal */}
+      <FeedbackResponseModal
+        feedback={selectedFeedback}
+        isOpen={showResponseModal}
+        onClose={() => {
+          setShowResponseModal(false);
+          setSelectedFeedback(null);
+        }}
+        onResponseSent={() => {
+          loadFeedback();
+          loadStats();
+        }}
+      />
     </div>
   );
 }

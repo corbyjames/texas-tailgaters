@@ -9,6 +9,7 @@ import AdminPage from './pages/AdminPage';
 import PotluckPage from './pages/PotluckPage';
 import GameDetailsPage from './pages/GameDetailsPage';
 import ProfilePage from './pages/ProfilePage';
+import UpdatesPage from './pages/UpdatesPage';
 import ErrorBoundary from './components/ErrorBoundary';
 
 // Protected Route component
@@ -108,6 +109,11 @@ function App() {
                 </Layout>
               </ProtectedRoute>
             }
+          />
+          
+          <Route
+            path="/updates"
+            element={<UpdatesPage />}
           />
           
           {/* Catch all route */}

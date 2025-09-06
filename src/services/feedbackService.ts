@@ -1,5 +1,5 @@
 import { database } from '../config/firebase';
-import { ref, push, set, get, orderByChild, query, limitToLast } from 'firebase/database';
+import { ref, push, set, get, orderByChild, query, limitToLast, update, equalTo } from 'firebase/database';
 
 export interface Feedback {
   id?: string;
@@ -14,7 +14,13 @@ export interface Feedback {
   status: 'new' | 'reviewed' | 'in-progress' | 'resolved' | 'closed';
   createdAt: string;
   updatedAt?: string;
+  closedAt?: string;
   adminNotes?: string;
+  adminResponse?: string;
+  adminRespondedAt?: string;
+  adminRespondedBy?: string;
+  resolution?: string;
+  userSatisfied?: boolean;
   deviceInfo?: {
     userAgent: string;
     platform: string;
@@ -24,8 +30,19 @@ export interface Feedback {
   attachments?: string[];
 }
 
+export interface FeedbackResponse {
+  id?: string;
+  feedbackId: string;
+  message: string;
+  respondedBy: string;
+  respondedByName: string;
+  respondedAt: string;
+  isAdminResponse: boolean;
+}
+
 class FeedbackService {
   private feedbackRef = ref(database, 'feedback');
+  private responsesRef = ref(database, 'feedbackResponses');
 
   /**
    * Submit new feedback
@@ -168,7 +185,11 @@ class FeedbackService {
         updates.adminNotes = adminNotes;
       }
 
-      await set(feedbackItemRef, updates);
+      if (status === 'closed' || status === 'resolved') {
+        updates.closedAt = new Date().toISOString();
+      }
+
+      await update(feedbackItemRef, updates);
       
       // Dispatch event for real-time updates
       window.dispatchEvent(new CustomEvent('feedbackUpdated', { 
@@ -176,6 +197,203 @@ class FeedbackService {
       }));
     } catch (error) {
       console.error('Error updating feedback status:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Add admin response to feedback
+   */
+  async addAdminResponse(
+    feedbackId: string,
+    response: string,
+    adminId: string,
+    adminName: string,
+    resolution?: string
+  ): Promise<void> {
+    try {
+      const feedbackItemRef = ref(database, `feedback/${feedbackId}`);
+      const updates: Partial<Feedback> = {
+        adminResponse: response,
+        adminRespondedAt: new Date().toISOString(),
+        adminRespondedBy: adminId,
+        updatedAt: new Date().toISOString()
+      };
+
+      if (resolution) {
+        updates.resolution = resolution;
+        updates.status = 'resolved';
+        updates.closedAt = new Date().toISOString();
+      }
+
+      await update(feedbackItemRef, updates);
+
+      // Also add to responses collection
+      const responseData: FeedbackResponse = {
+        feedbackId,
+        message: response,
+        respondedBy: adminId,
+        respondedByName: adminName,
+        respondedAt: new Date().toISOString(),
+        isAdminResponse: true
+      };
+
+      const newResponseRef = push(ref(database, `feedbackResponses/${feedbackId}`));
+      await set(newResponseRef, responseData);
+
+      window.dispatchEvent(new CustomEvent('feedbackResponseAdded', { 
+        detail: { feedbackId, response: responseData } 
+      }));
+    } catch (error) {
+      console.error('Error adding admin response:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Add user follow-up response
+   */
+  async addUserResponse(
+    feedbackId: string,
+    message: string,
+    userId: string,
+    userName: string
+  ): Promise<void> {
+    try {
+      const responseData: FeedbackResponse = {
+        feedbackId,
+        message,
+        respondedBy: userId,
+        respondedByName: userName,
+        respondedAt: new Date().toISOString(),
+        isAdminResponse: false
+      };
+
+      const newResponseRef = push(ref(database, `feedbackResponses/${feedbackId}`));
+      await set(newResponseRef, responseData);
+
+      // Update feedback status to show new activity
+      const feedbackItemRef = ref(database, `feedback/${feedbackId}`);
+      await update(feedbackItemRef, {
+        updatedAt: new Date().toISOString(),
+        status: 'new' // Reopen if user responds
+      });
+
+      window.dispatchEvent(new CustomEvent('feedbackResponseAdded', { 
+        detail: { feedbackId, response: responseData } 
+      }));
+    } catch (error) {
+      console.error('Error adding user response:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get responses for a feedback item
+   */
+  async getFeedbackResponses(feedbackId: string): Promise<FeedbackResponse[]> {
+    try {
+      const responsesRef = ref(database, `feedbackResponses/${feedbackId}`);
+      const snapshot = await get(responsesRef);
+      
+      if (!snapshot.exists()) return [];
+
+      const responses: FeedbackResponse[] = [];
+      snapshot.forEach((child) => {
+        responses.push({
+          id: child.key || '',
+          ...child.val()
+        });
+      });
+
+      return responses.sort((a, b) => 
+        new Date(a.respondedAt).getTime() - new Date(b.respondedAt).getTime()
+      );
+    } catch (error) {
+      console.error('Error fetching feedback responses:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get closed/resolved feedback (public view)
+   */
+  async getClosedFeedback(): Promise<Feedback[]> {
+    try {
+      const snapshot = await get(this.feedbackRef);
+      if (!snapshot.exists()) return [];
+
+      const feedback: Feedback[] = [];
+      snapshot.forEach((child) => {
+        const item = child.val();
+        if (item.status === 'closed' || item.status === 'resolved') {
+          // Sanitize for public view
+          feedback.push({
+            id: child.key || '',
+            ...item,
+            userId: '', // Remove for privacy
+            userEmail: '', // Remove for privacy
+            userName: item.userName || 'Anonymous'
+          });
+        }
+      });
+
+      return feedback.sort((a, b) => 
+        new Date(b.closedAt || b.updatedAt || b.createdAt).getTime() - 
+        new Date(a.closedAt || a.updatedAt || a.createdAt).getTime()
+      );
+    } catch (error) {
+      console.error('Error fetching closed feedback:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get user's feedback
+   */
+  async getUserFeedback(userId: string): Promise<Feedback[]> {
+    try {
+      const userQuery = query(
+        this.feedbackRef,
+        orderByChild('userId'),
+        equalTo(userId)
+      );
+      
+      const snapshot = await get(userQuery);
+      if (!snapshot.exists()) return [];
+
+      const feedback: Feedback[] = [];
+      snapshot.forEach((child) => {
+        feedback.push({
+          id: child.key || '',
+          ...child.val()
+        });
+      });
+
+      return feedback.sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    } catch (error) {
+      console.error('Error fetching user feedback:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update user satisfaction
+   */
+  async updateUserSatisfaction(
+    feedbackId: string,
+    satisfied: boolean
+  ): Promise<void> {
+    try {
+      const feedbackItemRef = ref(database, `feedback/${feedbackId}`);
+      await update(feedbackItemRef, {
+        userSatisfied: satisfied,
+        updatedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error updating user satisfaction:', error);
       throw error;
     }
   }
