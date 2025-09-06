@@ -13,7 +13,7 @@
     "metadata": {
       "testEnv": "local",
       "baseURL": "http://localhost:5173",
-      "timestamp": "2025-09-02T18:11:07.944Z",
+      "timestamp": "2025-09-06T01:56:48.880Z",
       "version": "0.1.0"
     },
     "preserveOutput": "always",
@@ -59,7 +59,7 @@
         "metadata": {
           "testEnv": "local",
           "baseURL": "http://localhost:5173",
-          "timestamp": "2025-09-02T18:11:07.944Z",
+          "timestamp": "2025-09-06T01:56:48.880Z",
           "version": "0.1.0"
         },
         "id": "setup",
@@ -81,7 +81,7 @@
         "metadata": {
           "testEnv": "local",
           "baseURL": "http://localhost:5173",
-          "timestamp": "2025-09-02T18:11:07.944Z",
+          "timestamp": "2025-09-06T01:56:48.880Z",
           "version": "0.1.0"
         },
         "id": "cleanup",
@@ -103,7 +103,7 @@
         "metadata": {
           "testEnv": "local",
           "baseURL": "http://localhost:5173",
-          "timestamp": "2025-09-02T18:11:07.944Z",
+          "timestamp": "2025-09-06T01:56:48.880Z",
           "version": "0.1.0"
         },
         "id": "chromium-desktop",
@@ -126,7 +126,7 @@
         "metadata": {
           "testEnv": "local",
           "baseURL": "http://localhost:5173",
-          "timestamp": "2025-09-02T18:11:07.944Z",
+          "timestamp": "2025-09-06T01:56:48.880Z",
           "version": "0.1.0"
         },
         "id": "firefox-desktop",
@@ -149,7 +149,7 @@
         "metadata": {
           "testEnv": "local",
           "baseURL": "http://localhost:5173",
-          "timestamp": "2025-09-02T18:11:07.944Z",
+          "timestamp": "2025-09-06T01:56:48.880Z",
           "version": "0.1.0"
         },
         "id": "webkit-desktop",
@@ -172,7 +172,7 @@
         "metadata": {
           "testEnv": "local",
           "baseURL": "http://localhost:5173",
-          "timestamp": "2025-09-02T18:11:07.944Z",
+          "timestamp": "2025-09-06T01:56:48.880Z",
           "version": "0.1.0"
         },
         "id": "mobile-chrome",
@@ -195,7 +195,7 @@
         "metadata": {
           "testEnv": "local",
           "baseURL": "http://localhost:5173",
-          "timestamp": "2025-09-02T18:11:07.944Z",
+          "timestamp": "2025-09-06T01:56:48.880Z",
           "version": "0.1.0"
         },
         "id": "mobile-safari",
@@ -218,7 +218,7 @@
         "metadata": {
           "testEnv": "local",
           "baseURL": "http://localhost:5173",
-          "timestamp": "2025-09-02T18:11:07.944Z",
+          "timestamp": "2025-09-06T01:56:48.880Z",
           "version": "0.1.0"
         },
         "id": "tablet-chrome",
@@ -241,7 +241,7 @@
         "metadata": {
           "testEnv": "local",
           "baseURL": "http://localhost:5173",
-          "timestamp": "2025-09-02T18:11:07.944Z",
+          "timestamp": "2025-09-06T01:56:48.880Z",
           "version": "0.1.0"
         },
         "id": "visual-regression",
@@ -264,7 +264,7 @@
         "metadata": {
           "testEnv": "local",
           "baseURL": "http://localhost:5173",
-          "timestamp": "2025-09-02T18:11:07.944Z",
+          "timestamp": "2025-09-06T01:56:48.880Z",
           "version": "0.1.0"
         },
         "id": "admin-tests",
@@ -286,7 +286,7 @@
         "metadata": {
           "testEnv": "local",
           "baseURL": "http://localhost:5173",
-          "timestamp": "2025-09-02T18:11:07.944Z",
+          "timestamp": "2025-09-06T01:56:48.880Z",
           "version": "0.1.0"
         },
         "id": "smoke",
@@ -308,7 +308,7 @@
         "metadata": {
           "testEnv": "local",
           "baseURL": "http://localhost:5173",
-          "timestamp": "2025-09-02T18:11:07.944Z",
+          "timestamp": "2025-09-06T01:56:48.880Z",
           "version": "0.1.0"
         },
         "id": "performance",
@@ -342,13 +342,13 @@
   "suites": [],
   "errors": [
     {
-      "message": "Error: No tests found.\nMake sure that arguments are regular expressions matching test files.\nYou may need to escape symbols like \"$\" or \"*\" and quote the arguments.",
-      "stack": "Error: No tests found.\nMake sure that arguments are regular expressions matching test files.\nYou may need to escape symbols like \"$\" or \"*\" and quote the arguments."
+      "message": "Error: No tests found",
+      "stack": "Error: No tests found"
     }
   ],
   "stats": {
-    "startTime": "2025-09-02T18:11:07.951Z",
-    "duration": 882.8430000000001,
+    "startTime": "2025-09-06T01:56:48.888Z",
+    "duration": 20.637000000000057,
     "expected": 0,
     "skipped": 0,
     "unexpected": 0,
