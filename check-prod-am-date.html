@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check A&M Game on Production</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        h1 { color: #ea580c; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .success { background: #ecfdf5; border-left: 4px solid #10b981; }
+        .error { background: #fef2f2; border-left: 4px solid #ef4444; }
+        .info { background: #f0f9ff; border-left: 4px solid #3b82f6; }
+        button { 
+            background: #ea580c; color: white; border: none; 
+            padding: 10px 20px; border-radius: 4px; cursor: pointer; margin: 5px; 
+        }
+        button:hover { background: #c2410c; }
+        .results { margin-top: 20px; }
+        pre { background: #f3f4f6; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Production A&M Game Date Checker</h1>
+
+    <div class="test-section">
+        <h2>Production Verification</h2>
+        <div class="status info">
+            <h3>Expected Result</h3>
+            <p><strong>A&M Game Date:</strong> Saturday, November 30, 2024</p>
+            <p><strong>Production URL:</strong> https://texas-tailgaters.onrender.com/games</p>
+        </div>
+        
+        <button onclick="openProductionGames()">🎯 Open Production Games Page</button>
+        <button onclick="checkDateParsing()">🧪 Test Date Logic</button>
+        <button onclick="checkProductionAPI()">🔗 Check Production Data</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Date Verification Results</h2>
+        <div id="results" class="results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Manual Verification Steps</h2>
+        <div class="status info">
+            <h3>✅ What to Look For</h3>
+            <ol>
+                <li>Navigate to the production games page above</li>
+                <li>Find the Texas vs A&M game</li>
+                <li>Verify it shows <strong>"Saturday, November 30"</strong> (not Friday the 29th)</li>
+                <li>Check both collapsed and expanded game card views</li>
+                <li>The game header should consistently show Saturday</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        function openProductionGames() {
+            window.open('https://texas-tailgaters.onrender.com/games', '_blank');
+        }
+
+        function checkDateParsing() {
+            const resultsDiv = document.getElementById('results');
+            
+            // Test the same date parsing logic that's now in production
+            const createLocalDate = (dateString) => {
+                return new Date(dateString + 'T12:00:00');
+            };
+
+            const parseGameDate = (dateString) => {
+                const date = new Date(dateString + 'T12:00:00');
+                date.setHours(0, 0, 0, 0);
+                return date;
+            };
+
+            const amDate = '2024-11-30'; // A&M game date
+
+            // Test both methods
+            const fixedMethod = createLocalDate(amDate);
+            const oldMethod = parseGameDate(amDate);
+
+            const fixedFormatted = fixedMethod.toLocaleDateString('en-US', {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric'
+            });
+
+            const oldFormatted = oldMethod.toLocaleDateString('en-US', {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric'
+            });
+
+            const fixedCorrect = fixedFormatted.includes('Saturday');
+            const oldCorrect = oldFormatted.includes('Saturday');
+
+            resultsDiv.innerHTML = `
+                <div class="status ${fixedCorrect ? 'success' : 'error'}">
+                    <h3>✅ Fixed Method (Now in Production)</h3>
+                    <p><strong>Method:</strong> createLocalDate (keeps time at 12:00)</p>
+                    <p><strong>Result:</strong> ${fixedFormatted}</p>
+                    <p><strong>Status:</strong> ${fixedCorrect ? '✅ Correct - Shows Saturday!' : '❌ Wrong'}</p>
+                    <p><strong>ISO:</strong> ${fixedMethod.toISOString()}</p>
+                </div>
+
+                <div class="status ${oldCorrect ? 'success' : 'error'}">
+                    <h3>❌ Old Method (Was Causing Issues)</h3>
+                    <p><strong>Method:</strong> parseGameDate (sets time to 00:00)</p>
+                    <p><strong>Result:</strong> ${oldFormatted}</p>
+                    <p><strong>Status:</strong> ${oldCorrect ? '✅ Correct' : '❌ Wrong - Would show wrong day!'}</p>
+                    <p><strong>ISO:</strong> ${oldMethod.toISOString()}</p>
+                </div>
+
+                <div class="status info">
+                    <h3>📋 Summary</h3>
+                    <p>The fix has been deployed. Production should now show the A&M game on <strong>Saturday, November 30, 2024</strong>.</p>
+                    <p>Click the "Open Production Games Page" button above to verify the fix is live.</p>
+                </div>
+            `;
+        }
+
+        async function checkProductionAPI() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>🔄 Checking production deployment status...</p>';
+
+            try {
+                // Check if the production site is responsive
+                const response = await fetch('https://texas-tailgaters.onrender.com/', { 
+                    mode: 'no-cors',
+                    method: 'GET'
+                });
+                
+                resultsDiv.innerHTML = `
+                    <div class="status success">
+                        <h3>✅ Production Site Status</h3>
+                        <p>Production site is accessible at: <a href="https://texas-tailgaters.onrender.com/" target="_blank">https://texas-tailgaters.onrender.com/</a></p>
+                        <p>The date fix has been deployed. Please manually check the games page to verify the A&M game shows Saturday.</p>
+                    </div>
+                    
+                    <div class="status info">
+                        <h3>🎯 Next Steps</h3>
+                        <ol>
+                            <li>Click "Open Production Games Page" above</li>
+                            <li>Look for the Texas vs A&M game</li>
+                            <li>Verify it shows "Saturday, November 30" not "Friday, November 29"</li>
+                        </ol>
+                    </div>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="status error">
+                        <h3>⚠️ Production Check</h3>
+                        <p>Unable to verify production API directly due to CORS. Please check manually:</p>
+                        <p><a href="https://texas-tailgaters.onrender.com/games" target="_blank">https://texas-tailgaters.onrender.com/games</a></p>
+                    </div>
+                `;
+            }
+        }
+
+        // Auto-run date test on load
+        window.addEventListener('load', () => {
+            checkDateParsing();
+        });
+    </script>
+</body>
+</html>

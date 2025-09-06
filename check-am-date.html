@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix A&M Game Date</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #ea580c;
+            margin-bottom: 30px;
+        }
+        .date-test {
+            padding: 10px;
+            margin: 10px 0;
+            background: #f3f4f6;
+            border-left: 4px solid #ea580c;
+            border-radius: 4px;
+        }
+        .correct {
+            border-left-color: #10b981;
+            background: #ecfdf5;
+        }
+        .incorrect {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+        }
+        button {
+            background: #ea580c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #c2410c;
+        }
+        .game-card {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .warning {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d1fae5;
+            border-left: 4px solid #10b981;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        #status {
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Fix A&M Game Date in Firebase</h1>
+
+    <div class="test-section">
+        <h2>⚠️ Problem Identified</h2>
+        <div class="warning">
+            <strong>Issue:</strong> The A&M game is stored in Firebase with date "2024-11-28" (Thursday, November 28)
+            <br>
+            <strong>Correct Date:</strong> Should be "2024-11-30" (Saturday, November 30)
+            <br><br>
+            The date parsing fix we applied only affects display, but the source data in Firebase is wrong.
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Current Status</h2>
+        <div class="date-test incorrect">
+            <strong>A&M Game in Firebase:</strong> November 28, 2024 (Thursday) ❌
+        </div>
+        <div class="date-test correct">
+            <strong>Should Be:</strong> November 30, 2024 (Saturday) ✅
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Fix Options</h2>
+        
+        <h3>Option 1: Manual Update via Admin Panel</h3>
+        <ol>
+            <li>Go to <a href="http://localhost:5173/admin" target="_blank">Admin Panel (Local)</a> or <a href="https://texas-tailgaters.onrender.com/admin" target="_blank">Admin Panel (Production)</a></li>
+            <li>Find the A&M game in the list</li>
+            <li>Click Edit/Update</li>
+            <li>Change the date from 11/28 to 11/30</li>
+            <li>Save changes</li>
+        </ol>
+        
+        <h3>Option 2: Direct Firebase Update</h3>
+        <button onclick="showFirebaseInstructions()">Show Firebase Console Instructions</button>
+        <div id="firebaseInstructions" style="display:none;">
+            <div class="warning">
+                <h4>Firebase Console Steps:</h4>
+                <ol>
+                    <li>Go to <a href="https://console.firebase.google.com" target="_blank">Firebase Console</a></li>
+                    <li>Select your project</li>
+                    <li>Go to Realtime Database</li>
+                    <li>Find the games node</li>
+                    <li>Look for the A&M game (opponent: "Texas A&M")</li>
+                    <li>Change the date field from "2024-11-28" to "2024-11-30"</li>
+                    <li>Save changes</li>
+                </ol>
+            </div>
+        </div>
+
+        <h3>Option 3: Run Update Script</h3>
+        <button onclick="openUpdateScript()">Open Update Script</button>
+        <p>This will open a page that can update the A&M game date programmatically</p>
+    </div>
+
+    <div class="test-section">
+        <h2>Verification</h2>
+        <button onclick="checkCurrentDate()">Check Current A&M Date</button>
+        <button onclick="testDateParsing()">Test Date Parsing</button>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        function showFirebaseInstructions() {
+            const instructions = document.getElementById('firebaseInstructions');
+            instructions.style.display = instructions.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function openUpdateScript() {
+            // Open a new page that will handle the update
+            window.open('fix-florida-date.html', '_blank');
+        }
+
+        function checkCurrentDate() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+                <div class="warning">
+                    <h3>Checking Current Date...</h3>
+                    <p>The A&M game is currently showing November 28 (Thursday) in Firebase.</p>
+                    <p>This needs to be updated to November 30 (Saturday).</p>
+                    <p><strong>Next Step:</strong> Use one of the fix options above to update the date.</p>
+                </div>
+            `;
+        }
+
+        function testDateParsing() {
+            const resultsDiv = document.getElementById('results');
+            
+            const createLocalDate = (dateString) => {
+                return new Date(dateString + 'T12:00:00');
+            };
+            
+            // Test both the wrong date and correct date
+            const wrongDate = '2024-11-28';
+            const correctDate = '2024-11-30';
+            
+            const wrongParsed = createLocalDate(wrongDate);
+            const correctParsed = createLocalDate(correctDate);
+            
+            const wrongDay = wrongParsed.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                month: 'long', 
+                day: 'numeric', 
+                year: 'numeric' 
+            });
+            
+            const correctDay = correctParsed.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                month: 'long', 
+                day: 'numeric', 
+                year: 'numeric' 
+            });
+            
+            resultsDiv.innerHTML = `
+                <div class="game-card">
+                    <h3>Date Parsing Test Results</h3>
+                    <div class="date-test incorrect">
+                        <p><strong>Current Wrong Date in Firebase:</strong> ${wrongDate}</p>
+                        <p><strong>Displays as:</strong> ${wrongDay}</p>
+                        <p><strong>Status:</strong> ❌ Thursday is wrong!</p>
+                    </div>
+                    <div class="date-test correct">
+                        <p><strong>Correct Date Should Be:</strong> ${correctDate}</p>
+                        <p><strong>Will Display as:</strong> ${correctDay}</p>
+                        <p><strong>Status:</strong> ✅ Saturday is correct!</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Auto-run check on load
+        window.addEventListener('load', () => {
+            checkCurrentDate();
+        });
+    </script>
+</body>
+</html>

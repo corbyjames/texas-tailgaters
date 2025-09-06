@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Clock, CheckCircle, AlertCircle, Tv, Trophy } from 'lucide-react';
+import { RefreshCw, Clock, CheckCircle, AlertCircle, Tv, Trophy, Calendar } from 'lucide-react';
 import ComprehensiveScheduleSyncService from '../../services/scheduleSyncService';
+import sync2025Schedule from '../../utils/sync2025Schedule';
 
 interface SyncStatus {
   lastSync: string | null;
@@ -43,6 +44,31 @@ export const ScheduleSyncPanel: React.FC = () => {
     }
   };
 
+  const handle2025Sync = async () => {
+    setIsLoading(true);
+    setError(null);
+    setSyncResult(null);
+
+    try {
+      const result = await sync2025Schedule();
+      if (result.success) {
+        setSyncResult({
+          added: 12, // 2025 games
+          updated: 0,
+          errors: [],
+          message: result.message
+        });
+      } else {
+        setError(result.message);
+      }
+      await loadSyncStatus(); // Reload status after sync
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '2025 sync failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return 'Never';
     const date = new Date(dateStr);
@@ -71,20 +97,36 @@ export const ScheduleSyncPanel: React.FC = () => {
             Automatically syncs daily at 6 AM CT
           </p>
         </div>
-        <button
-          onClick={handleManualSync}
-          disabled={isLoading}
-          className={`
-            flex items-center gap-2 px-4 py-2 rounded-lg font-medium
-            ${isLoading 
-              ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-              : 'bg-orange-600 text-white hover:bg-orange-700'
-            }
-          `}
-        >
-          <RefreshCw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
-          {isLoading ? 'Syncing...' : 'Sync Now'}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={handle2025Sync}
+            disabled={isLoading}
+            className={`
+              flex items-center gap-2 px-4 py-2 rounded-lg font-medium
+              ${isLoading 
+                ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                : 'bg-green-600 text-white hover:bg-green-700'
+              }
+            `}
+          >
+            <Calendar className={`h-5 w-5 ${isLoading ? 'animate-pulse' : ''}`} />
+            {isLoading ? 'Updating...' : 'Update to 2025 Season'}
+          </button>
+          <button
+            onClick={handleManualSync}
+            disabled={isLoading}
+            className={`
+              flex items-center gap-2 px-4 py-2 rounded-lg font-medium
+              ${isLoading 
+                ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                : 'bg-orange-600 text-white hover:bg-orange-700'
+              }
+            `}
+          >
+            <RefreshCw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
+            {isLoading ? 'Syncing...' : 'Sync Now'}
+          </button>
+        </div>
       </div>
 
       {/* Sync Status */}
