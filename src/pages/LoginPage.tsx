@@ -8,6 +8,8 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [carrier, setCarrier] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -39,7 +41,7 @@ const LoginPage: React.FC = () => {
         setLoading(false);
         return;
       } else if (isSignUp) {
-        const { error } = await signUp(email, password, name);
+        const { error } = await signUp(email, password, name, phone, carrier);
         if (error) {
           console.error('Signup error:', error);
           setError(error.message);
@@ -109,20 +111,74 @@ const LoginPage: React.FC = () => {
           ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
             {isSignUp && !isResetMode && (
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-ut-text mb-2">
-                  Full Name
-                </label>
-                <input
-                  id="name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="input-field"
-                  placeholder="Enter your full name"
-                  required={isSignUp}
-                />
-              </div>
+              <>
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-ut-text mb-2">
+                    Full Name
+                  </label>
+                  <input
+                    id="name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="input-field"
+                    placeholder="Enter your full name"
+                    required={isSignUp}
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="phone" className="block text-sm font-medium text-ut-text mb-2">
+                    Phone Number (Optional - for SMS notifications)
+                  </label>
+                  <input
+                    id="phone"
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => {
+                      // Format phone number as user types
+                      let value = e.target.value.replace(/\D/g, '');
+                      if (value.length > 0) {
+                        if (value.length <= 3) {
+                          value = `(${value}`;
+                        } else if (value.length <= 6) {
+                          value = `(${value.slice(0, 3)}) ${value.slice(3)}`;
+                        } else {
+                          value = `(${value.slice(0, 3)}) ${value.slice(3, 6)}-${value.slice(6, 10)}`;
+                        }
+                      }
+                      setPhone(value);
+                    }}
+                    className="input-field"
+                    placeholder="(555) 123-4567"
+                  />
+                </div>
+                
+                {phone && (
+                  <div>
+                    <label htmlFor="carrier" className="block text-sm font-medium text-ut-text mb-2">
+                      Mobile Carrier (Optional - for SMS)
+                    </label>
+                    <select
+                      id="carrier"
+                      value={carrier}
+                      onChange={(e) => setCarrier(e.target.value)}
+                      className="input-field"
+                    >
+                      <option value="">Select Carrier...</option>
+                      <option value="verizon">Verizon</option>
+                      <option value="att">AT&T</option>
+                      <option value="tmobile">T-Mobile</option>
+                      <option value="sprint">Sprint</option>
+                      <option value="uscellular">US Cellular</option>
+                      <option value="cricket">Cricket</option>
+                      <option value="metro">Metro PCS</option>
+                      <option value="boost">Boost Mobile</option>
+                      <option value="virgin">Virgin Mobile</option>
+                    </select>
+                  </div>
+                )}
+              </>
             )}
 
             <div>

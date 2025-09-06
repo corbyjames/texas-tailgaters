@@ -15,6 +15,7 @@ export default function ProfilePage() {
   const [formData, setFormData] = useState({
     displayName: '',
     phone: '',
+    carrier: '',
     dietaryRestrictions: '',
     emergencyContact: '',
     notes: ''
@@ -221,17 +222,50 @@ export default function ProfilePage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
               {editMode ? (
-                <input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="(555) 123-4567"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
-                />
+                <>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => {
+                      // Format phone number as user types
+                      let value = e.target.value.replace(/\D/g, '');
+                      if (value.length > 0) {
+                        if (value.length <= 3) {
+                          value = `(${value}`;
+                        } else if (value.length <= 6) {
+                          value = `(${value.slice(0, 3)}) ${value.slice(3)}`;
+                        } else {
+                          value = `(${value.slice(0, 3)}) ${value.slice(3, 6)}-${value.slice(6, 10)}`;
+                        }
+                      }
+                      setFormData({ ...formData, phone: value });
+                    }}
+                    placeholder="(555) 123-4567"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                  />
+                  {formData.phone && (
+                    <select
+                      value={formData.carrier}
+                      onChange={(e) => setFormData({ ...formData, carrier: e.target.value })}
+                      className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                    >
+                      <option value="">Select Mobile Carrier (for SMS)</option>
+                      <option value="verizon">Verizon</option>
+                      <option value="att">AT&T</option>
+                      <option value="tmobile">T-Mobile</option>
+                      <option value="sprint">Sprint</option>
+                      <option value="uscellular">US Cellular</option>
+                      <option value="cricket">Cricket</option>
+                      <option value="metro">Metro PCS</option>
+                      <option value="boost">Boost Mobile</option>
+                      <option value="virgin">Virgin Mobile</option>
+                    </select>
+                  )}
+                </>
               ) : (
                 <p className="text-gray-900 flex items-center gap-2">
                   <Phone className="w-4 h-4 text-gray-500" />
-                  {formData.phone || 'Not set'}
+                  {formData.phone ? `${formData.phone}${formData.carrier ? ` (${formData.carrier})` : ''}` : 'Not set'}
                 </p>
               )}
             </div>

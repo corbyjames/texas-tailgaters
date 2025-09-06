@@ -17,6 +17,8 @@ export interface AuthUser {
   id: string;
   email: string;
   name?: string;
+  phone?: string;
+  carrier?: string; // For SMS via email gateway
   role: 'admin' | 'member';
   isAdmin: boolean;
 }
@@ -112,7 +114,7 @@ class AuthService {
     }
   }
 
-  async signUp(email: string, password: string, name: string): Promise<{ error: any }> {
+  async signUp(email: string, password: string, name: string, phone?: string, carrier?: string): Promise<{ error: any }> {
     try {
       const result = await createUserWithEmailAndPassword(auth, email, password);
       
@@ -128,6 +130,8 @@ class AuthService {
       const newUserData = {
         email: result.user.email,
         name: name,
+        phone: phone || '',
+        carrier: carrier || '',
         createdAt: new Date().toISOString(),
         role: 'pending',
         status: 'pending_approval',
