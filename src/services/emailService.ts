@@ -53,11 +53,11 @@ class EmailService {
 
     // Include multiple field name variations to support different template configurations
     const templateParams = {
-      // Email fields - try multiple common variations
+      // Primary email field - template uses {{email}}
+      email: data.recipientEmail,
+      // Fallback variations for compatibility
       to_email: data.recipientEmail,
       user_email: data.recipientEmail,
-      email: data.recipientEmail,
-      recipient_email: data.recipientEmail,
       
       // Name fields
       to_name: data.recipientName,
@@ -137,11 +137,11 @@ class EmailService {
 
     // Include multiple field name variations to support different template configurations
     const templateParams = {
-      // Email fields - try multiple common variations
+      // Primary email field - template uses {{email}}
+      email: data.recipientEmail,
+      // Fallback variations for compatibility
       to_email: data.recipientEmail,
       user_email: data.recipientEmail,
-      email: data.recipientEmail,
-      recipient_email: data.recipientEmail,
       
       // Name fields
       to_name: data.recipientName,
