@@ -432,7 +432,5 @@ export const notificationService = new NotificationService();
 
 // Export types
 export type { 
-  NotificationRecipient, 
-  NotificationPreferences,
   NotificationData
 };

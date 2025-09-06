@@ -41,7 +41,7 @@ const LoginPage: React.FC = () => {
         setLoading(false);
         return;
       } else if (isSignUp) {
-        const { error } = await signUp(email, password, name, phone, carrier);
+        const { error } = await signUp(email, password, name);
         if (error) {
           console.error('Signup error:', error);
           setError(error.message);

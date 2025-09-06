@@ -163,8 +163,7 @@ export function useWebSocket() {
       new Notification(notification.title, {
         body: notification.message,
         icon: '/icon-192.png',
-        badge: '/badge-72.png',
-        vibrate: [200, 100, 200]
+        badge: '/badge-72.png'
       });
     }
   };

@@ -116,7 +116,7 @@ class PushNotificationService {
         
         subscription = await this.serviceWorkerRegistration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: convertedVapidKey
+          applicationServerKey: convertedVapidKey as BufferSource
         });
       }
 
@@ -241,7 +241,6 @@ class PushNotificationService {
       const notification = new Notification(title, {
         icon: '/icon-192.png',
         badge: '/badge-72.png',
-        vibrate: [200, 100, 200],
         ...options
       });
 
@@ -309,7 +308,6 @@ class PushNotificationService {
         body: 'Push notifications are working!',
         icon: '/icon-192.png',
         badge: '/badge-72.png',
-        vibrate: [200, 100, 200],
         data: {
           type: 'test',
           timestamp: new Date().toISOString()

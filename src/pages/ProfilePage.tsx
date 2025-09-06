@@ -37,6 +37,7 @@ export default function ProfilePage() {
       setFormData({
         displayName: user.name || user.email?.split('@')[0] || '',
         phone: '',
+        carrier: '',
         dietaryRestrictions: '',
         emergencyContact: '',
         notes: ''
