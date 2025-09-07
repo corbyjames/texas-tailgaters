@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Future Game Scores</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { color: #BF5700; }
+        .game {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background: #fafafa;
+        }
+        .game.past { background: #e8f5e9; }
+        .game.future { background: #fff3e0; }
+        .game.has-scores { border-left: 5px solid #ff9800; }
+        .game-date { font-weight: bold; color: #666; }
+        .scores { 
+            margin-top: 10px; 
+            padding: 10px;
+            background: #fff;
+            border-radius: 4px;
+        }
+        button {
+            background: #BF5700;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover { background: #a04500; }
+        button:disabled { 
+            background: #ccc; 
+            cursor: not-allowed;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.info { background: #d1ecf1; color: #0c5460; }
+        .fixed { text-decoration: line-through; opacity: 0.7; }
+        .summary {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏈 Fix Future Game Scores</h1>
+        <p>Today's Date: <strong id="today-date"></strong></p>
+        <p>This tool will remove scores from games that haven't happened yet.</p>
+        
+        <div id="status" class="status info" style="display: none;"></div>
+        
+        <button onclick="loadGames()">Load Games</button>
+        <button onclick="fixFutureGames()" id="fix-btn" disabled>Fix Future Games</button>
+        
+        <div id="summary" class="summary" style="display: none;"></div>
+        
+        <div id="games-container"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, get, update, remove } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBJascYs4rXD4uL5Z8F7RDkMOBhQtjehic",
+            authDomain: "texas-tailgaters.firebaseapp.com",
+            databaseURL: "https://texas-tailgaters-default-rtdb.firebaseio.com",
+            projectId: "texas-tailgaters",
+            storageBucket: "texas-tailgaters.appspot.com",
+            messagingSenderId: "517392756353",
+            appId: "1:517392756353:web:texas-tailgaters-web"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const auth = getAuth(app);
+
+        let allGames = [];
+        let gamesToFix = [];
+
+        // Display today's date
+        const today = new Date();
+        document.getElementById('today-date').textContent = today.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+            statusEl.style.display = 'block';
+        }
+
+        async function authenticate() {
+            try {
+                await signInWithEmailAndPassword(auth, 'test@texastailgaters.com', 'TestPassword123!');
+                return true;
+            } catch (error) {
+                console.error('Auth error:', error);
+                showStatus('Authentication failed. Please check credentials.', 'error');
+                return false;
+            }
+        }
+
+        window.loadGames = async function() {
+            showStatus('Authenticating...', 'info');
+            
+            if (!await authenticate()) {
+                return;
+            }
+
+            showStatus('Loading games from database...', 'info');
+            
+            try {
+                const gamesRef = ref(database, 'games');
+                const snapshot = await get(gamesRef);
+                
+                if (!snapshot.exists()) {
+                    showStatus('No games found in database', 'error');
+                    return;
+                }
+
+                const gamesData = snapshot.val();
+                allGames = [];
+                gamesToFix = [];
+                
+                // Convert to array and sort by date
+                Object.entries(gamesData).forEach(([id, game]) => {
+                    allGames.push({ id, ...game });
+                });
+                
+                allGames.sort((a, b) => new Date(a.date) - new Date(b.date));
+                
+                // Display games and identify which need fixing
+                const container = document.getElementById('games-container');
+                container.innerHTML = '<h2>All Games:</h2>';
+                
+                let futureGamesWithScores = 0;
+                let pastGamesCount = 0;
+                
+                allGames.forEach(game => {
+                    const gameDate = new Date(game.date);
+                    const isPast = gameDate < today;
+                    const hasScores = game.homeScore !== undefined || game.awayScore !== undefined;
+                    const needsFix = !isPast && hasScores;
+                    
+                    if (isPast) pastGamesCount++;
+                    if (needsFix) {
+                        gamesToFix.push(game);
+                        futureGamesWithScores++;
+                    }
+                    
+                    const gameDiv = document.createElement('div');
+                    gameDiv.className = `game ${isPast ? 'past' : 'future'} ${hasScores ? 'has-scores' : ''}`;
+                    
+                    let html = `
+                        <div class="game-date">${gameDate.toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric', 
+                            year: 'numeric' 
+                        })} - ${game.opponent}</div>
+                        <div>Location: ${game.location}</div>
+                        <div>Status: ${isPast ? '✅ Game Completed' : '📅 Future Game'}</div>
+                    `;
+                    
+                    if (hasScores) {
+                        html += `
+                            <div class="scores">
+                                <strong>Current Score Data:</strong><br>
+                                Home: ${game.homeScore ?? 'none'}, Away: ${game.awayScore ?? 'none'}<br>
+                                Result: ${game.result || 'none'}, Status: ${game.status || 'none'}
+                                ${needsFix ? '<br><strong style="color: #ff5722;">⚠️ NEEDS FIX - Future game has scores!</strong>' : ''}
+                            </div>
+                        `;
+                    }
+                    
+                    gameDiv.innerHTML = html;
+                    container.appendChild(gameDiv);
+                });
+                
+                // Show summary
+                const summaryEl = document.getElementById('summary');
+                summaryEl.innerHTML = `
+                    <h3>Summary:</h3>
+                    <ul>
+                        <li>Total games: ${allGames.length}</li>
+                        <li>Past games: ${pastGamesCount}</li>
+                        <li>Future games: ${allGames.length - pastGamesCount}</li>
+                        <li><strong style="color: #ff5722;">Future games with scores that need fixing: ${futureGamesWithScores}</strong></li>
+                    </ul>
+                `;
+                summaryEl.style.display = 'block';
+                
+                if (gamesToFix.length > 0) {
+                    document.getElementById('fix-btn').disabled = false;
+                    showStatus(`Found ${gamesToFix.length} future games with scores that need to be removed.`, 'info');
+                } else {
+                    showStatus('✅ All games are correctly configured! No fixes needed.', 'success');
+                }
+                
+            } catch (error) {
+                console.error('Error loading games:', error);
+                showStatus(`Error: ${error.message}`, 'error');
+            }
+        };
+
+        window.fixFutureGames = async function() {
+            if (gamesToFix.length === 0) {
+                showStatus('No games to fix', 'info');
+                return;
+            }
+            
+            showStatus(`Fixing ${gamesToFix.length} future games...`, 'info');
+            document.getElementById('fix-btn').disabled = true;
+            
+            try {
+                const updates = {};
+                
+                gamesToFix.forEach(game => {
+                    // Remove score-related fields from future games
+                    updates[`games/${game.id}/homeScore`] = null;
+                    updates[`games/${game.id}/awayScore`] = null;
+                    updates[`games/${game.id}/home_score`] = null;
+                    updates[`games/${game.id}/away_score`] = null;
+                    updates[`games/${game.id}/result`] = null;
+                    updates[`games/${game.id}/quarter`] = null;
+                    updates[`games/${game.id}/timeRemaining`] = null;
+                    updates[`games/${game.id}/time_remaining`] = null;
+                    updates[`games/${game.id}/possession`] = null;
+                    
+                    // Set status back to scheduled for future games
+                    updates[`games/${game.id}/status`] = 'scheduled';
+                });
+                
+                await update(ref(database), updates);
+                
+                showStatus(`✅ Successfully fixed ${gamesToFix.length} future games!`, 'success');
+                
+                // Reload to show updated state
+                setTimeout(() => {
+                    window.loadGames();
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Error fixing games:', error);
+                showStatus(`Error: ${error.message}`, 'error');
+                document.getElementById('fix-btn').disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>

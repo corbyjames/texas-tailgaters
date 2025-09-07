@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Cache and Refresh</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 { 
+            color: #BF5700; 
+            margin-bottom: 30px;
+        }
+        button {
+            background: #BF5700;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: all 0.3s;
+        }
+        button:hover { 
+            background: #a04500;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .status {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .status.success { 
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.info { 
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .cache-list {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .cache-item {
+            padding: 8px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .cache-key {
+            font-weight: bold;
+            color: #495057;
+        }
+        .cache-value {
+            color: #6c757d;
+            font-size: 14px;
+            max-width: 400px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Clear Cache and Refresh App</h1>
+        
+        <p>This tool will clear all cached data and force the app to reload fresh data from Firebase.</p>
+        
+        <div id="status" class="status info" style="display: none;"></div>
+        
+        <div class="cache-list">
+            <h3>Current localStorage items:</h3>
+            <div id="cache-items"></div>
+        </div>
+        
+        <button onclick="showCache()">Show Current Cache</button>
+        <button onclick="clearCache()">Clear All Cache</button>
+        <button onclick="clearAndReload()">Clear Cache & Reload App</button>
+        <button onclick="openApp()">Open App in New Tab</button>
+    </div>
+
+    <script>
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+            statusEl.style.display = 'block';
+        }
+
+        function showCache() {
+            const container = document.getElementById('cache-items');
+            container.innerHTML = '';
+            
+            if (localStorage.length === 0) {
+                container.innerHTML = '<p style="color: #6c757d;">No items in localStorage</p>';
+                return;
+            }
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+                
+                const item = document.createElement('div');
+                item.className = 'cache-item';
+                
+                let displayValue = value;
+                if (value && value.length > 50) {
+                    displayValue = value.substring(0, 50) + '...';
+                }
+                
+                item.innerHTML = `
+                    <span class="cache-key">${key}</span>
+                    <span class="cache-value">${displayValue}</span>
+                `;
+                
+                container.appendChild(item);
+            }
+            
+            showStatus(`Found ${localStorage.length} items in cache`, 'info');
+        }
+
+        function clearCache() {
+            const itemCount = localStorage.length;
+            
+            // Clear all localStorage
+            localStorage.clear();
+            
+            // Also clear sessionStorage
+            sessionStorage.clear();
+            
+            // Clear any Firebase auth persistence
+            const firebaseKeys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.includes('firebase') || key.includes('auth'))) {
+                    firebaseKeys.push(key);
+                }
+            }
+            firebaseKeys.forEach(key => localStorage.removeItem(key));
+            
+            showStatus(`✅ Cleared ${itemCount} items from cache`, 'success');
+            
+            // Update the display
+            setTimeout(showCache, 500);
+        }
+
+        function clearAndReload() {
+            clearCache();
+            showStatus('Cache cleared! Reloading app in 2 seconds...', 'success');
+            
+            setTimeout(() => {
+                // Open the app in the same tab
+                window.location.href = 'http://localhost:5173/games';
+            }, 2000);
+        }
+
+        function openApp() {
+            // Open in new tab
+            window.open('http://localhost:5173/games', '_blank');
+        }
+
+        // Show cache on load
+        window.addEventListener('DOMContentLoaded', showCache);
+    </script>
+</body>
+</html>

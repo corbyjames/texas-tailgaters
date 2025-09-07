@@ -26,7 +26,7 @@ export async function sync2025Schedule() {
           isHome: game.isHome,
           tvNetwork: game.tvNetwork,
           status: game.status,
-          result: game.result,
+          result: game.result as 'W' | 'L' | 'T' | undefined,
           homeScore: game.homeScore,
           awayScore: game.awayScore
         });

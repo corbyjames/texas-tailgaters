@@ -31,6 +31,19 @@ export interface Game {
   lastSyncedAt?: string;
   // Tailgate hosting field
   noTailgate?: boolean;
+  
+  // Database snake_case fields (from Firebase)
+  is_home?: boolean;
+  theme_id?: string;
+  setup_time?: string;
+  expected_attendance?: number;
+  tv_network?: string;
+  created_at?: string;
+  updated_at?: string;
+  no_tailgate?: boolean;
+  home_score?: number;
+  away_score?: number;
+  time_remaining?: string;
 }
 
 export interface Theme {

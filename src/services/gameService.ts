@@ -31,7 +31,7 @@ export class GameService {
       const themes = await firebaseService.getThemes();
       
       // Map database fields to frontend format and attach themes
-      return games.map(game => {
+      return games.map((game: any) => {
         const theme = game.theme_id ? themes.find(t => t.id === game.theme_id) : undefined;
         return {
           id: game.id!,
@@ -41,11 +41,17 @@ export class GameService {
           location: game.location,
           isHome: game.is_home,
           themeId: game.theme_id,
-          status: game.status as 'planned' | 'unplanned' | 'watch-party',
+          status: game.status as 'planned' | 'unplanned' | 'watch-party' | 'completed' | 'in-progress' | 'scheduled',
           setupTime: game.setup_time,
           expectedAttendance: game.expected_attendance,
           tvNetwork: game.tv_network,
           noTailgate: game.no_tailgate,
+          homeScore: game.home_score || game.homeScore,
+          awayScore: game.away_score || game.awayScore,
+          result: (game.result || (game as any).result) as 'W' | 'L' | 'T' | undefined,
+          quarter: (game as any).quarter,
+          timeRemaining: game.time_remaining || game.timeRemaining,
+          possession: (game as any).possession as 'home' | 'away' | undefined,
           createdAt: game.created_at,
           updatedAt: game.updated_at,
           theme: theme ? {
@@ -70,7 +76,7 @@ export class GameService {
   static async getGame(id: string): Promise<Game | null> {
     try {
       const games = await firebaseService.getGames();
-      const game = games.find(g => g.id === id);
+      const game: any = games.find(g => g.id === id);
       
       if (!game) return null;
       
@@ -86,11 +92,17 @@ export class GameService {
         location: game.location,
         isHome: game.is_home,
         themeId: game.theme_id,
-        status: game.status as 'planned' | 'unplanned' | 'watch-party',
+        status: game.status as 'planned' | 'unplanned' | 'watch-party' | 'completed' | 'in-progress' | 'scheduled',
         setupTime: game.setup_time,
         expectedAttendance: game.expected_attendance,
         tvNetwork: game.tv_network,
         noTailgate: game.no_tailgate,
+        homeScore: game.home_score || game.homeScore,
+        awayScore: game.away_score || game.awayScore,
+        result: (game.result || (game as any).result) as 'W' | 'L' | 'T' | undefined,
+        quarter: (game as any).quarter,
+        timeRemaining: game.time_remaining || game.timeRemaining,
+        possession: (game as any).possession as 'home' | 'away' | undefined,
         createdAt: game.created_at,
         updatedAt: game.updated_at,
         theme: theme ? {
