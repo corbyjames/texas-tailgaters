@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Clock, CheckCircle, AlertCircle, Tv, Trophy, Calendar } from 'lucide-react';
+import { RefreshCw, Clock, CheckCircle, AlertCircle, Tv, Trophy, Calendar, Activity } from 'lucide-react';
 import ComprehensiveScheduleSyncService from '../../services/scheduleSyncService';
 import sync2025Schedule from '../../utils/sync2025Schedule';
+import addSampleScores from '../../utils/addSampleScores';
 
 interface SyncStatus {
   lastSync: string | null;
@@ -69,6 +70,31 @@ export const ScheduleSyncPanel: React.FC = () => {
     }
   };
 
+  const handleAddSampleScores = async () => {
+    setIsLoading(true);
+    setError(null);
+    setSyncResult(null);
+
+    try {
+      const result = await addSampleScores();
+      if (result.success) {
+        setSyncResult({
+          added: 0,
+          updated: 6, // Games with scores
+          errors: [],
+          message: result.message
+        });
+      } else {
+        setError(result.message);
+      }
+      await loadSyncStatus(); // Reload status after adding scores
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add sample scores');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return 'Never';
     const date = new Date(dateStr);
@@ -125,6 +151,20 @@ export const ScheduleSyncPanel: React.FC = () => {
           >
             <RefreshCw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
             {isLoading ? 'Syncing...' : 'Sync Now'}
+          </button>
+          <button
+            onClick={handleAddSampleScores}
+            disabled={isLoading}
+            className={`
+              flex items-center gap-2 px-4 py-2 rounded-lg font-medium
+              ${isLoading 
+                ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                : 'bg-purple-600 text-white hover:bg-purple-700'
+              }
+            `}
+          >
+            <Activity className={`h-5 w-5 ${isLoading ? 'animate-pulse' : ''}`} />
+            {isLoading ? 'Adding...' : 'Add Sample Scores'}
           </button>
         </div>
       </div>

@@ -26,8 +26,10 @@ import { GameHeader } from '../components/games/GameHeader';
 import { teamLogos } from '../services/teamLogos';
 import { PotluckSignupModal } from '../components/potluck/PotluckSignupModal';
 import { RSVPModal } from '../components/games/RSVPModal';
+import { StatsDetailModal } from '../components/games/StatsDetailModal';
 import rsvpService, { RSVP } from '../services/rsvpService';
 import GameService from '../services/gameService';
+import { createLocalDate } from '../utils/dateUtils';
 
 const POTLUCK_CATEGORIES = [
   { value: 'main', label: 'Main Dish', icon: '🍖', color: 'bg-red-100 text-red-800' },
@@ -63,6 +65,7 @@ export default function GameDetailsPage() {
   const [rsvpStats, setRsvpStats] = useState<any>(null);
   const [showRSVPModal, setShowRSVPModal] = useState(false);
   const [userRSVP, setUserRSVP] = useState<RSVP | null>(null);
+  const [statsModalType, setStatsModalType] = useState<'potluck' | 'assigned' | 'needed' | 'attending' | null>(null);
   
   // Find the specific game
   const game = games.find(g => g.id === id);
@@ -95,8 +98,25 @@ export default function GameDetailsPage() {
     const uniqueAttendees = new Set<string>();
     items.forEach(item => {
       if (item.assignedTo) {
-        uniqueAttendees.add(item.assignedTo);
+        // Filter out generic entries like "Multiple people"
+        const name = item.assignedTo;
+        if (name && 
+            name.toLowerCase() !== 'multiple people' && 
+            name.toLowerCase() !== 'multiple' &&
+            name.toLowerCase() !== 'anonymous') {
+          uniqueAttendees.add(name);
+        }
       }
+      // Also check assignments array if it exists
+      item.assignments?.forEach(assignment => {
+        const name = assignment.userName;
+        if (name && 
+            name.toLowerCase() !== 'multiple people' && 
+            name.toLowerCase() !== 'multiple' &&
+            name.toLowerCase() !== 'anonymous') {
+          uniqueAttendees.add(name);
+        }
+      });
     });
     return Array.from(uniqueAttendees);
   }, [items]);
@@ -285,7 +305,7 @@ export default function GameDetailsPage() {
   };
 
   const formatDateTime = (date: string, time?: string) => {
-    const gameDate = new Date(date);
+    const gameDate = createLocalDate(date);
     const dateStr = gameDate.toLocaleDateString('en-US', { 
       weekday: 'long', 
       year: 'numeric', 
@@ -423,31 +443,47 @@ export default function GameDetailsPage() {
         <div className={`grid ${game?.noTailgate ? 'grid-cols-2' : 'grid-cols-2 lg:grid-cols-4'} gap-4 mb-6`}>
           {!game?.noTailgate && (
             <>
-              <div className="bg-white rounded-lg shadow-sm p-4 text-center">
-                <ShoppingBag className="w-8 h-8 text-orange-500 mx-auto mb-2" />
+              <button
+                onClick={() => setStatsModalType('potluck')}
+                className="bg-white rounded-lg shadow-sm p-4 text-center hover:shadow-md transition-shadow cursor-pointer group"
+              >
+                <ShoppingBag className="w-8 h-8 text-orange-500 mx-auto mb-2 group-hover:scale-110 transition-transform" />
                 <p className="text-2xl font-bold text-gray-900">{stats.totalItems}</p>
                 <p className="text-sm text-gray-600">Potluck Items</p>
-              </div>
+                <p className="text-xs text-gray-400 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Click for details</p>
+              </button>
               
-              <div className="bg-white rounded-lg shadow-sm p-4 text-center">
-                <Users className="w-8 h-8 text-green-600 mx-auto mb-2" />
+              <button
+                onClick={() => setStatsModalType('assigned')}
+                className="bg-white rounded-lg shadow-sm p-4 text-center hover:shadow-md transition-shadow cursor-pointer group"
+              >
+                <Users className="w-8 h-8 text-green-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
                 <p className="text-2xl font-bold text-gray-900">{stats.assignedItems}</p>
                 <p className="text-sm text-gray-600">Items Assigned</p>
-              </div>
+                <p className="text-xs text-gray-400 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Click for details</p>
+              </button>
             </>
           )}
           
-          <div className="bg-white rounded-lg shadow-sm p-4 text-center">
-            <Clock className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+          <button
+            onClick={() => setStatsModalType('needed')}
+            className="bg-white rounded-lg shadow-sm p-4 text-center hover:shadow-md transition-shadow cursor-pointer group"
+          >
+            <Clock className="w-8 h-8 text-blue-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
             <p className="text-2xl font-bold text-gray-900">{stats.unassignedItems}</p>
             <p className="text-sm text-gray-600">Items Needed</p>
-          </div>
+            <p className="text-xs text-gray-400 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Click for details</p>
+          </button>
           
-          <div className="bg-white rounded-lg shadow-sm p-4 text-center">
-            <Users className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+          <button
+            onClick={() => setStatsModalType('attending')}
+            className="bg-white rounded-lg shadow-sm p-4 text-center hover:shadow-md transition-shadow cursor-pointer group"
+          >
+            <Users className="w-8 h-8 text-purple-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
             <p className="text-2xl font-bold text-gray-900">{attendees.length}</p>
             <p className="text-sm text-gray-600">People Attending</p>
-          </div>
+            <p className="text-xs text-gray-400 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Click for details</p>
+          </button>
         </div>
 
         {/* RSVP Attendees Section */}
@@ -702,15 +738,39 @@ export default function GameDetailsPage() {
                                 </div>
                               )}
                               
-                              {/* Single item assignment display */}
-                              {item.assignedTo && (!item.quantityNeeded || item.quantityNeeded === 1) && (
+                              {/* Assignment display */}
+                              {/* Show individual assignments if they exist */}
+                              {item.assignments && item.assignments.length > 0 ? (
+                                <div className="mt-2">
+                                  {item.assignments.length === 1 ? (
+                                    <div className="flex items-center gap-1">
+                                      <Users className="w-3 h-3 text-green-600" />
+                                      <span className="text-xs text-green-600">
+                                        Brought by: {item.assignments[0].userName}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <div className="space-y-1">
+                                      <div className="flex items-center gap-1">
+                                        <Users className="w-3 h-3 text-green-600" />
+                                        <span className="text-xs text-green-600">Brought by:</span>
+                                      </div>
+                                      {item.assignments.map((assignment, idx) => (
+                                        <div key={idx} className="ml-4 text-xs text-green-600">
+                                          • {assignment.userName} ({assignment.quantity})
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              ) : item.assignedTo && item.assignedTo.toLowerCase() !== 'multiple people' ? (
                                 <div className="flex items-center gap-1 mt-2">
                                   <Users className="w-3 h-3 text-green-600" />
                                   <span className="text-xs text-green-600">
                                     Brought by: {item.assignedTo}
                                   </span>
                                 </div>
-                              )}
+                              ) : null}
                             </div>
                             
                             <div className="flex items-center gap-2 ml-4">
@@ -812,6 +872,25 @@ export default function GameDetailsPage() {
               <h2 className="text-xl font-bold mb-4">
                 {editingItem ? 'Edit Item' : 'Add Potluck Item'}
               </h2>
+              
+              {/* Show who is bringing this item when editing */}
+              {editingItem && editingItem.assignments && editingItem.assignments.length > 0 && (
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm font-medium text-blue-900 mb-2">Currently signed up:</p>
+                  <div className="space-y-1">
+                    {editingItem.assignments.map((assignment, idx) => (
+                      <div key={idx} className="text-sm text-blue-700">
+                        • {assignment.userName} - bringing {assignment.quantity}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-blue-200">
+                    <p className="text-xs text-blue-600">
+                      Total claimed: {editingItem.quantityBrought || 0} / {editingItem.quantityNeeded || 1}
+                    </p>
+                  </div>
+                </div>
+              )}
               
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
@@ -955,6 +1034,23 @@ export default function GameDetailsPage() {
           game={showRSVPModal ? game : null}
           isOpen={showRSVPModal}
           onClose={() => setShowRSVPModal(false)}
+        />
+
+        {/* Stats Detail Modal */}
+        <StatsDetailModal
+          isOpen={statsModalType !== null}
+          onClose={() => setStatsModalType(null)}
+          type={statsModalType || 'potluck'}
+          title={
+            statsModalType === 'potluck' ? 'All Potluck Items' :
+            statsModalType === 'assigned' ? 'Assigned Items' :
+            statsModalType === 'needed' ? 'Items Still Needed' :
+            'People Attending'
+          }
+          items={items}
+          attendees={attendees}
+          rsvps={rsvps}
+          stats={stats}
         />
       </div>
     </div>

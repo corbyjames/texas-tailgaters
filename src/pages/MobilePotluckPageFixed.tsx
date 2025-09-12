@@ -247,11 +247,27 @@ export default function MobilePotluckPageFixed() {
                           {item.description && (
                             <p className="text-xs text-gray-600 mt-1">{item.description}</p>
                           )}
-                          {item.assignedTo && (
+                          {/* Show assignments */}
+                          {item.assignments && item.assignments.length > 0 ? (
+                            <div className="text-xs text-green-600 mt-1">
+                              {item.assignments.length === 1 ? (
+                                <p>Assigned to: {item.assignments[0].userName}</p>
+                              ) : (
+                                <>
+                                  <p>Assigned to:</p>
+                                  {item.assignments.map((assignment, idx) => (
+                                    <p key={idx} className="ml-2">
+                                      • {assignment.userName} ({assignment.quantity})
+                                    </p>
+                                  ))}
+                                </>
+                              )}
+                            </div>
+                          ) : item.assignedTo && item.assignedTo.toLowerCase() !== 'multiple people' ? (
                             <p className="text-xs text-green-600 mt-1">
                               Assigned to: {item.assignedTo}
                             </p>
-                          )}
+                          ) : null}
                         </div>
                         <div className="flex items-center gap-1">
                           <button
@@ -302,6 +318,26 @@ export default function MobilePotluckPageFixed() {
             <h3 className="text-lg font-semibold mb-4">
               {editingItem ? 'Edit Potluck Item' : 'Add Potluck Item'}
             </h3>
+            
+            {/* Show who is bringing this item when editing */}
+            {editingItem && editingItem.assignments && editingItem.assignments.length > 0 && (
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm font-medium text-blue-900 mb-2">Currently signed up:</p>
+                <div className="space-y-1">
+                  {editingItem.assignments.map((assignment, idx) => (
+                    <div key={idx} className="text-sm text-blue-700">
+                      • {assignment.userName} - bringing {assignment.quantity}
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-2 pt-2 border-t border-blue-200">
+                  <p className="text-xs text-blue-600">
+                    Total claimed: {editingItem.quantityBrought || 0} / {editingItem.quantityNeeded || 1}
+                  </p>
+                </div>
+              </div>
+            )}
+            
             <form onSubmit={handleSubmit}>
               <input
                 type="text"

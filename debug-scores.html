@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Score Display</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { color: #bf5700; }
+        .game-data {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        .score-display {
+            font-size: 24px;
+            font-weight: bold;
+            padding: 10px;
+            background: #e8f5e9;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        button {
+            background: #bf5700;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #8f3f00; }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Debug Score Display</h1>
+        
+        <div>
+            <button onclick="fetchGames()">Fetch Games from Firebase</button>
+            <button onclick="addTestScores()">Add Test Scores</button>
+            <button onclick="checkReactApp()">Check React App Data</button>
+        </div>
+
+        <div id="status"></div>
+        <div id="gamesList"></div>
+        <div id="rawData"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+        import { getDatabase, ref, get, set, update } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBzjg1LCKGxn3q1Njqj8p13kxQRTwXLvRU",
+            authDomain: "texas-tailgaters.firebaseapp.com",
+            databaseURL: "https://texas-tailgaters-default-rtdb.firebaseio.com",
+            projectId: "texas-tailgaters",
+            storageBucket: "texas-tailgaters.appspot.com",
+            messagingSenderId: "502407505040",
+            appId: "1:502407505040:web:b2c88a97ead2f46e383530"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        window.fetchGames = async function() {
+            const statusDiv = document.getElementById('status');
+            const gamesDiv = document.getElementById('gamesList');
+            const rawDiv = document.getElementById('rawData');
+            
+            statusDiv.innerHTML = '<div class="info">🔄 Fetching games from Firebase...</div>';
+            
+            try {
+                const gamesRef = ref(database, 'games');
+                const snapshot = await get(gamesRef);
+                
+                if (!snapshot.exists()) {
+                    statusDiv.innerHTML = '<div class="error">❌ No games found!</div>';
+                    return;
+                }
+                
+                const games = snapshot.val();
+                const gameIds = Object.keys(games);
+                
+                statusDiv.innerHTML = `<div class="success">✅ Found ${gameIds.length} games</div>`;
+                
+                let html = '<h2>Games with Score Data:</h2>';
+                let gamesWithScores = 0;
+                let gamesWithoutScores = 0;
+                
+                gameIds.forEach(gameId => {
+                    const game = games[gameId];
+                    html += `<div class="game-data">`;
+                    html += `<h3>${game.opponent || 'Unknown'} - ${game.date || 'No date'}</h3>`;
+                    html += `<p><strong>Game ID:</strong> ${gameId}</p>`;
+                    html += `<p><strong>Status:</strong> ${game.status || 'scheduled'}</p>`;
+                    
+                    if (game.homeScore !== undefined || game.awayScore !== undefined) {
+                        gamesWithScores++;
+                        html += `<div class="score-display">`;
+                        html += `✅ HAS SCORES: ${game.homeScore || 0} - ${game.awayScore || 0}`;
+                        if (game.result) html += ` (${game.result})`;
+                        if (game.quarter) html += ` ${game.quarter} ${game.timeRemaining || ''}`;
+                        html += `</div>`;
+                    } else {
+                        gamesWithoutScores++;
+                        html += `<div style="color: orange;">⚠️ No scores yet</div>`;
+                    }
+                    
+                    // Show all fields
+                    html += `<details><summary>All Fields</summary><pre>${JSON.stringify(game, null, 2)}</pre></details>`;
+                    html += `</div>`;
+                });
+                
+                statusDiv.innerHTML += `<div class="info">Games with scores: ${gamesWithScores} | Without scores: ${gamesWithoutScores}</div>`;
+                gamesDiv.innerHTML = html;
+                
+                // Show raw data
+                rawDiv.innerHTML = `<h3>Raw Firebase Data (first 3 games):</h3><pre>${JSON.stringify(Object.fromEntries(Object.entries(games).slice(0, 3)), null, 2)}</pre>`;
+                
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+                console.error(error);
+            }
+        };
+
+        window.addTestScores = async function() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = '<div class="info">🔄 Adding test scores...</div>';
+            
+            try {
+                const gamesRef = ref(database, 'games');
+                const snapshot = await get(gamesRef);
+                
+                if (!snapshot.exists()) {
+                    statusDiv.innerHTML = '<div class="error">❌ No games found!</div>';
+                    return;
+                }
+                
+                const games = snapshot.val();
+                const gameIds = Object.keys(games);
+                
+                // Take first game without scores
+                let targetGameId = null;
+                for (const gameId of gameIds) {
+                    if (games[gameId].homeScore === undefined) {
+                        targetGameId = gameId;
+                        break;
+                    }
+                }
+                
+                if (!targetGameId) {
+                    statusDiv.innerHTML = '<div class="info">All games already have scores!</div>';
+                    return;
+                }
+                
+                // Add test scores to one game
+                const updates = {
+                    [`games/${targetGameId}/homeScore`]: 42,
+                    [`games/${targetGameId}/awayScore`]: 17,
+                    [`games/${targetGameId}/result`]: 'W',
+                    [`games/${targetGameId}/status`]: 'completed'
+                };
+                
+                await update(ref(database), updates);
+                
+                statusDiv.innerHTML = `<div class="success">✅ Added test scores to game ${targetGameId}</div>`;
+                
+                // Refresh the list
+                setTimeout(fetchGames, 1000);
+                
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+                console.error(error);
+            }
+        };
+
+        window.checkReactApp = function() {
+            // Open React app and check console
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `
+                <div class="info">
+                    <h3>To check if React app is getting scores:</h3>
+                    <ol>
+                        <li>Open <a href="http://localhost:5173/games" target="_blank">http://localhost:5173/games</a></li>
+                        <li>Open browser DevTools (F12)</li>
+                        <li>In Console, type: <code>console.log(document.querySelectorAll('[class*="score"], [class*="Score"]'))</code></li>
+                        <li>Check Network tab for Firebase requests</li>
+                    </ol>
+                </div>
+            `;
+        };
+
+        // Auto-fetch on load
+        window.addEventListener('load', fetchGames);
+    </script>
+</body>
+</html>

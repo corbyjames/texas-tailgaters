@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fix Game Status for Score Display</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        button { background: #bf5700; color: white; padding: 10px 20px; margin: 5px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #8f3f00; }
+        .success { background: #d4edda; color: #155724; padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .error { background: #f8d7da; color: #721c24; padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .info { background: #d1ecf1; color: #0c5460; padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .game { border: 1px solid #ddd; padding: 10px; margin: 5px 0; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Fix Game Status for Score Display</h1>
+    
+    <div class="info">
+        The score display only shows for games with status 'completed' or 'in-progress'.
+        This will fix the game status so scores are visible.
+    </div>
+
+    <button onclick="checkAndFixGames()">Check and Fix Game Status</button>
+    <button onclick="window.location.href='http://localhost:5173/games'">View Games Page</button>
+
+    <div id="status"></div>
+    <div id="gamesList"></div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+        import { getDatabase, ref, get, update } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBzjg1LCKGxn3q1Njqj8p13kxQRTwXLvRU",
+            authDomain: "texas-tailgaters.firebaseapp.com",
+            databaseURL: "https://texas-tailgaters-default-rtdb.firebaseio.com",
+            projectId: "texas-tailgaters",
+            storageBucket: "texas-tailgaters.appspot.com",
+            messagingSenderId: "502407505040",
+            appId: "1:502407505040:web:b2c88a97ead2f46e383530"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        window.checkAndFixGames = async function() {
+            const statusDiv = document.getElementById('status');
+            const gamesDiv = document.getElementById('gamesList');
+            
+            statusDiv.innerHTML = '<div class="info">🔄 Checking games...</div>';
+            
+            try {
+                const gamesRef = ref(database, 'games');
+                const snapshot = await get(gamesRef);
+                
+                if (!snapshot.exists()) {
+                    statusDiv.innerHTML = '<div class="error">No games found!</div>';
+                    return;
+                }
+                
+                const games = snapshot.val();
+                const updates = {};
+                let html = '<h3>Games Status:</h3>';
+                let fixedCount = 0;
+                
+                Object.keys(games).forEach(gameId => {
+                    const game = games[gameId];
+                    html += '<div class="game">';
+                    html += `<strong>${game.opponent || 'Unknown'}</strong> - ${game.date || 'No date'}<br>`;
+                    html += `Status: <span style="color: ${game.status === 'completed' || game.status === 'in-progress' ? 'green' : 'red'}">${game.status || 'none'}</span><br>`;
+                    
+                    if (game.homeScore !== undefined && game.awayScore !== undefined) {
+                        html += `✅ Has scores: ${game.homeScore} - ${game.awayScore}<br>`;
+                        
+                        // Fix status if it has scores but wrong status
+                        if (game.status !== 'completed' && game.status !== 'in-progress') {
+                            // Mark first game with scores as in-progress, others as completed
+                            const newStatus = fixedCount === 0 ? 'in-progress' : 'completed';
+                            updates[`games/${gameId}/status`] = newStatus;
+                            
+                            // Add result for completed games
+                            if (newStatus === 'completed') {
+                                const result = game.homeScore > game.awayScore ? 'W' : 
+                                             game.homeScore < game.awayScore ? 'L' : 'T';
+                                updates[`games/${gameId}/result`] = result;
+                            }
+                            
+                            // Add quarter for in-progress game
+                            if (newStatus === 'in-progress') {
+                                updates[`games/${gameId}/quarter`] = 'Q3';
+                                updates[`games/${gameId}/timeRemaining`] = '5:43';
+                            }
+                            
+                            html += `🔧 FIXING: Setting status to '${newStatus}'<br>`;
+                            fixedCount++;
+                        } else {
+                            html += `✅ Status already correct<br>`;
+                        }
+                    } else {
+                        html += '❌ No scores<br>';
+                    }
+                    
+                    html += '</div>';
+                });
+                
+                if (Object.keys(updates).length > 0) {
+                    await update(ref(database), updates);
+                    statusDiv.innerHTML = `<div class="success">✅ Fixed ${fixedCount} games! Scores should now be visible.</div>`;
+                    
+                    setTimeout(() => {
+                        window.location.href = 'http://localhost:5173/games';
+                    }, 2000);
+                } else {
+                    statusDiv.innerHTML = '<div class="success">✅ All games already have correct status!</div>';
+                }
+                
+                gamesDiv.innerHTML = html;
+                
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                console.error(error);
+            }
+        };
+    </script>
+</body>
+</html>

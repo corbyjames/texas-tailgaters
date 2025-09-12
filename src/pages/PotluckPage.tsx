@@ -444,7 +444,7 @@ export default function PotluckPage() {
                                 </div>
                               )}
                               
-                              {item.assignedTo && !item.assignments && (
+                              {item.assignedTo && !item.assignments && item.assignedTo.toLowerCase() !== 'multiple people' && (
                                 <div className="flex items-center gap-1 mt-2">
                                   <Users className="w-4 h-4 text-green-600" />
                                   <span className="text-sm text-green-600">
@@ -559,6 +559,25 @@ export default function PotluckPage() {
               <h2 className="text-xl font-bold mb-4">
                 {editingItem ? 'Edit Item' : 'Add Potluck Item'}
               </h2>
+              
+              {/* Show who is bringing this item when editing */}
+              {editingItem && editingItem.assignments && editingItem.assignments.length > 0 && (
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm font-medium text-blue-900 mb-2">Currently signed up:</p>
+                  <div className="space-y-1">
+                    {editingItem.assignments.map((assignment, idx) => (
+                      <div key={idx} className="text-sm text-blue-700">
+                        • {assignment.userName} - bringing {assignment.quantity}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-blue-200">
+                    <p className="text-xs text-blue-600">
+                      Total claimed: {editingItem.quantityBrought || 0} / {editingItem.quantityNeeded || 1}
+                    </p>
+                  </div>
+                </div>
+              )}
               
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>

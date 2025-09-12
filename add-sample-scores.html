@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Sample Scores to Games</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #bf5700;
+            border-bottom: 2px solid #bf5700;
+            padding-bottom: 10px;
+        }
+        button {
+            background: #bf5700;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #8f3f00;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 12px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .game-preview {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .score {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .win { color: #28a745; }
+        .loss { color: #dc3545; }
+        .live { color: #ff6b35; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏈 Add Sample Scores to Texas Tailgaters Games</h1>
+        
+        <div class="info">
+            This page will add sample scores to your existing games in Firebase to demonstrate the score display functionality.
+        </div>
+
+        <div>
+            <button id="addScoresBtn" onclick="addSampleScores()">Add Sample Scores to Games</button>
+            <button onclick="window.location.href='http://localhost:5173/games'">View Games Page</button>
+            <button onclick="window.location.href='http://localhost:5173/admin'">Go to Admin</button>
+        </div>
+
+        <div id="status"></div>
+        <div id="preview"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+        import { getDatabase, ref, get, update } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBzjg1LCKGxn3q1Njqj8p13kxQRTwXLvRU",
+            authDomain: "texas-tailgaters.firebaseapp.com",
+            databaseURL: "https://texas-tailgaters-default-rtdb.firebaseio.com",
+            projectId: "texas-tailgaters",
+            storageBucket: "texas-tailgaters.appspot.com",
+            messagingSenderId: "502407505040",
+            appId: "1:502407505040:web:b2c88a97ead2f46e383530"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        window.addSampleScores = async function() {
+            const statusDiv = document.getElementById('status');
+            const previewDiv = document.getElementById('preview');
+            const btn = document.getElementById('addScoresBtn');
+            
+            btn.disabled = true;
+            statusDiv.innerHTML = '<div class="info">🔄 Loading games from Firebase...</div>';
+            
+            try {
+                // Get all games
+                const gamesRef = ref(database, 'games');
+                const snapshot = await get(gamesRef);
+                
+                if (!snapshot.exists()) {
+                    statusDiv.innerHTML = '<div class="error">❌ No games found in database</div>';
+                    btn.disabled = false;
+                    return;
+                }
+                
+                const games = snapshot.val();
+                const gameIds = Object.keys(games);
+                
+                statusDiv.innerHTML = `<div class="info">Found ${gameIds.length} games. Adding scores...</div>`;
+                
+                // Sample score data
+                const sampleScores = [
+                    { homeScore: 45, awayScore: 21, result: 'W', status: 'completed' }, // Big win
+                    { homeScore: 31, awayScore: 28, result: 'W', status: 'completed' }, // Close win
+                    { homeScore: 28, awayScore: 24, status: 'in-progress', quarter: 'Q3', timeRemaining: '5:43' }, // Live
+                    { homeScore: 17, awayScore: 24, result: 'L', status: 'completed' }, // Loss
+                    { homeScore: 35, awayScore: 14, result: 'W', status: 'completed' }, // Another win
+                    { homeScore: 21, awayScore: 21, result: 'T', status: 'completed' }, // Tie
+                ];
+                
+                const updates = {};
+                let previewHTML = '<h3>Scores Being Added:</h3>';
+                let updatedCount = 0;
+                
+                // Add scores to games
+                gameIds.forEach((gameId, index) => {
+                    const game = games[gameId];
+                    
+                    // Skip if game already has scores
+                    if (game.homeScore !== undefined || game.awayScore !== undefined) {
+                        console.log(`Game ${gameId} already has scores, skipping`);
+                        return;
+                    }
+                    
+                    // Use sample scores in rotation
+                    const scoreData = sampleScores[updatedCount % sampleScores.length];
+                    
+                    // Add to updates object
+                    updates[`games/${gameId}/homeScore`] = scoreData.homeScore;
+                    updates[`games/${gameId}/awayScore`] = scoreData.awayScore;
+                    updates[`games/${gameId}/status`] = scoreData.status;
+                    
+                    if (scoreData.result) {
+                        updates[`games/${gameId}/result`] = scoreData.result;
+                    }
+                    
+                    if (scoreData.quarter) {
+                        updates[`games/${gameId}/quarter`] = scoreData.quarter;
+                        updates[`games/${gameId}/timeRemaining`] = scoreData.timeRemaining;
+                    }
+                    
+                    // Add to preview
+                    const scoreClass = scoreData.status === 'in-progress' ? 'live' : 
+                                      scoreData.result === 'W' ? 'win' : 
+                                      scoreData.result === 'L' ? 'loss' : '';
+                    
+                    previewHTML += `
+                        <div class="game-preview">
+                            <div>
+                                <strong>${game.opponent || 'Unknown'}</strong><br>
+                                <small>${game.date}</small>
+                            </div>
+                            <div class="score ${scoreClass}">
+                                ${scoreData.status === 'in-progress' ? '🔴 LIVE ' : ''}
+                                ${scoreData.result || ''} 
+                                ${scoreData.homeScore} - ${scoreData.awayScore}
+                                ${scoreData.quarter ? ` (${scoreData.quarter})` : ''}
+                            </div>
+                        </div>
+                    `;
+                    
+                    updatedCount++;
+                    
+                    // Only update first 6 games
+                    if (updatedCount >= 6) return;
+                });
+                
+                if (Object.keys(updates).length > 0) {
+                    // Apply updates to Firebase
+                    await update(ref(database), updates);
+                    
+                    statusDiv.innerHTML = `<div class="success">✅ Successfully added scores to ${updatedCount} games!</div>`;
+                    previewDiv.innerHTML = previewHTML;
+                    
+                    setTimeout(() => {
+                        statusDiv.innerHTML += '<div class="info">🎯 Redirecting to games page in 3 seconds...</div>';
+                        setTimeout(() => {
+                            window.location.href = 'http://localhost:5173/games';
+                        }, 3000);
+                    }, 1000);
+                } else {
+                    statusDiv.innerHTML = '<div class="info">All games already have scores!</div>';
+                    
+                    // Show existing scores
+                    let existingHTML = '<h3>Existing Scores:</h3>';
+                    gameIds.slice(0, 6).forEach(gameId => {
+                        const game = games[gameId];
+                        if (game.homeScore !== undefined) {
+                            existingHTML += `
+                                <div class="game-preview">
+                                    <div>
+                                        <strong>${game.opponent || 'Unknown'}</strong><br>
+                                        <small>${game.date}</small>
+                                    </div>
+                                    <div class="score">
+                                        ${game.result || ''} 
+                                        ${game.homeScore} - ${game.awayScore}
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                    previewDiv.innerHTML = existingHTML;
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                statusDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            } finally {
+                btn.disabled = false;
+            }
+        };
+
+        // Auto-run on page load
+        window.addEventListener('load', () => {
+            document.getElementById('status').innerHTML = '<div class="info">Click the button above to add sample scores to your games.</div>';
+        });
+    </script>
+</body>
+</html>

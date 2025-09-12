@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Public Score Display Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #bf5700;
+            text-align: center;
+        }
+        .game-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-left: 4px solid #bf5700;
+        }
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .opponent {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        .date {
+            color: #666;
+            font-size: 14px;
+        }
+        .score-display {
+            background: #f0f0f0;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        .score {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .win { color: #28a745; }
+        .loss { color: #dc3545; }
+        .tie { color: #ffc107; }
+        .live {
+            background: #fff5f0;
+            border: 2px solid #ff6b35;
+        }
+        .live-badge {
+            display: inline-block;
+            background: #ff6b35;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            background: #e0e0e0;
+            color: #666;
+        }
+        .completed { background: #d4edda; color: #155724; }
+        .in-progress { background: #fff3cd; color: #856404; }
+        .loading { text-align: center; padding: 40px; color: #666; }
+        .error { background: #f8d7da; color: #721c24; padding: 20px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <h1>🏈 Texas Tailgaters - Score Display (Public Test)</h1>
+    <div id="games-container">
+        <div class="loading">Loading games from Firebase...</div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+        import { getDatabase, ref, get } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBzjg1LCKGxn3q1Njqj8p13kxQRTwXLvRU",
+            authDomain: "texas-tailgaters.firebaseapp.com",
+            databaseURL: "https://texas-tailgaters-default-rtdb.firebaseio.com",
+            projectId: "texas-tailgaters",
+            storageBucket: "texas-tailgaters.appspot.com",
+            messagingSenderId: "502407505040",
+            appId: "1:502407505040:web:b2c88a97ead2f46e383530"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        async function loadGames() {
+            const container = document.getElementById('games-container');
+            
+            try {
+                const gamesRef = ref(database, 'games');
+                const snapshot = await get(gamesRef);
+                
+                if (!snapshot.exists()) {
+                    container.innerHTML = '<div class="error">No games found in database</div>';
+                    return;
+                }
+                
+                const games = snapshot.val();
+                const gameIds = Object.keys(games);
+                
+                // Sort games by date
+                const sortedGames = gameIds.map(id => ({ id, ...games[id] }))
+                    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+                
+                let html = '';
+                let gamesWithScores = 0;
+                
+                sortedGames.forEach(game => {
+                    const hasScores = game.homeScore !== undefined && game.awayScore !== undefined;
+                    const isLive = game.status === 'in-progress';
+                    const isCompleted = game.status === 'completed';
+                    
+                    // Only show games with scores
+                    if (!hasScores) return;
+                    
+                    gamesWithScores++;
+                    
+                    const scoreClass = game.result === 'W' ? 'win' : 
+                                     game.result === 'L' ? 'loss' : 
+                                     game.result === 'T' ? 'tie' : '';
+                    
+                    html += `
+                        <div class="game-card ${isLive ? 'live' : ''}">
+                            <div class="game-header">
+                                <div>
+                                    <div class="opponent">${game.opponent || 'Unknown Opponent'}</div>
+                                    <div class="date">${game.date} ${game.time || ''}</div>
+                                </div>
+                                <div>
+                                    ${isLive ? '<span class="live-badge">🔴 LIVE</span>' : ''}
+                                    ${isCompleted ? '<span class="status completed">Final</span>' : ''}
+                                    ${!isLive && !isCompleted ? '<span class="status">Scheduled</span>' : ''}
+                                </div>
+                            </div>
+                            
+                            <div class="score-display">
+                                ${game.result ? `<div class="${scoreClass}" style="font-size: 24px; margin-bottom: 10px;">${game.result === 'W' ? '✅ WIN' : game.result === 'L' ? '❌ LOSS' : '🤝 TIE'}</div>` : ''}
+                                <div class="score ${scoreClass}">
+                                    ${game.isHome !== false ? 'Texas' : game.opponent} ${game.homeScore} - ${game.awayScore} ${game.isHome !== false ? game.opponent : 'Texas'}
+                                </div>
+                                ${game.quarter ? `<div style="margin-top: 10px; color: #666;">${game.quarter} ${game.timeRemaining || ''}</div>` : ''}
+                            </div>
+                            
+                            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; color: #999; font-size: 12px;">
+                                Status: ${game.status} | 
+                                Location: ${game.location || 'TBD'} | 
+                                TV: ${game.tvNetwork || 'TBD'}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                if (gamesWithScores === 0) {
+                    html = '<div class="error">No games have scores yet. Games have been found but they need scores added.</div>';
+                    
+                    // Show games without scores for debugging
+                    html += '<h3>Games in Database (without scores):</h3>';
+                    sortedGames.forEach(game => {
+                        html += `<div class="game-card" style="opacity: 0.5;">
+                            <div>${game.opponent} - ${game.date}</div>
+                            <div style="color: red;">No scores (homeScore: ${game.homeScore}, awayScore: ${game.awayScore}, status: ${game.status})</div>
+                        </div>`;
+                    });
+                } else {
+                    html = `<div style="text-align: center; margin-bottom: 20px; color: #666;">Showing ${gamesWithScores} games with scores</div>` + html;
+                }
+                
+                container.innerHTML = html;
+                
+            } catch (error) {
+                container.innerHTML = `<div class="error">Error loading games: ${error.message}</div>`;
+                console.error('Error:', error);
+            }
+        }
+
+        // Load games on page load
+        loadGames();
+        
+        // Refresh every 30 seconds
+        setInterval(loadGames, 30000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Score Display Direct</title>
+</head>
+<body>
+    <h1>Testing Score Display</h1>
+    <iframe src="http://localhost:5173/games" width="100%" height="800px"></iframe>
+    
+    <script>
+        // After page loads, check for score elements
+        setTimeout(() => {
+            const iframe = document.querySelector('iframe');
+            console.log('Checking for scores in iframe...');
+            
+            // Try to access iframe content (may be blocked by CORS)
+            try {
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                const scoreElements = iframeDoc.querySelectorAll('[class*="score"], [class*="Score"], span');
+                console.log('Found elements:', scoreElements.length);
+                
+                scoreElements.forEach(el => {
+                    if (el.textContent && el.textContent.match(/\d+\s*-\s*\d+/)) {
+                        console.log('Score found:', el.textContent);
+                    }
+                });
+            } catch (e) {
+                console.log('Cannot access iframe due to CORS. Open http://localhost:5173/games directly and check console.');
+            }
+            
+            // Instructions
+            console.log(`
+                To debug scores not showing:
+                1. Open http://localhost:5173/games
+                2. Open DevTools Console (F12)
+                3. Run: 
+                   - Check for score elements: document.querySelectorAll('*').forEach(el => { if(el.textContent?.match(/\\d+\\s*-\\s*\\d+/)) console.log(el) })
+                   - Check React props: Array.from(document.querySelectorAll('[class*="card"]')).forEach(el => console.log(el._reactInternalInstance))
+            `);
+        }, 3000);
+    </script>
+</body>
+</html>
