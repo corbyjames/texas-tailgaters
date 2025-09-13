@@ -20,8 +20,8 @@ jobs:
         browser: [chromium, firefox, webkit]
         device: [desktop, mobile]
         exclude:
-          # Skip webkit mobile for now due to potential issues
-          - browser: webkit
+          # Firefox doesn't support mobile emulation in Playwright
+          - browser: firefox
             device: mobile
     
     steps:
