@@ -230,6 +230,49 @@ class EmailService {
 
     return results;
   }
+
+  async sendCustomEmail(data: {
+    to_email: string;
+    to_name: string;
+    subject: string;
+    html_content: string;
+    reply_to?: string;
+  }): Promise<{ success: boolean; message: string }> {
+    if (!this.initialized) {
+      return { success: false, message: 'Email service not configured' };
+    }
+
+    // Use a generic template that supports HTML content
+    // You'll need to create this template in EmailJS with {{html_content}} variable
+    const templateParams = {
+      to_email: data.to_email,
+      to_name: data.to_name,
+      subject: data.subject,
+      html_content: data.html_content,
+      message: data.html_content, // Fallback for text-only templates
+      reply_to: data.reply_to || 'texastailgaters@gmail.com'
+    };
+
+    try {
+      // Try to use a custom HTML template if available, otherwise fall back to invitation template
+      const response = await emailjs.send(
+        this.serviceId,
+        this.invitationTemplateId, // You may want to create a specific template for custom emails
+        templateParams
+      );
+
+      return { 
+        success: true, 
+        message: 'Email sent successfully' 
+      };
+    } catch (error) {
+      console.error('Error sending custom email:', error);
+      return { 
+        success: false, 
+        message: error instanceof Error ? error.message : 'Failed to send email' 
+      };
+    }
+  }
 }
 
 export const emailService = new EmailService();

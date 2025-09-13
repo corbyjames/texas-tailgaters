@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check Production Site Dates</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-2xl font-bold mb-6">Check Production Site Date Display</h1>
+        
+        <div class="mb-4">
+            <p class="text-sm text-gray-600 mb-2">
+                This will open the production site in an iframe and check date displays.
+                You may need to log in first.
+            </p>
+            <button onclick="checkSite()" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                Check Production Site
+            </button>
+        </div>
+        
+        <div id="status" class="mb-4 p-4 bg-blue-100 rounded hidden"></div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div>
+                <h2 class="font-bold mb-2">Games List Page</h2>
+                <iframe 
+                    id="gamesFrame"
+                    src="https://texas-tailgaters.onrender.com/games" 
+                    class="w-full h-96 border rounded"
+                ></iframe>
+            </div>
+            
+            <div>
+                <h2 class="font-bold mb-2">Game Details Page (UTEP)</h2>
+                <iframe 
+                    id="detailsFrame"
+                    src="https://texas-tailgaters.onrender.com/games/utep-2025" 
+                    class="w-full h-96 border rounded"
+                ></iframe>
+            </div>
+        </div>
+        
+        <div id="results" class="mt-6 space-y-4"></div>
+        
+        <div class="mt-6 p-4 bg-yellow-50 rounded">
+            <h3 class="font-bold mb-2">Manual Check Instructions:</h3>
+            <ol class="list-decimal list-inside space-y-2 text-sm">
+                <li>Log into the site if needed</li>
+                <li>Navigate to the Games page</li>
+                <li>Note the date shown for UTEP game (should be Sep 13, 2025)</li>
+                <li>Click on the UTEP game to view details</li>
+                <li>Check if the date shows correctly as "Saturday, September 13, 2025"</li>
+                <li>If it shows a different date (like September 12), we have a timezone issue</li>
+            </ol>
+        </div>
+        
+        <div class="mt-6 p-4 bg-blue-50 rounded">
+            <h3 class="font-bold mb-2">Expected Dates for 2025 Season:</h3>
+            <div class="grid grid-cols-2 gap-2 text-sm">
+                <div>Ohio State: Aug 30 (Saturday)</div>
+                <div>San Jose State: Sep 6 (Saturday)</div>
+                <div>UTEP: Sep 13 (Saturday)</div>
+                <div>Mississippi State: Sep 27 (Saturday)</div>
+                <div>Florida: Oct 4 (Saturday)</div>
+                <div>Oklahoma: Oct 11 (Saturday)</div>
+                <div>Georgia: Oct 18 (Saturday)</div>
+                <div>Vanderbilt: Oct 25 (Saturday)</div>
+                <div>Colorado State: Nov 8 (Saturday)</div>
+                <div>UTSA: Nov 15 (Saturday)</div>
+                <div>Kentucky: Nov 22 (Saturday)</div>
+                <div>Texas A&M: Nov 28 (Friday)</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.classList.remove('hidden');
+            status.className = `mb-4 p-4 rounded ${
+                type === 'error' ? 'bg-red-100 text-red-700' : 
+                type === 'success' ? 'bg-green-100 text-green-700' : 
+                'bg-blue-100 text-blue-700'
+            }`;
+            status.textContent = message;
+        }
+        
+        function checkSite() {
+            updateStatus('Please check the iframes and manually verify the dates shown', 'info');
+            
+            // Try to access iframe content (will likely fail due to CORS)
+            try {
+                const gamesFrame = document.getElementById('gamesFrame');
+                const detailsFrame = document.getElementById('detailsFrame');
+                
+                // This will likely throw an error due to cross-origin restrictions
+                const gamesDoc = gamesFrame.contentDocument;
+                const detailsDoc = detailsFrame.contentDocument;
+                
+                if (gamesDoc && detailsDoc) {
+                    updateStatus('Able to access iframe content - checking dates...', 'success');
+                } else {
+                    updateStatus('Cannot access iframe content due to security restrictions. Please check manually.', 'error');
+                }
+            } catch (e) {
+                updateStatus('Cannot access iframe content due to CORS. Please check the dates manually in the iframes above.', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

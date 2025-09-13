@@ -198,53 +198,53 @@ export const UserManager: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header with Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-4">
+        <div className="bg-white p-3 sm:p-4 rounded-lg border border-gray-200">
           <div className="flex items-center justify-between">
-            <Users className="text-gray-500 w-5 h-5" />
-            <span className="text-2xl font-bold">{users.length}</span>
+            <Users className="text-gray-500 w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="text-lg sm:text-2xl font-bold">{users.length}</span>
           </div>
-          <p className="text-sm text-gray-600 mt-1">Total Users</p>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">Total Users</p>
         </div>
         
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
+        <div className="bg-white p-3 sm:p-4 rounded-lg border border-gray-200">
           <div className="flex items-center justify-between">
-            <UserCheck className="text-green-500 w-5 h-5" />
-            <span className="text-2xl font-bold">
+            <UserCheck className="text-green-500 w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="text-lg sm:text-2xl font-bold">
               {users.filter(u => u.status === 'active').length}
             </span>
           </div>
-          <p className="text-sm text-gray-600 mt-1">Active</p>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">Active</p>
         </div>
         
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
+        <div className="bg-white p-3 sm:p-4 rounded-lg border border-gray-200">
           <div className="flex items-center justify-between">
-            <UserX className="text-gray-500 w-5 h-5" />
-            <span className="text-2xl font-bold">
+            <UserX className="text-gray-500 w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="text-lg sm:text-2xl font-bold">
               {users.filter(u => u.status === 'inactive').length}
             </span>
           </div>
-          <p className="text-sm text-gray-600 mt-1">Inactive</p>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">Inactive</p>
         </div>
         
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
+        <div className="bg-white p-3 sm:p-4 rounded-lg border border-gray-200">
           <div className="flex items-center justify-between">
-            <Clock className="text-yellow-500 w-5 h-5" />
-            <span className="text-2xl font-bold">
+            <Clock className="text-yellow-500 w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="text-lg sm:text-2xl font-bold">
               {users.filter(u => u.status === 'pending_approval').length}
             </span>
           </div>
-          <p className="text-sm text-gray-600 mt-1">Pending</p>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">Pending</p>
         </div>
         
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
+        <div className="bg-white p-3 sm:p-4 rounded-lg border border-gray-200 col-span-2 sm:col-span-1">
           <div className="flex items-center justify-between">
-            <Shield className="text-orange-500 w-5 h-5" />
-            <span className="text-2xl font-bold">
+            <Shield className="text-orange-500 w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="text-lg sm:text-2xl font-bold">
               {users.filter(u => u.role === 'admin').length}
             </span>
           </div>
-          <p className="text-sm text-gray-600 mt-1">Admins</p>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">Admins</p>
         </div>
       </div>
 
@@ -262,8 +262,8 @@ export const UserManager: React.FC = () => {
       )}
 
       {/* Filters and Search */}
-      <div className="bg-white p-4 rounded-lg border border-gray-200">
-        <div className="flex flex-col md:flex-row gap-4">
+      <div className="bg-white p-3 sm:p-4 rounded-lg border border-gray-200">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <div className="flex-1">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -277,11 +277,11 @@ export const UserManager: React.FC = () => {
             </div>
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="flex-1 sm:flex-none px-2 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
@@ -292,7 +292,7 @@ export const UserManager: React.FC = () => {
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value as any)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="flex-1 sm:flex-none px-2 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
             >
               <option value="all">All Roles</option>
               <option value="admin">Admin</option>
@@ -301,17 +301,111 @@ export const UserManager: React.FC = () => {
             
             <button
               onClick={loadUsers}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center gap-2"
+              className="px-3 sm:px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center gap-1 sm:gap-2 text-sm sm:text-base"
             >
               <RefreshCw className="w-4 h-4" />
-              Refresh
+              <span className="hidden sm:inline">Refresh</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Users Table */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      {/* Users Mobile Card View */}
+      <div className="block sm:hidden space-y-3">
+        {filteredUsers.map((user) => (
+          <div key={user.id} className="bg-white rounded-lg border border-gray-200 p-4">
+            <div className="flex justify-between items-start mb-3">
+              <div className="flex-1">
+                <div className="font-medium text-gray-900">{user.name || 'No name'}</div>
+                <div className="text-sm text-gray-500">{user.email}</div>
+              </div>
+              <button
+                onClick={() => setShowActionMenu(showActionMenu === user.id ? null : user.id)}
+                disabled={actionLoading === user.id}
+                className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50"
+              >
+                {actionLoading === user.id ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <MoreVertical className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+            
+            <div className="flex flex-wrap gap-2 mb-2">
+              {getStatusBadge(user.status)}
+              {getRoleBadge(user.role)}
+            </div>
+            
+            <div className="text-xs text-gray-500">
+              <div>Joined: {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Unknown'}</div>
+              <div>Last login: {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Never'}</div>
+            </div>
+            
+            {showActionMenu === user.id && (
+              <div className="mt-3 border-t pt-3 space-y-2">
+                {user.status === 'pending_approval' && (
+                  <button
+                    onClick={() => handleApproveUser(user.id)}
+                    className="w-full text-left px-3 py-2 text-sm bg-green-50 hover:bg-green-100 rounded-lg flex items-center gap-2"
+                  >
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    Approve Registration
+                  </button>
+                )}
+                
+                {user.status === 'active' && user.id !== currentUser?.id && (
+                  <button
+                    onClick={() => handleDeactivateUser(user.id)}
+                    className="w-full text-left px-3 py-2 text-sm bg-red-50 hover:bg-red-100 rounded-lg flex items-center gap-2"
+                  >
+                    <UserX className="w-4 h-4 text-red-600" />
+                    Deactivate User
+                  </button>
+                )}
+                
+                {user.status === 'inactive' && (
+                  <button
+                    onClick={() => handleReactivateUser(user.id)}
+                    className="w-full text-left px-3 py-2 text-sm bg-green-50 hover:bg-green-100 rounded-lg flex items-center gap-2"
+                  >
+                    <UserCheck className="w-4 h-4 text-green-600" />
+                    Reactivate User
+                  </button>
+                )}
+                
+                <button
+                  onClick={() => handleSendPasswordReset(user.email)}
+                  className="w-full text-left px-3 py-2 text-sm bg-blue-50 hover:bg-blue-100 rounded-lg flex items-center gap-2"
+                >
+                  <Key className="w-4 h-4 text-blue-600" />
+                  Send Password Reset
+                </button>
+                
+                {user.id !== currentUser?.id && (
+                  <button
+                    onClick={() => handleToggleRole(user.id, user.role)}
+                    className="w-full text-left px-3 py-2 text-sm bg-orange-50 hover:bg-orange-100 rounded-lg flex items-center gap-2"
+                  >
+                    <Shield className="w-4 h-4 text-orange-600" />
+                    {user.role === 'admin' ? 'Remove Admin' : 'Make Admin'}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+        
+        {filteredUsers.length === 0 && (
+          <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+            <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500">No users found</p>
+          </div>
+        )}
+      </div>
+
+      {/* Users Table - Desktop View */}
+      <div className="hidden sm:block bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">

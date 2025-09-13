@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check Database Dates</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-2xl font-bold mb-6">Check Firebase Database Dates</h1>
+        
+        <div id="status" class="mb-4 p-4 bg-blue-100 rounded">
+            Connecting to Firebase...
+        </div>
+        
+        <div id="results" class="space-y-4"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBJascYs4rXD4uL5Z8F7RDkMOBhQtjehic",
+            authDomain: "texas-tailgaters.firebaseapp.com",
+            databaseURL: "https://texas-tailgaters-default-rtdb.firebaseio.com",
+            projectId: "texas-tailgaters",
+            storageBucket: "texas-tailgaters.appspot.com",
+            messagingSenderId: "517392756353",
+            appId: "1:517392756353:web:texas-tailgaters-web"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        function updateStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.className = `mb-4 p-4 rounded ${
+                type === 'error' ? 'bg-red-100 text-red-700' : 
+                type === 'success' ? 'bg-green-100 text-green-700' : 
+                'bg-blue-100 text-blue-700'
+            }`;
+            status.textContent = message;
+        }
+
+        function formatDate(dateString) {
+            // Test different date parsing methods
+            const tests = [];
+            
+            // Direct Date constructor
+            const directDate = new Date(dateString);
+            tests.push({
+                method: 'new Date(dateString)',
+                result: directDate.toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    timeZone: 'America/Chicago'
+                }),
+                iso: directDate.toISOString()
+            });
+            
+            // With T12:00:00 (createLocalDate method)
+            const localDate = new Date(dateString + 'T12:00:00');
+            tests.push({
+                method: 'new Date(dateString + "T12:00:00")',
+                result: localDate.toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    timeZone: 'America/Chicago'
+                }),
+                iso: localDate.toISOString()
+            });
+            
+            // Parse as UTC
+            const utcDate = new Date(dateString + 'T00:00:00Z');
+            tests.push({
+                method: 'new Date(dateString + "T00:00:00Z")',
+                result: utcDate.toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    timeZone: 'America/Chicago'
+                }),
+                iso: utcDate.toISOString()
+            });
+            
+            return tests;
+        }
+
+        async function checkDates() {
+            try {
+                updateStatus('Fetching games from database...');
+                
+                const gamesRef = ref(db, 'games');
+                const snapshot = await get(gamesRef);
+                
+                if (!snapshot.exists()) {
+                    updateStatus('No games found in database', 'error');
+                    return;
+                }
+                
+                const games = snapshot.val();
+                const results = document.getElementById('results');
+                results.innerHTML = '';
+                
+                // Sort games by date
+                const sortedGames = Object.entries(games)
+                    .map(([id, game]) => ({ id, ...game }))
+                    .sort((a, b) => new Date(a.date) - new Date(b.date));
+                
+                updateStatus(`Found ${sortedGames.length} games. Analyzing date formats...`, 'success');
+                
+                sortedGames.forEach(game => {
+                    const gameDiv = document.createElement('div');
+                    gameDiv.className = 'bg-white p-4 rounded shadow';
+                    
+                    const dateTests = formatDate(game.date);
+                    
+                    gameDiv.innerHTML = `
+                        <h3 class="font-bold text-lg mb-2">
+                            ${game.opponent} - ${game.isHome ? 'Home' : 'Away'}
+                        </h3>
+                        <div class="mb-2">
+                            <span class="font-medium">Database value:</span> 
+                            <code class="bg-gray-100 px-2 py-1 rounded">${game.date}</code>
+                        </div>
+                        <div class="space-y-2">
+                            ${dateTests.map(test => `
+                                <div class="border-l-4 border-gray-300 pl-3">
+                                    <div class="text-sm font-medium">${test.method}</div>
+                                    <div class="text-sm">Display: ${test.result}</div>
+                                    <div class="text-xs text-gray-500">ISO: ${test.iso}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="mt-3 p-2 bg-yellow-50 rounded">
+                            <div class="text-sm font-medium">Expected date:</div>
+                            <div class="text-sm">
+                                ${getExpectedDate(game.opponent)}
+                            </div>
+                        </div>
+                    `;
+                    
+                    results.appendChild(gameDiv);
+                });
+                
+            } catch (error) {
+                console.error('Error:', error);
+                updateStatus(`Error: ${error.message}`, 'error');
+            }
+        }
+        
+        function getExpectedDate(opponent) {
+            // Known correct dates for 2025 season
+            const expectedDates = {
+                'Ohio State': 'Saturday, August 30, 2025',
+                'San Jose State': 'Saturday, September 6, 2025',
+                'UTEP': 'Saturday, September 13, 2025',
+                'Mississippi State': 'Saturday, September 27, 2025',
+                'Florida': 'Saturday, October 4, 2025',
+                'Oklahoma': 'Saturday, October 11, 2025',
+                'Georgia': 'Saturday, October 18, 2025',
+                'Vanderbilt': 'Saturday, October 25, 2025',
+                'Colorado State': 'Saturday, November 8, 2025',
+                'UTSA': 'Saturday, November 15, 2025',
+                'Kentucky': 'Saturday, November 22, 2025',
+                'Texas A&M': 'Friday, November 28, 2025'
+            };
+            
+            return expectedDates[opponent] || 'Unknown';
+        }
+        
+        // Check dates on load
+        checkDates();
+    </script>
+</body>
+</html>

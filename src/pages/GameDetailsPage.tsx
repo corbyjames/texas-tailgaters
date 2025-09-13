@@ -445,44 +445,44 @@ export default function GameDetailsPage() {
             <>
               <button
                 onClick={() => setStatsModalType('potluck')}
-                className="bg-white rounded-lg shadow-sm p-4 text-center hover:shadow-md transition-shadow cursor-pointer group"
+                className="bg-white rounded-lg shadow-sm p-4 text-center hover:shadow-md transition-shadow cursor-pointer group active:scale-95"
               >
-                <ShoppingBag className="w-8 h-8 text-orange-500 mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                <p className="text-2xl font-bold text-gray-900">{stats.totalItems}</p>
-                <p className="text-sm text-gray-600">Potluck Items</p>
-                <p className="text-xs text-gray-400 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Click for details</p>
+                <ShoppingBag className="w-6 h-6 sm:w-8 sm:h-8 text-orange-500 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalItems}</p>
+                <p className="text-xs sm:text-sm text-gray-600">Potluck Items</p>
+                <p className="text-xs text-gray-400 mt-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">Tap for details</p>
               </button>
               
               <button
                 onClick={() => setStatsModalType('assigned')}
-                className="bg-white rounded-lg shadow-sm p-4 text-center hover:shadow-md transition-shadow cursor-pointer group"
+                className="bg-white rounded-lg shadow-sm p-4 text-center hover:shadow-md transition-shadow cursor-pointer group active:scale-95"
               >
-                <Users className="w-8 h-8 text-green-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                <p className="text-2xl font-bold text-gray-900">{stats.assignedItems}</p>
-                <p className="text-sm text-gray-600">Items Assigned</p>
-                <p className="text-xs text-gray-400 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Click for details</p>
+                <Users className="w-6 h-6 sm:w-8 sm:h-8 text-green-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.assignedItems}</p>
+                <p className="text-xs sm:text-sm text-gray-600">Items Assigned</p>
+                <p className="text-xs text-gray-400 mt-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">Tap for details</p>
               </button>
             </>
           )}
           
           <button
             onClick={() => setStatsModalType('needed')}
-            className="bg-white rounded-lg shadow-sm p-4 text-center hover:shadow-md transition-shadow cursor-pointer group"
+            className="bg-white rounded-lg shadow-sm p-4 text-center hover:shadow-md transition-shadow cursor-pointer group active:scale-95"
           >
-            <Clock className="w-8 h-8 text-blue-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
-            <p className="text-2xl font-bold text-gray-900">{stats.unassignedItems}</p>
-            <p className="text-sm text-gray-600">Items Needed</p>
-            <p className="text-xs text-gray-400 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Click for details</p>
+            <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+            <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.unassignedItems}</p>
+            <p className="text-xs sm:text-sm text-gray-600">Items Needed</p>
+            <p className="text-xs text-gray-400 mt-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">Tap for details</p>
           </button>
           
           <button
             onClick={() => setStatsModalType('attending')}
-            className="bg-white rounded-lg shadow-sm p-4 text-center hover:shadow-md transition-shadow cursor-pointer group"
+            className="bg-white rounded-lg shadow-sm p-4 text-center hover:shadow-md transition-shadow cursor-pointer group active:scale-95"
           >
-            <Users className="w-8 h-8 text-purple-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
-            <p className="text-2xl font-bold text-gray-900">{attendees.length}</p>
-            <p className="text-sm text-gray-600">People Attending</p>
-            <p className="text-xs text-gray-400 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Click for details</p>
+            <Users className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+            <p className="text-xl sm:text-2xl font-bold text-gray-900">{attendees.length}</p>
+            <p className="text-xs sm:text-sm text-gray-600">People Attending</p>
+            <p className="text-xs text-gray-400 mt-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">Tap for details</p>
           </button>
         </div>
 
