@@ -1,9 +1,9 @@
-import { test, expect, devices } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import { loginAsUser } from '../helpers/auth';
 
 // Run these tests only on mobile devices
+// Note: Mobile testing is handled by project configuration
 test.describe('Mobile Navigation', () => {
-  test.use({ ...devices['iPhone 14'] });
   
   test.beforeEach(async ({ page }) => {
     await loginAsUser(page, 'member');

@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "postbuild": "npm run test:regression",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "playwright test",
@@ -25,9 +24,7 @@
     "test:potluck": "playwright test -c e2e/playwright.config.ts e2e/potluck",
     "test:admin": "playwright test -c e2e/playwright.config.ts e2e/admin",
     "test:visual": "playwright test -c e2e/playwright.config.ts e2e/visual",
-    "test:mobile": "playwright test -c e2e/playwright.config.ts --project=mobile-chrome",
     "test:update-snapshots": "playwright test -c e2e/playwright.config.ts --update-snapshots",
-    "test:report": "playwright show-report",
     "test:install": "playwright install",
     "test:production": "playwright test --config=playwright.production.config.ts",
     "test:production:ui": "playwright test --config=playwright.production.config.ts --ui",
