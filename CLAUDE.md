@@ -115,12 +115,14 @@ Tests are implemented as standalone Python scripts rather than using pytest:
 
 ### Admin User
 - Email: `test@texastailgaters.com`
-- Password: `4Xanadu#3`
+- Password: `TestPassword123!`
 - Role: Admin (full access to admin dashboard)
 
 ### Member User
 - Email: `testmember@texastailgaters.com`  
 - Password: `TestMember123!`
 - Role: Member (standard user access)
+
+**NOTE**: Always use test@texastailgaters.com / TestPassword123! for admin testing
 
 These credentials are configured in the test environment and should be used for all Playwright tests, manual testing, and validation tasks.

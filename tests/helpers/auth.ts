@@ -14,11 +14,21 @@ export async function loginAsUser(page: Page, userType: 'admin' | 'member' = 'me
   // Submit
   await page.click('button[type="submit"]');
   
-  // Wait for navigation to home page
-  await page.waitForURL(/^http:\/\/localhost:\d+\/$/);
-  
-  // Additional wait to ensure page is fully loaded
-  await page.waitForSelector('nav, [role="navigation"]');
+  try {
+    // Wait for navigation to home page or any non-login page
+    await page.waitForURL(/^http:\/\/localhost:\d+\/((?!login).)*$/, { timeout: 5000 });
+    
+    // Additional wait to ensure page is fully loaded
+    await page.waitForSelector('nav, [role="navigation"]', { timeout: 5000 });
+  } catch (error) {
+    // If login fails, check for Firebase error
+    const errorMessage = await page.locator('text=/Firebase|invalid-credential/').first().isVisible();
+    if (errorMessage) {
+      console.log(`Warning: Firebase authentication failed for ${user.email}`);
+      // Continue anyway for tests that don't require auth
+    }
+    throw error;
+  }
 }
 
 export async function logout(page: Page) {

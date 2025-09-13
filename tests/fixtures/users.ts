@@ -7,13 +7,13 @@
 export const testUsers = {
   admin: {
     email: 'test@texastailgaters.com',  // Primary test admin account
-    password: '4Xanadu#3',
+    password: 'TestPassword123!',  // Correct password verified with Firebase
     name: 'Test Admin',
     role: 'admin'
   },
   testAdmin: {
     email: 'test@texastailgaters.com',  // Same as admin - this is the correct test account
-    password: '4Xanadu#3',
+    password: 'TestPassword123!',  // Correct password verified with Firebase
     name: 'Test Admin',
     role: 'admin'
   },
