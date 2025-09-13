@@ -46,10 +46,12 @@ jobs:
       
       - name: Run ${{ matrix.device }} tests on ${{ matrix.browser }}
         run: |
-          # Map webkit to safari for project names
+          # Map browser names to match our Playwright config
           BROWSER_NAME="${{ matrix.browser }}"
           if [ "$BROWSER_NAME" == "webkit" ]; then
             BROWSER_NAME="safari"
+          elif [ "$BROWSER_NAME" == "chromium" ]; then
+            BROWSER_NAME="chrome"
           fi
           
           if [ "${{ matrix.device }}" == "mobile" ]; then
