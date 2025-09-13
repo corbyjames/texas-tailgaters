@@ -14,8 +14,11 @@ export async function loginAsUser(page: Page, userType: 'admin' | 'member' = 'me
   // Submit
   await page.click('button[type="submit"]');
   
-  // Wait for navigation
-  await page.waitForURL(/\/games|\/$/);
+  // Wait for navigation to home page
+  await page.waitForURL(/^http:\/\/localhost:\d+\/$/);
+  
+  // Additional wait to ensure page is fully loaded
+  await page.waitForSelector('nav, [role="navigation"]');
 }
 
 export async function logout(page: Page) {

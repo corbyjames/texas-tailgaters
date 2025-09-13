@@ -43,7 +43,8 @@ class AuthService {
     const adminEmails = [
       'admin@texastailgaters.com',
       'corbyjames@gmail.com',
-      'test@texastailgaters.com' // Can be admin for testing
+      'test@texastailgaters.com', // Can be admin for testing
+      'testadmin@texastailgaters.com' // Dedicated test admin account
     ];
     
     const isAdmin = adminEmails.includes(firebaseUser.email?.toLowerCase() || '');

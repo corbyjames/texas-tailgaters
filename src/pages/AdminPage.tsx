@@ -40,7 +40,8 @@ const AdminPage: React.FC = () => {
     const isUserAdmin = user.role === 'admin' || user.isAdmin || 
                         user.email === 'admin@texastailgaters.com' || 
                         user.email === 'corbyjames@gmail.com' ||
-                        user.email === 'test@texastailgaters.com';
+                        user.email === 'test@texastailgaters.com' ||
+                        user.email === 'testadmin@texastailgaters.com';
     console.log('Is user admin?', isUserAdmin);
     if (!isUserAdmin) {
       console.log('User is not admin, redirecting to home');

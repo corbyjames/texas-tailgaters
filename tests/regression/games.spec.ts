@@ -105,14 +105,15 @@ test.describe('Games Page', () => {
 
   test('should show no tailgate indicator', async ({ page }) => {
     await page.goto('/games');
+    await page.waitForLoadState('networkidle');
     
     // Check if any games have no tailgate indicator
     const noTailgateIndicators = page.locator('text=/No Tailgate|Not Hosting/');
     const count = await noTailgateIndicators.count();
     
     if (count > 0) {
-      // Click on a no-tailgate game
-      const noTailgateGame = noTailgateIndicators.first().locator('xpath=ancestor::div[contains(@class, "game-card")]');
+      // Click on a no-tailgate game - find parent card
+      const noTailgateGame = noTailgateIndicators.first().locator('xpath=ancestor::div[contains(@class, "card")]');
       if (await noTailgateGame.isVisible()) {
         await noTailgateGame.click();
         

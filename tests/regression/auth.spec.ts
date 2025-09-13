@@ -20,9 +20,10 @@ test.describe('Authentication Flow', () => {
     // Submit form
     await page.click('button[type="submit"]');
     
-    // Should redirect to games page
-    await expect(page).toHaveURL(/\/games/);
-    await expect(page.locator('h1')).toContainText('Games');
+    // Should redirect to home page (/) after login
+    await expect(page).toHaveURL(/^http:\/\/localhost:\d+\/$/);
+    // Check for navigation elements that indicate successful login
+    await expect(page.locator('nav').or(page.locator('[role="navigation"]')).first()).toBeVisible();
   });
 
   test('should show error with invalid credentials', async ({ page }) => {
