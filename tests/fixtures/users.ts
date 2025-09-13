@@ -6,22 +6,22 @@
 // DO NOT CHANGE these without updating the corresponding application files
 export const testUsers = {
   admin: {
-    email: 'corbyjames@gmail.com',
-    password: '$4Xanadu4M3e',
-    name: 'Corby James',
+    email: 'test@texastailgaters.com',  // Primary test admin account
+    password: '4Xanadu#3',
+    name: 'Test Admin',
     role: 'admin'
   },
   testAdmin: {
-    email: 'testadmin@texastailgaters.com',
-    password: 'TestAdmin123!',
+    email: 'test@texastailgaters.com',  // Same as admin - this is the correct test account
+    password: '4Xanadu#3',
     name: 'Test Admin',
     role: 'admin'
   },
   member: {
-    email: 'test@texastailgaters.com',
-    password: 'TestPassword123!',
-    name: 'Test User',
-    role: 'member'  // Note: This user has admin access in the app but we use it as member for tests
+    email: 'testmember@texastailgaters.com',
+    password: 'TestMember123!',
+    name: 'Test Member',
+    role: 'member'
   },
   newUser: {
     email: `test${Date.now()}@example.com`,
