@@ -1,0 +1,120 @@
+name: Regression Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    # Run tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    strategy:
+      matrix:
+        browser: [chromium, firefox, webkit]
+        device: [desktop, mobile]
+        exclude:
+          # Skip webkit mobile for now due to potential issues
+          - browser: webkit
+            device: mobile
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+      
+      - name: Build application
+        run: npm run build --if-present
+        env:
+          CI: true
+      
+      - name: Run ${{ matrix.device }} tests on ${{ matrix.browser }}
+        run: |
+          if [ "${{ matrix.device }}" == "mobile" ]; then
+            npm run test:mobile -- --project=mobile-${{ matrix.browser }}
+          else
+            npm run test:desktop -- --project=desktop-${{ matrix.browser }}
+          fi
+        env:
+          CI: true
+          BASE_URL: ${{ secrets.BASE_URL || 'http://localhost:5173' }}
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results-${{ matrix.browser }}-${{ matrix.device }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+      
+      - name: Upload coverage to Codecov
+        if: matrix.browser == 'chromium' && matrix.device == 'desktop'
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage/lcov.info
+          flags: e2e
+          name: e2e-coverage
+      
+  test-summary:
+    needs: test
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: playwright-results-*
+          merge-multiple: true
+      
+      - name: Merge test results
+        run: |
+          npx playwright merge-reports --reporter=html ./playwright-results-*
+      
+      - name: Upload merged report
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-merged
+          path: playwright-report/
+          retention-days: 30
+      
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const results = JSON.parse(fs.readFileSync('./test-results/results.json', 'utf8'));
+            
+            const comment = `## 🎭 Playwright Test Results
+            
+            ✅ **Passed:** ${results.passed}
+            ❌ **Failed:** ${results.failed}
+            ⏭️ **Skipped:** ${results.skipped}
+            
+            [View Full Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
