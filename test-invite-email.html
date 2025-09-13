@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Invite Email</title>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #bf5700;
+            margin-bottom: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #fafafa;
+        }
+        button {
+            background: #bf5700;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #a04600;
+        }
+        .success {
+            color: green;
+            padding: 10px;
+            background: #e7f5e7;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .error {
+            color: red;
+            padding: 10px;
+            background: #ffe7e7;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .info {
+            background: #e7f0ff;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        pre {
+            background: #333;
+            color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏈 Test Invite Email - Texas Tailgaters</h1>
+        
+        <div class="info">
+            <strong>Environment Variables Loaded:</strong>
+            <ul>
+                <li>Service ID: <span id="serviceId"></span></li>
+                <li>Template ID: <span id="templateId"></span></li>
+                <li>Public Key: <span id="publicKey"></span></li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h2>1. Test Basic Email (Using Invitation Template)</h2>
+            <input type="email" id="testEmail" placeholder="Enter test email" value="corbyjames@gmail.com">
+            <button onclick="testInvitationTemplate()">Send Test with Invitation Template</button>
+            <div id="invitationResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>2. Test Custom HTML Email</h2>
+            <input type="email" id="customEmail" placeholder="Enter test email" value="corbyjames@gmail.com">
+            <textarea id="customMessage" rows="4" placeholder="Custom message">This is a test message from the Texas Tailgaters app!</textarea>
+            <button onclick="testCustomEmail()">Send Custom Email</button>
+            <div id="customResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>3. Debug Template Parameters</h2>
+            <button onclick="debugTemplateParams()">Show Template Params</button>
+            <pre id="debugOutput"></pre>
+        </div>
+
+        <div class="test-section">
+            <h2>4. Test Direct EmailJS Send</h2>
+            <button onclick="testDirectSend()">Test Direct Send</button>
+            <div id="directResult"></div>
+        </div>
+
+    </div>
+
+    <script>
+        // Load environment variables
+        const SERVICE_ID = 'service_9tubvz5';
+        const TEMPLATE_ID = 'template_teeze8x';
+        const PUBLIC_KEY = 'gGkaMKD7bmPQB6bqz';
+
+        // Display loaded config
+        document.getElementById('serviceId').textContent = SERVICE_ID;
+        document.getElementById('templateId').textContent = TEMPLATE_ID;
+        document.getElementById('publicKey').textContent = PUBLIC_KEY ? '✓ Loaded' : '✗ Missing';
+
+        // Initialize EmailJS
+        emailjs.init(PUBLIC_KEY);
+        console.log('EmailJS initialized with public key:', PUBLIC_KEY);
+
+        async function testInvitationTemplate() {
+            const email = document.getElementById('testEmail').value;
+            const resultDiv = document.getElementById('invitationResult');
+            
+            resultDiv.innerHTML = '<div class="info">Sending...</div>';
+            
+            const templateParams = {
+                // Try multiple field variations
+                email: email,
+                to_email: email,
+                user_email: email,
+                to_name: 'Test User',
+                user_name: 'Test User',
+                name: 'Test User',
+                from_name: 'Texas Tailgaters Admin',
+                game_name: 'Test Game vs Test Opponent',
+                game_date: 'Saturday, January 18, 2025',
+                date: 'Saturday, January 18, 2025',
+                game_time: '3:00 PM',
+                time: '3:00 PM',
+                opponent: 'Test Opponent',
+                team: 'Test Opponent',
+                location: 'Memorial Stadium',
+                venue: 'Memorial Stadium',
+                theme: 'Test Theme',
+                setup_time: '12:00 PM',
+                special_notes: 'This is a test email',
+                notes: 'This is a test email',
+                rsvp_link: 'https://texastailgaters.com/games',
+                link: 'https://texastailgaters.com/games',
+                reply_to: 'texastailgaters@gmail.com'
+            };
+            
+            console.log('Sending with params:', templateParams);
+            
+            try {
+                const response = await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams);
+                console.log('Success:', response);
+                resultDiv.innerHTML = `<div class="success">✅ Email sent successfully! Status: ${response.status}, Text: ${response.text}</div>`;
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `<div class="error">❌ Error: ${error.text || error.message || JSON.stringify(error)}</div>`;
+            }
+        }
+
+        async function testCustomEmail() {
+            const email = document.getElementById('customEmail').value;
+            const message = document.getElementById('customMessage').value;
+            const resultDiv = document.getElementById('customResult');
+            
+            resultDiv.innerHTML = '<div class="info">Sending...</div>';
+            
+            const htmlContent = `
+                <h2>Texas Tailgaters Invitation</h2>
+                <p>${message}</p>
+                <p>Visit <a href="https://texastailgaters.com">texastailgaters.com</a> to RSVP!</p>
+            `;
+            
+            const templateParams = {
+                // Email fields
+                email: email,
+                to_email: email,
+                
+                // Name fields
+                to_name: 'Test User',
+                
+                // Content fields
+                subject: 'Texas Tailgaters - Test Invitation',
+                html_content: htmlContent,
+                message: message,
+                
+                // Reply-to
+                reply_to: 'texastailgaters@gmail.com'
+            };
+            
+            console.log('Sending custom email with params:', templateParams);
+            
+            try {
+                const response = await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams);
+                console.log('Custom email success:', response);
+                resultDiv.innerHTML = `<div class="success">✅ Custom email sent! Status: ${response.status}</div>`;
+            } catch (error) {
+                console.error('Custom email error:', error);
+                resultDiv.innerHTML = `<div class="error">❌ Error: ${error.text || error.message || JSON.stringify(error)}</div>`;
+            }
+        }
+
+        function debugTemplateParams() {
+            const params = {
+                email: 'test@example.com',
+                to_email: 'test@example.com',
+                to_name: 'Test User',
+                from_name: 'Texas Tailgaters',
+                game_name: 'Texas vs Oklahoma',
+                game_date: 'October 12, 2024',
+                game_time: '3:00 PM',
+                opponent: 'Oklahoma',
+                location: 'Cotton Bowl',
+                theme: 'Red River Rivalry',
+                setup_time: '12:00 PM',
+                special_notes: 'Bring your best chili!',
+                rsvp_link: 'https://texastailgaters.com/games/123',
+                reply_to: 'texastailgaters@gmail.com',
+                subject: 'You\'re Invited!',
+                html_content: '<h1>Test HTML</h1>',
+                message: 'Test message'
+            };
+            
+            document.getElementById('debugOutput').textContent = JSON.stringify(params, null, 2);
+        }
+
+        async function testDirectSend() {
+            const resultDiv = document.getElementById('directResult');
+            resultDiv.innerHTML = '<div class="info">Testing direct send...</div>';
+            
+            // Most minimal params possible
+            const minimalParams = {
+                to_email: 'corbyjames@gmail.com',
+                to_name: 'Test',
+                message: 'Direct test message'
+            };
+            
+            console.log('Testing with minimal params:', minimalParams);
+            
+            try {
+                const response = await emailjs.send(SERVICE_ID, TEMPLATE_ID, minimalParams);
+                console.log('Direct send success:', response);
+                resultDiv.innerHTML = `<div class="success">✅ Direct send successful! Response: ${JSON.stringify(response)}</div>`;
+            } catch (error) {
+                console.error('Direct send error:', error);
+                resultDiv.innerHTML = `<div class="error">❌ Error: ${error.text || error.message || JSON.stringify(error)}<br>
+                <strong>This suggests the template needs specific field names. Check your EmailJS template configuration.</strong></div>`;
+            }
+        }
+    </script>
+</body>
+</html>

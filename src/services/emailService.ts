@@ -242,34 +242,97 @@ class EmailService {
       return { success: false, message: 'Email service not configured' };
     }
 
-    // Use a generic template that supports HTML content
-    // You'll need to create this template in EmailJS with {{html_content}} variable
+    // Convert HTML content to work with the invitation template
+    // The template expects game-related fields, so we'll adapt our content
     const templateParams = {
+      // Email recipient fields - multiple variations for compatibility
+      email: data.to_email,
       to_email: data.to_email,
+      user_email: data.to_email,
+      
+      // Name fields
       to_name: data.to_name,
-      subject: data.subject,
-      html_content: data.html_content,
-      message: data.html_content, // Fallback for text-only templates
+      user_name: data.to_name,
+      name: data.to_name,
+      recipient_name: data.to_name,
+      
+      // Sender fields
+      from_name: 'Texas Tailgaters',
+      
+      // Adapt content to game invitation fields
+      game_name: data.subject || 'Texas Tailgaters Update',
+      game_date: new Date().toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      }),
+      date: 'See details below',
+      game_time: '',
+      time: '',
+      opponent: 'Season Games',
+      team: 'Texas Longhorns',
+      location: 'Various Locations',
+      venue: 'See game details',
+      theme: '',
+      setup_time: '',
+      
+      // Use special_notes for our custom content
+      special_notes: data.html_content.replace(/<[^>]*>/g, ' ').substring(0, 500), // Strip HTML and limit length
+      notes: data.html_content.replace(/<[^>]*>/g, ' ').substring(0, 500),
+      
+      // Link to games page
+      rsvp_link: 'https://texastailgaters.com/games',
+      link: 'https://texastailgaters.com/games',
+      
       reply_to: data.reply_to || 'texastailgaters@gmail.com'
     };
 
+    console.log('Sending email to:', data.to_email);
+    console.log('Template params:', templateParams);
+
     try {
-      // Try to use a custom HTML template if available, otherwise fall back to invitation template
       const response = await emailjs.send(
         this.serviceId,
-        this.invitationTemplateId, // You may want to create a specific template for custom emails
+        this.invitationTemplateId,
         templateParams
       );
+      
+      console.log('EmailJS response:', response);
 
-      return { 
-        success: true, 
-        message: 'Email sent successfully' 
-      };
-    } catch (error) {
+      if (response.status === 200) {
+        return { 
+          success: true, 
+          message: 'Email sent successfully' 
+        };
+      } else {
+        return {
+          success: false,
+          message: `Email service returned status ${response.status}`
+        };
+      }
+    } catch (error: any) {
       console.error('Error sending custom email:', error);
+      
+      // Provide detailed error information
+      let errorMessage = 'Failed to send email';
+      
+      if (error.status === 422) {
+        errorMessage = 'Template configuration error. Check EmailJS template fields.';
+        console.error('Template expects different fields. Error:', error.text);
+      } else if (error.status === 401) {
+        errorMessage = 'EmailJS authentication failed. Check API keys.';
+      } else if (error.status === 404) {
+        errorMessage = 'EmailJS template not found.';
+      } else if (error.text) {
+        errorMessage = error.text;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       return { 
         success: false, 
-        message: error instanceof Error ? error.message : 'Failed to send email' 
+        message: errorMessage
       };
     }
   }

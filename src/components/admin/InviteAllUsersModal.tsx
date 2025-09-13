@@ -182,17 +182,23 @@ export function InviteAllUsersModal({ isOpen, onClose }: InviteAllUsersModalProp
       setSendProgress({ current: i + 1, total: selectedUsersList.length });
 
       try {
-        await emailService.sendCustomEmail({
+        const result = await emailService.sendCustomEmail({
           to_email: user.email,
           to_name: user.name || user.email.split('@')[0],
           subject: emailSubject,
           html_content: emailContent,
-          reply_to: 'noreply@texastailgaters.com'
+          reply_to: 'texastailgaters@gmail.com'
         });
         
-        results.success.push(user.email);
+        if (result.success) {
+          results.success.push(user.email);
+          console.log(`✅ Successfully sent to ${user.email}`);
+        } else {
+          results.failed.push(user.email);
+          console.error(`❌ Failed to send to ${user.email}:`, result.message);
+        }
       } catch (error) {
-        console.error(`Failed to send to ${user.email}:`, error);
+        console.error(`❌ Exception sending to ${user.email}:`, error);
         results.failed.push(user.email);
       }
 
