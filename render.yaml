@@ -2,7 +2,8 @@ services:
   - type: web
     name: texas-tailgaters
     env: static
-    buildCommand: npm install && npm run build
+    # Force clean build - updated Sep 13 2025
+    buildCommand: rm -rf node_modules dist && npm install && npm run build
     staticPublishPath: ./dist
     headers:
       - path: /*
