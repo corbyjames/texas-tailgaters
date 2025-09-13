@@ -46,10 +46,16 @@ jobs:
       
       - name: Run ${{ matrix.device }} tests on ${{ matrix.browser }}
         run: |
+          # Map webkit to safari for project names
+          BROWSER_NAME="${{ matrix.browser }}"
+          if [ "$BROWSER_NAME" == "webkit" ]; then
+            BROWSER_NAME="safari"
+          fi
+          
           if [ "${{ matrix.device }}" == "mobile" ]; then
-            npm run test:mobile -- --project=mobile-${{ matrix.browser }}
+            npm run test:mobile -- --project=mobile-${BROWSER_NAME}
           else
-            npm run test:desktop -- --project=desktop-${{ matrix.browser }}
+            npm run test:desktop -- --project=desktop-${BROWSER_NAME}
           fi
         env:
           CI: true
