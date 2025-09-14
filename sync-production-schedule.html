@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sync Production Schedule</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #BF5700;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #8B3A00;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            background: #e8f4fd;
+            border: 1px solid #b3d9f2;
+            display: none;
+        }
+        .status.show {
+            display: block;
+        }
+        .success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .loading {
+            background: #fff3cd;
+            border-color: #ffeeba;
+            color: #856404;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        .game-list {
+            margin-top: 20px;
+        }
+        .game-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f9f9f9;
+            border-radius: 4px;
+            border-left: 4px solid #BF5700;
+        }
+        .score {
+            font-weight: bold;
+            color: #BF5700;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏈 Sync Production Schedule</h1>
+        <p>This will sync the 2025 Texas Longhorns football schedule to the production database, including the Ohio State game score.</p>
+        
+        <div>
+            <button id="loginBtn" onclick="login()">1. Login as Admin</button>
+            <button id="syncBtn" onclick="syncSchedule()" disabled>2. Sync Schedule</button>
+            <button id="verifyBtn" onclick="verifyGames()" disabled>3. Verify Games</button>
+        </div>
+        
+        <div id="status" class="status"></div>
+        <div id="gameList" class="game-list"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword,
+            onAuthStateChanged
+        } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+        import { 
+            getFirestore,
+            collection,
+            getDocs,
+            doc,
+            setDoc,
+            query,
+            where,
+            orderBy
+        } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBJascYs4rXD4uL5Z8F7RDkMOBhQtjehic",
+            authDomain: "texas-tailgaters.firebaseapp.com",
+            databaseURL: "https://texas-tailgaters-default-rtdb.firebaseio.com",
+            projectId: "texas-tailgaters",
+            storageBucket: "texas-tailgaters.appspot.com",
+            messagingSenderId: "517392756353",
+            appId: "1:517392756353:web:texas-tailgaters-web"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Schedule data with Ohio State score
+        const schedule2025 = [
+            {
+                date: '2025-08-30',
+                opponent: 'Ohio State',
+                location: 'Columbus, OH',
+                time: '11:00 AM',
+                isHome: false,
+                tvNetwork: 'TBD',
+                status: 'completed',
+                result: 'L',
+                homeScore: 14,
+                awayScore: 7
+            },
+            {
+                date: '2025-09-06',
+                opponent: 'San Jose State',
+                location: 'Austin, TX',
+                time: '11:00 AM',
+                isHome: true,
+                tvNetwork: 'TBD',
+                status: 'scheduled'
+            },
+            {
+                date: '2025-09-13',
+                opponent: 'UTEP',
+                location: 'Austin, TX',
+                time: '3:15 PM',
+                isHome: true,
+                tvNetwork: 'TBD',
+                status: 'completed',
+                result: 'W',
+                homeScore: 42,
+                awayScore: 10,
+                home_score: 42,
+                away_score: 10
+            },
+            {
+                date: '2025-09-20',
+                opponent: 'Sam Houston',
+                location: 'Austin, TX',
+                time: '7:00 PM',
+                isHome: true,
+                tvNetwork: 'TBD',
+                status: 'scheduled'
+            },
+            {
+                date: '2025-10-04',
+                opponent: 'Florida',
+                location: 'Gainesville, FL',
+                time: 'TBD',
+                isHome: false,
+                tvNetwork: 'TBD',
+                status: 'scheduled'
+            },
+            {
+                date: '2025-10-11',
+                opponent: 'Oklahoma',
+                location: 'Dallas, TX',
+                time: '2:30 PM',
+                isHome: true,
+                tvNetwork: 'TBD',
+                status: 'scheduled'
+            },
+            {
+                date: '2025-10-18',
+                opponent: 'Kentucky',
+                location: 'Lexington, KY',
+                time: 'TBD',
+                isHome: false,
+                tvNetwork: 'TBD',
+                status: 'scheduled'
+            },
+            {
+                date: '2025-10-25',
+                opponent: 'Mississippi State',
+                location: 'Starkville, MS',
+                time: 'TBD',
+                isHome: false,
+                tvNetwork: 'TBD',
+                status: 'scheduled'
+            },
+            {
+                date: '2025-11-01',
+                opponent: 'Vanderbilt',
+                location: 'Austin, TX',
+                time: '11:00 AM',
+                isHome: true,
+                tvNetwork: 'TBD',
+                status: 'scheduled'
+            },
+            {
+                date: '2025-11-15',
+                opponent: 'Georgia',
+                location: 'Athens, GA',
+                time: 'TBD',
+                isHome: false,
+                tvNetwork: 'TBD',
+                status: 'scheduled'
+            },
+            {
+                date: '2025-11-22',
+                opponent: 'Arkansas',
+                location: 'Austin, TX',
+                time: 'TBD',
+                isHome: true,
+                tvNetwork: 'TBD',
+                status: 'scheduled'
+            },
+            {
+                date: '2025-11-28',
+                opponent: 'Texas A&M',
+                location: 'Austin, TX',
+                time: '6:30 PM',
+                isHome: true,
+                tvNetwork: 'TBD',
+                status: 'scheduled'
+            }
+        ];
+
+        window.login = async function() {
+            const statusEl = document.getElementById('status');
+            statusEl.className = 'status loading show';
+            statusEl.innerHTML = 'Logging in as admin...';
+            
+            try {
+                const userCredential = await signInWithEmailAndPassword(
+                    auth, 
+                    'test@texastailgaters.com',
+                    'TestPassword123!'
+                );
+                
+                statusEl.className = 'status success show';
+                statusEl.innerHTML = `✅ Logged in as: ${userCredential.user.email}`;
+                
+                document.getElementById('syncBtn').disabled = false;
+                document.getElementById('loginBtn').disabled = true;
+                
+            } catch (error) {
+                statusEl.className = 'status error show';
+                statusEl.innerHTML = `❌ Login failed: ${error.message}`;
+                console.error('Login error:', error);
+            }
+        };
+
+        window.syncSchedule = async function() {
+            const statusEl = document.getElementById('status');
+            statusEl.className = 'status loading show';
+            statusEl.innerHTML = 'Syncing 2025 schedule...';
+            
+            try {
+                let created = 0;
+                let updated = 0;
+                
+                // Get existing games
+                const gamesSnapshot = await getDocs(collection(db, 'games'));
+                const existingGames = {};
+                gamesSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    existingGames[`${data.opponent}-${data.date}`] = { id: doc.id, ...data };
+                });
+                
+                // Sync each game
+                for (const game of schedule2025) {
+                    const key = `${game.opponent}-${game.date}`;
+                    const gameId = existingGames[key]?.id || `game_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                    
+                    const gameData = {
+                        ...game,
+                        id: gameId,
+                        createdAt: existingGames[key]?.createdAt || new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+                    
+                    await setDoc(doc(db, 'games', gameId), gameData);
+                    
+                    if (existingGames[key]) {
+                        updated++;
+                        console.log(`Updated: ${game.opponent} - Score: ${game.homeScore || 0}-${game.awayScore || 0}`);
+                    } else {
+                        created++;
+                        console.log(`Created: ${game.opponent}`);
+                    }
+                }
+                
+                statusEl.className = 'status success show';
+                statusEl.innerHTML = `✅ Schedule synced! Created: ${created}, Updated: ${updated}`;
+                
+                document.getElementById('verifyBtn').disabled = false;
+                document.getElementById('syncBtn').disabled = true;
+                
+            } catch (error) {
+                statusEl.className = 'status error show';
+                statusEl.innerHTML = `❌ Sync failed: ${error.message}`;
+                console.error('Sync error:', error);
+            }
+        };
+
+        window.verifyGames = async function() {
+            const statusEl = document.getElementById('status');
+            const gameListEl = document.getElementById('gameList');
+            
+            statusEl.className = 'status loading show';
+            statusEl.innerHTML = 'Loading games from database...';
+            
+            try {
+                const q = query(collection(db, 'games'), orderBy('date'));
+                const snapshot = await getDocs(q);
+                
+                let html = '<h3>Games in Database:</h3>';
+                let foundOhioState = false;
+                
+                snapshot.forEach(doc => {
+                    const game = doc.data();
+                    const isOhioState = game.opponent === 'Ohio State';
+                    if (isOhioState) foundOhioState = true;
+                    
+                    html += `
+                        <div class="game-item" ${isOhioState ? 'style="border-left-color: #8B3A00; background: #fff8f0;"' : ''}>
+                            <strong>${game.date}</strong> - ${game.isHome ? 'vs' : '@'} ${game.opponent}
+                            ${game.status === 'completed' ? 
+                                `<span class="score"> - Final: ${game.result === 'W' ? 'W' : 'L'} ${game.homeScore || 0}-${game.awayScore || 0}</span>` : 
+                                ` - ${game.time || 'TBD'}`
+                            }
+                            ${isOhioState ? ' ← Ohio State game with score!' : ''}
+                        </div>
+                    `;
+                });
+                
+                gameListEl.innerHTML = html;
+                
+                statusEl.className = 'status success show';
+                statusEl.innerHTML = foundOhioState ? 
+                    '✅ Games loaded! Ohio State game found with score (L 14-7)' : 
+                    '⚠️ Games loaded but Ohio State score might need updating';
+                    
+            } catch (error) {
+                statusEl.className = 'status error show';
+                statusEl.innerHTML = `❌ Failed to load games: ${error.message}`;
+                console.error('Load error:', error);
+            }
+        };
+
+        // Auto-check auth state
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('status').className = 'status success show';
+                document.getElementById('status').innerHTML = `Already logged in as: ${user.email}`;
+                document.getElementById('syncBtn').disabled = false;
+                document.getElementById('loginBtn').disabled = true;
+            }
+        });
+    </script>
+</body>
+</html>
