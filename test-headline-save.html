@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Headline Save</title>
+</head>
+<body>
+    <h1>Test Headline Save</h1>
+    <p>This page will test saving headlines to the database.</p>
+
+    <div id="status">Initializing...</div>
+    <div id="results"></div>
+
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import {
+            getDatabase,
+            ref,
+            get,
+            update,
+            onValue
+        } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
+        import {
+            getAuth,
+            signInWithEmailAndPassword
+        } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBJascYs4rXD4uL5Z8F7RDkMOBhQtjehic",
+            authDomain: "texas-tailgaters.firebaseapp.com",
+            databaseURL: "https://texas-tailgaters-default-rtdb.firebaseio.com",
+            projectId: "texas-tailgaters",
+            storageBucket: "texas-tailgaters.appspot.com",
+            messagingSenderId: "517392756353",
+            appId: "1:517392756353:web:texas-tailgaters-web"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const auth = getAuth(app);
+
+        const statusEl = document.getElementById('status');
+        const resultsEl = document.getElementById('results');
+
+        async function testHeadlineSave() {
+            try {
+                // Sign in as admin
+                statusEl.textContent = 'Signing in as admin...';
+                await signInWithEmailAndPassword(auth, 'test@texastailgaters.com', 'TestPassword123!');
+
+                // Get all games
+                statusEl.textContent = 'Fetching games...';
+                const gamesRef = ref(database, 'games');
+                const snapshot = await get(gamesRef);
+
+                if (!snapshot.exists()) {
+                    resultsEl.innerHTML = '<p style="color: red;">No games found</p>';
+                    return;
+                }
+
+                const games = snapshot.val();
+                const gameIds = Object.keys(games);
+
+                if (gameIds.length === 0) {
+                    resultsEl.innerHTML = '<p style="color: red;">No games to test</p>';
+                    return;
+                }
+
+                // Test with the first game
+                const testGameId = gameIds[0];
+                const testGame = games[testGameId];
+
+                resultsEl.innerHTML = `
+                    <h2>Testing with game: ${testGame.opponent}</h2>
+                    <p>Game ID: ${testGameId}</p>
+                    <p>Current headline: ${testGame.headline || '(none)'}</p>
+                `;
+
+                // Add a test headline
+                const testHeadline = `Test headline - ${new Date().toISOString()}`;
+                statusEl.textContent = 'Saving headline...';
+
+                const gameRef = ref(database, `games/${testGameId}`);
+                await update(gameRef, {
+                    headline: testHeadline,
+                    updated_at: new Date().toISOString()
+                });
+
+                // Verify it was saved
+                statusEl.textContent = 'Verifying save...';
+                const verifySnapshot = await get(gameRef);
+                const updatedGame = verifySnapshot.val();
+
+                if (updatedGame.headline === testHeadline) {
+                    resultsEl.innerHTML += `
+                        <div style="color: green; font-weight: bold;">
+                            ✅ SUCCESS: Headline saved correctly!
+                        </div>
+                        <p>Saved headline: ${updatedGame.headline}</p>
+                    `;
+
+                    // Test clearing the headline
+                    statusEl.textContent = 'Testing headline clear...';
+                    await update(gameRef, {
+                        headline: '',
+                        updated_at: new Date().toISOString()
+                    });
+
+                    const clearSnapshot = await get(gameRef);
+                    const clearedGame = clearSnapshot.val();
+
+                    if (clearedGame.headline === '') {
+                        resultsEl.innerHTML += `
+                            <div style="color: green;">
+                                ✅ Headline can be cleared successfully
+                            </div>
+                        `;
+                    }
+
+                    // Test with a longer headline
+                    const longHeadline = 'Important: Early setup at 8 AM. Parking in Lot B. Bring extra ice for drinks!';
+                    await update(gameRef, {
+                        headline: longHeadline,
+                        updated_at: new Date().toISOString()
+                    });
+
+                    const longSnapshot = await get(gameRef);
+                    const longGame = longSnapshot.val();
+
+                    if (longGame.headline === longHeadline) {
+                        resultsEl.innerHTML += `
+                            <div style="color: green;">
+                                ✅ Long headlines save correctly
+                            </div>
+                            <p>Long headline: ${longGame.headline}</p>
+                        `;
+                    }
+
+                    statusEl.textContent = 'All tests passed!';
+                    statusEl.style.color = 'green';
+
+                } else {
+                    resultsEl.innerHTML += `
+                        <div style="color: red; font-weight: bold;">
+                            ❌ FAILED: Headline not saved correctly
+                        </div>
+                        <p>Expected: ${testHeadline}</p>
+                        <p>Got: ${updatedGame.headline}</p>
+                    `;
+                    statusEl.textContent = 'Test failed';
+                    statusEl.style.color = 'red';
+                }
+
+            } catch (error) {
+                console.error('Test error:', error);
+                resultsEl.innerHTML = `
+                    <div style="color: red;">
+                        <h3>Error during test:</h3>
+                        <pre>${error.message}</pre>
+                    </div>
+                `;
+                statusEl.textContent = 'Test error';
+                statusEl.style.color = 'red';
+            }
+        }
+
+        // Run the test
+        testHeadlineSave();
+    </script>
+</body>
+</html>

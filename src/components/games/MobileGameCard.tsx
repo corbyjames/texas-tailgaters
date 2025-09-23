@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Tv, Users, Utensils, ChevronRight, UserCheck, CheckCircle, XCircle, Trophy, Ban, CalendarOff, Activity, Clock } from 'lucide-react';
+import { Calendar, MapPin, Tv, Users, Utensils, ChevronRight, UserCheck, CheckCircle, XCircle, Trophy, Ban, CalendarOff, Activity, Clock, Edit2, Check, X } from 'lucide-react';
 import { Game } from '../../types/Game';
 import PotluckService from '../../services/potluckService';
 import rsvpService from '../../services/rsvpService';
@@ -21,6 +21,9 @@ const MobileGameCard: React.FC<MobileGameCardProps> = ({ game, onGameClick, onGa
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin' || user?.isAdmin;
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isEditingHeadline, setIsEditingHeadline] = useState(false);
+  const [headlineText, setHeadlineText] = useState(game.headline || '');
+  const [isSavingHeadline, setIsSavingHeadline] = useState(false);
   const [potluckStats, setPotluckStats] = useState<{
     totalItems: number;
     assignedItems: number;
@@ -113,6 +116,31 @@ const MobileGameCard: React.FC<MobileGameCardProps> = ({ game, onGameClick, onGa
     }
   };
 
+  const handleSaveHeadline = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsSavingHeadline(true);
+    try {
+      await GameService.updateGame({
+        id: game.id,
+        headline: headlineText
+      });
+      setIsEditingHeadline(false);
+      if (onGameUpdated) {
+        onGameUpdated();
+      }
+    } catch (error) {
+      console.error('Error saving headline:', error);
+    } finally {
+      setIsSavingHeadline(false);
+    }
+  };
+
+  const handleCancelHeadline = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setHeadlineText(game.headline || '');
+    setIsEditingHeadline(false);
+  };
+
   // For completed games, show a more compact view
   if (game.status === 'completed') {
     return (
@@ -122,6 +150,12 @@ const MobileGameCard: React.FC<MobileGameCardProps> = ({ game, onGameClick, onGa
           onClick={handleClick}
         >
           <div className="p-3">
+            {/* Headline if exists */}
+            {game.headline && (
+              <div className="mb-2 text-sm font-medium text-yellow-900 bg-yellow-50 px-2 py-1 rounded">
+                {game.headline}
+              </div>
+            )}
             {/* Score Row */}
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-3">
@@ -213,6 +247,54 @@ const MobileGameCard: React.FC<MobileGameCardProps> = ({ game, onGameClick, onGa
       }`}
       onClick={game.noTailgate ? undefined : handleClick}
     >
+      {/* Headline Section */}
+      {(game.headline || isAdmin) && (
+        <div className="bg-yellow-50 border-b border-yellow-200 px-3 py-2">
+          {isEditingHeadline ? (
+            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+              <input
+                type="text"
+                value={headlineText}
+                onChange={(e) => setHeadlineText(e.target.value)}
+                className="flex-grow px-2 py-1 text-sm border border-yellow-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                placeholder="Enter headline..."
+                autoFocus
+              />
+              <button
+                onClick={handleSaveHeadline}
+                disabled={isSavingHeadline}
+                className="p-1 text-green-600"
+              >
+                <Check className="w-4 h-4" />
+              </button>
+              <button
+                onClick={handleCancelHeadline}
+                className="p-1 text-red-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-yellow-900">
+                {game.headline || <span className="text-yellow-600 italic">Add headline</span>}
+              </p>
+              {isAdmin && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsEditingHeadline(true);
+                  }}
+                  className="p-1"
+                >
+                  <Edit2 className="w-4 h-4 text-yellow-600" />
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* No Tailgate Badge */}
       {game.noTailgate && (
         <div className="bg-red-100 border-b border-red-200 px-3 py-2">

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { 
-  Calendar, 
-  Clock, 
-  MapPin, 
-  Tv, 
-  Users, 
-  ShoppingBag, 
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  Tv,
+  Users,
+  ShoppingBag,
   ArrowLeft,
   Edit2,
   Plus,
@@ -16,7 +16,9 @@ import {
   UserX,
   UserPlus,
   Ban,
-  CalendarOff
+  CalendarOff,
+  Check,
+  X
 } from 'lucide-react';
 import { useGames } from '../hooks/useGames';
 import { usePotluck } from '../hooks/usePotluck';
@@ -66,6 +68,9 @@ export default function GameDetailsPage() {
   const [showRSVPModal, setShowRSVPModal] = useState(false);
   const [userRSVP, setUserRSVP] = useState<RSVP | null>(null);
   const [statsModalType, setStatsModalType] = useState<'potluck' | 'assigned' | 'needed' | 'attending' | null>(null);
+  const [isEditingHeadline, setIsEditingHeadline] = useState(false);
+  const [headlineText, setHeadlineText] = useState('');
+  const [isSavingHeadline, setIsSavingHeadline] = useState(false);
   
   // Find the specific game
   const game = games.find(g => g.id === id);
@@ -187,6 +192,13 @@ export default function GameDetailsPage() {
     };
   }, [game?.id, user]);
 
+  // Initialize headline text when game loads
+  useEffect(() => {
+    if (game) {
+      setHeadlineText(game.headline || '');
+    }
+  }, [game]);
+
   if (gamesLoading || potluckLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -290,6 +302,27 @@ export default function GameDetailsPage() {
     }));
   };
 
+  const handleSaveHeadline = async () => {
+    setIsSavingHeadline(true);
+    try {
+      await updateGame({
+        id: game.id,
+        headline: headlineText
+      });
+      setIsEditingHeadline(false);
+      await refreshGames();
+    } catch (error) {
+      console.error('Error saving headline:', error);
+    } finally {
+      setIsSavingHeadline(false);
+    }
+  };
+
+  const handleCancelHeadline = () => {
+    setHeadlineText(game?.headline || '');
+    setIsEditingHeadline(false);
+  };
+
   const handleToggleNoTailgate = async () => {
     if (!game) return;
     
@@ -353,6 +386,51 @@ export default function GameDetailsPage() {
 
         {/* Game Header Card */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          {/* Headline Section */}
+          {(game.headline || isAdmin) && (
+            <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              {isEditingHeadline ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={headlineText}
+                    onChange={(e) => setHeadlineText(e.target.value)}
+                    className="flex-grow px-3 py-2 border border-yellow-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    placeholder="Enter headline for this game..."
+                    autoFocus
+                  />
+                  <button
+                    onClick={handleSaveHeadline}
+                    disabled={isSavingHeadline}
+                    className="p-2 text-green-600 hover:bg-green-50 rounded disabled:opacity-50"
+                  >
+                    <Check className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={handleCancelHeadline}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <p className="font-medium text-lg text-yellow-900">
+                    {game.headline || <span className="text-yellow-600 italic">Click to add headline</span>}
+                  </p>
+                  {isAdmin && (
+                    <button
+                      onClick={() => setIsEditingHeadline(true)}
+                      className="p-1 text-yellow-600 hover:bg-yellow-100 rounded"
+                    >
+                      <Edit2 className="w-5 h-5" />
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
             <div className="flex-1">
               <GameHeader 

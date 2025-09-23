@@ -16,6 +16,9 @@ interface Game {
   tv_network?: string;
   tvNetwork?: string; // Support both formats for compatibility
   no_tailgate?: boolean;
+  headline?: string;
+  home_score?: number;
+  away_score?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -323,6 +326,12 @@ class FirebaseService {
     });
     
     return unsubscribe;
+  }
+
+  // Batch update multiple paths at once
+  async batchUpdate(updates: { [path: string]: any }): Promise<void> {
+    const dbRef = ref(database);
+    await update(dbRef, updates);
   }
 
   // Clear all data (for testing)

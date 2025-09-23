@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useGames } from '../hooks/useGames';
-import { Trash2, Users, Calendar, Shield, AlertTriangle, RefreshCw, Activity, MessageSquare, Mail, Send } from 'lucide-react';
+import { Trash2, Users, Calendar, Shield, AlertTriangle, RefreshCw, Activity, MessageSquare, Mail, Send, Clock } from 'lucide-react';
 import { FeedbackManager } from '../components/admin/FeedbackManager';
 import { UserManager } from '../components/admin/UserManager';
 import { InviteAllUsersModal } from '../components/admin/InviteAllUsersModal';
+import DailyUpdateService from '../services/dailyUpdateService';
 
 const AdminPage: React.FC = () => {
   const { user, loading } = useAuth();
@@ -22,6 +23,9 @@ const AdminPage: React.FC = () => {
   const [diagnosticResults, setDiagnosticResults] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'feedback'>('overview');
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [updatingStatuses, setUpdatingStatuses] = useState(false);
+  const [updateSuccess, setUpdateSuccess] = useState('');
+  const [serviceStatus, setServiceStatus] = useState(DailyUpdateService.getStatus());
 
   // Check if user is admin
   React.useEffect(() => {
@@ -119,6 +123,40 @@ const AdminPage: React.FC = () => {
       setTimeout(() => setSyncError(''), 5000);
     } finally {
       setSyncing(false);
+    }
+  };
+
+  const handleUpdateGameStatuses = async () => {
+    setUpdatingStatuses(true);
+    setUpdateSuccess('');
+    setSyncError('');
+
+    try {
+      const result = await DailyUpdateService.forceUpdate();
+
+      if (result.gamesUpdated > 0) {
+        setUpdateSuccess(`Successfully updated ${result.gamesUpdated} game(s) to completed status`);
+        // Refresh games after update
+        await refreshGames();
+      } else {
+        setUpdateSuccess('All games are already up to date');
+      }
+
+      // Update service status
+      setServiceStatus(DailyUpdateService.getStatus());
+
+      // Reset message after 5 seconds
+      setTimeout(() => {
+        setUpdateSuccess('');
+      }, 5000);
+    } catch (err) {
+      console.error('Error updating game statuses:', err);
+      setSyncError('Failed to update game statuses. Please try again.');
+
+      // Reset error message after 5 seconds
+      setTimeout(() => setSyncError(''), 5000);
+    } finally {
+      setUpdatingStatuses(false);
     }
   };
 
@@ -275,7 +313,44 @@ const AdminPage: React.FC = () => {
             {syncing ? 'Syncing...' : 'Sync Schedule'}
           </button>
         </div>
-        
+
+        {/* Daily Update Service */}
+        <div className="border rounded-lg p-4 bg-purple-50 border-purple-200 mb-4">
+          <div className="flex items-start gap-3 mb-4">
+            <Clock className="text-purple-600 mt-1" size={20} />
+            <div className="flex-grow">
+              <h3 className="font-semibold text-ut-text">Daily Game Status Updates</h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Automatically updates game statuses to "completed" when the game date has passed.
+                Runs daily and checks every hour while the app is open.
+              </p>
+              <div className="mt-2 text-xs text-gray-500">
+                <p>Service Status: <span className={serviceStatus.isRunning ? 'text-green-600' : 'text-red-600'}>
+                  {serviceStatus.isRunning ? '● Running' : '○ Stopped'}
+                </span></p>
+                {serviceStatus.lastUpdate && (
+                  <p>Last Update: {new Date(serviceStatus.lastUpdate).toLocaleString()}</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {updateSuccess && (
+            <div className="mb-4 p-3 bg-green-100 border border-green-300 rounded-lg text-green-800">
+              ✅ {updateSuccess}
+            </div>
+          )}
+
+          <button
+            onClick={handleUpdateGameStatuses}
+            disabled={updatingStatuses}
+            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+          >
+            <Clock size={18} className={updatingStatuses ? 'animate-pulse' : ''} />
+            {updatingStatuses ? 'Updating...' : 'Update Game Statuses Now'}
+          </button>
+        </div>
+
         {/* Clear Mock Data */}
         <div className="border rounded-lg p-4 bg-red-50 border-red-200">
           <div className="flex items-start gap-3 mb-4">

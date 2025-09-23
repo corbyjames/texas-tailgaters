@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Game Details Error</title>
+</head>
+<body>
+    <h1>Game Details Page Error Test</h1>
+    <p>Click the button to navigate to a game details page and check for errors.</p>
+
+    <button onclick="checkGameDetails()">Go to Game Details</button>
+    <div id="status"></div>
+    <div id="results"></div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import {
+            getDatabase,
+            ref,
+            get
+        } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
+        import {
+            getAuth,
+            signInWithEmailAndPassword
+        } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBJascYs4rXD4uL5Z8F7RDkMOBhQtjehic",
+            authDomain: "texas-tailgaters.firebaseapp.com",
+            databaseURL: "https://texas-tailgaters-default-rtdb.firebaseio.com",
+            projectId: "texas-tailgaters",
+            storageBucket: "texas-tailgaters.appspot.com",
+            messagingSenderId: "517392756353",
+            appId: "1:517392756353:web:texas-tailgaters-web"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const auth = getAuth(app);
+
+        window.checkGameDetails = async function() {
+            const statusEl = document.getElementById('status');
+            const resultsEl = document.getElementById('results');
+
+            try {
+                // Sign in first
+                statusEl.textContent = 'Signing in...';
+                await signInWithEmailAndPassword(auth, 'test@texastailgaters.com', 'TestPassword123!');
+
+                // Get games to find an ID
+                statusEl.textContent = 'Fetching games...';
+                const gamesRef = ref(database, 'games');
+                const snapshot = await get(gamesRef);
+
+                if (!snapshot.exists()) {
+                    resultsEl.innerHTML = '<p style="color: red;">No games found</p>';
+                    return;
+                }
+
+                const games = snapshot.val();
+                const gameIds = Object.keys(games);
+
+                if (gameIds.length === 0) {
+                    resultsEl.innerHTML = '<p style="color: red;">No games available</p>';
+                    return;
+                }
+
+                const firstGameId = gameIds[0];
+                const firstGame = games[firstGameId];
+
+                resultsEl.innerHTML = `
+                    <h2>First Game Details:</h2>
+                    <p><strong>ID:</strong> ${firstGameId}</p>
+                    <p><strong>Opponent:</strong> ${firstGame.opponent}</p>
+                    <p><strong>Date:</strong> ${firstGame.date}</p>
+                    <p><strong>Location:</strong> ${firstGame.location || 'N/A'}</p>
+                    <p><strong>Headline:</strong> ${firstGame.headline || '(no headline)'}</p>
+                    <hr>
+                    <p>Navigate to the game details page to check for errors:</p>
+                    <a href="http://localhost:5173/games/${firstGameId}" target="_blank" style="display: inline-block; padding: 10px 20px; background: #841617; color: white; text-decoration: none; border-radius: 5px;">
+                        Open Game Details Page
+                    </a>
+                    <p style="margin-top: 20px;">
+                        <strong>After clicking the link:</strong><br>
+                        1. Open browser console (F12)<br>
+                        2. Check for any red error messages<br>
+                        3. Note if the page loads correctly
+                    </p>
+                `;
+
+                statusEl.textContent = 'Ready - click the link above to test';
+                statusEl.style.color = 'green';
+
+            } catch (error) {
+                console.error('Error:', error);
+                resultsEl.innerHTML = `
+                    <div style="color: red;">
+                        <h3>Error:</h3>
+                        <pre>${error.message}</pre>
+                    </div>
+                `;
+                statusEl.textContent = 'Error occurred';
+                statusEl.style.color = 'red';
+            }
+        }
+
+        // Also listen for console errors
+        window.addEventListener('error', (event) => {
+            console.error('Page error:', event.error);
+        });
+    </script>
+</body>
+</html>

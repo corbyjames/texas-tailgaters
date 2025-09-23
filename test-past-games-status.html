@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Past Games Status Update</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #bf5700;
+            margin-bottom: 20px;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .game-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .game-date {
+            color: #666;
+            font-size: 14px;
+        }
+        .game-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-completed {
+            background-color: #e5e5e5;
+            color: #666;
+        }
+        .status-scheduled {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+        .status-planned {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .past-date {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .future-date {
+            color: #28a745;
+            font-weight: bold;
+        }
+        button {
+            background-color: #bf5700;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #9c4600;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .success {
+            color: #28a745;
+            padding: 10px;
+            background-color: #d4edda;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .error {
+            color: #dc3545;
+            padding: 10px;
+            background-color: #f8d7da;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .info {
+            color: #004085;
+            padding: 10px;
+            background-color: #cce5ff;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        #loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .update-log {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🏈 Test Past Games Status Update</h1>
+
+    <div class="test-section">
+        <h2>Current Date & Time</h2>
+        <div id="current-time"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Games List</h2>
+        <div id="loading">Loading games...</div>
+        <div id="games-container"></div>
+
+        <button onclick="loadGames()" id="refresh-btn">Refresh Games</button>
+        <button onclick="forceUpdateStatuses()" id="force-update-btn">Force Update Past Game Statuses</button>
+        <button onclick="clearLog()" id="clear-log-btn">Clear Log</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Update Log</h2>
+        <div id="update-log" class="update-log"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import {
+            getDatabase,
+            ref,
+            get,
+            update,
+            onValue,
+            set
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        import {
+            getAuth,
+            signInWithEmailAndPassword
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBJascYs4rXD4uL5Z8F7RDkMOBhQtjehic",
+            authDomain: "texas-tailgaters.firebaseapp.com",
+            databaseURL: "https://texas-tailgaters-default-rtdb.firebaseio.com",
+            projectId: "texas-tailgaters",
+            storageBucket: "texas-tailgaters.appspot.com",
+            messagingSenderId: "517392756353",
+            appId: "1:517392756353:web:texas-tailgaters-web"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const auth = getAuth(app);
+
+        let logMessages = [];
+
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            logMessages.push(`[${timestamp}] ${message}`);
+            updateLogDisplay();
+        }
+
+        function updateLogDisplay() {
+            const logDiv = document.getElementById('update-log');
+            logDiv.innerHTML = logMessages.join('<br>');
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        window.clearLog = function() {
+            logMessages = [];
+            updateLogDisplay();
+        }
+
+        // Update current time display
+        function updateCurrentTime() {
+            const now = new Date();
+            document.getElementById('current-time').innerHTML = `
+                <p><strong>Current Date:</strong> ${now.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                })}</p>
+                <p><strong>Current Time:</strong> ${now.toLocaleTimeString()}</p>
+                <p><strong>Today at midnight:</strong> ${new Date(now.setHours(0,0,0,0)).toISOString()}</p>
+            `;
+        }
+
+        updateCurrentTime();
+        setInterval(updateCurrentTime, 1000);
+
+        async function authenticateUser() {
+            try {
+                const userCredential = await signInWithEmailAndPassword(
+                    auth,
+                    'test@texastailgaters.com',
+                    'TestPassword123!'
+                );
+                addLog('Authentication successful', 'success');
+                return true;
+            } catch (error) {
+                addLog(`Authentication failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        window.loadGames = async function() {
+            const container = document.getElementById('games-container');
+            const loading = document.getElementById('loading');
+
+            loading.style.display = 'block';
+            container.innerHTML = '';
+
+            try {
+                // Authenticate first
+                await authenticateUser();
+
+                const gamesRef = ref(database, 'games');
+                const snapshot = await get(gamesRef);
+
+                if (!snapshot.exists()) {
+                    container.innerHTML = '<p>No games found in database.</p>';
+                    addLog('No games found in database', 'error');
+                    return;
+                }
+
+                const games = [];
+                snapshot.forEach(childSnapshot => {
+                    const game = childSnapshot.val();
+                    games.push({
+                        id: childSnapshot.key,
+                        ...game
+                    });
+                });
+
+                // Sort by date
+                games.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+                addLog(`Loaded ${games.length} games`, 'success');
+
+                const now = new Date();
+                now.setHours(0, 0, 0, 0);
+
+                let pastGamesCount = 0;
+                let futureGamesCount = 0;
+                let completedCount = 0;
+
+                games.forEach(game => {
+                    const gameDate = new Date(game.date + 'T12:00:00');
+                    gameDate.setHours(0, 0, 0, 0);
+
+                    const isPast = gameDate < now;
+                    const statusClass = `status-${game.status || 'scheduled'}`;
+                    const dateClass = isPast ? 'past-date' : 'future-date';
+
+                    if (isPast) pastGamesCount++;
+                    else futureGamesCount++;
+
+                    if (game.status === 'completed') completedCount++;
+
+                    const shouldBeCompleted = isPast && game.status !== 'completed' && game.status !== 'in-progress';
+
+                    const gameCard = document.createElement('div');
+                    gameCard.className = 'game-card';
+                    gameCard.innerHTML = `
+                        <div class="game-header">
+                            <div>
+                                <strong>${game.opponent}</strong>
+                                <span class="game-date ${dateClass}"> - ${new Date(game.date).toLocaleDateString()}</span>
+                                ${game.time ? `<span> at ${game.time}</span>` : ''}
+                            </div>
+                            <span class="game-status ${statusClass}">${game.status || 'scheduled'}</span>
+                        </div>
+                        <div>
+                            <small>
+                                Home: ${game.is_home ? 'Yes' : 'No'} |
+                                TV: ${game.tv_network || 'TBD'}
+                                ${shouldBeCompleted ? '<br><span style="color: orange;">⚠️ Should be marked as completed</span>' : ''}
+                                ${game.home_score !== undefined ? `<br>Score: ${game.home_score} - ${game.away_score}` : ''}
+                            </small>
+                        </div>
+                    `;
+                    container.appendChild(gameCard);
+                });
+
+                // Add summary
+                const summary = document.createElement('div');
+                summary.className = 'info';
+                summary.innerHTML = `
+                    <strong>Summary:</strong><br>
+                    Total Games: ${games.length}<br>
+                    Past Games: ${pastGamesCount}<br>
+                    Future Games: ${futureGamesCount}<br>
+                    Completed Games: ${completedCount}<br>
+                    Need Update: ${pastGamesCount - completedCount}
+                `;
+                container.insertBefore(summary, container.firstChild);
+
+            } catch (error) {
+                container.innerHTML = `<div class="error">Error loading games: ${error.message}</div>`;
+                addLog(`Error loading games: ${error.message}`, 'error');
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        window.forceUpdateStatuses = async function() {
+            const btn = document.getElementById('force-update-btn');
+            btn.disabled = true;
+
+            try {
+                await authenticateUser();
+
+                const gamesRef = ref(database, 'games');
+                const snapshot = await get(gamesRef);
+
+                if (!snapshot.exists()) {
+                    addLog('No games found', 'error');
+                    return;
+                }
+
+                const now = new Date();
+                now.setHours(0, 0, 0, 0);
+
+                let updatedCount = 0;
+                const updates = {};
+
+                snapshot.forEach(childSnapshot => {
+                    const game = childSnapshot.val();
+                    const gameId = childSnapshot.key;
+                    const gameDate = new Date(game.date + 'T12:00:00');
+                    gameDate.setHours(0, 0, 0, 0);
+
+                    // Check if game is in the past and not already completed
+                    if (gameDate < now && game.status !== 'completed' && game.status !== 'in-progress') {
+                        let shouldUpdate = false;
+
+                        // Check if we have scores
+                        if (game.home_score !== undefined && game.away_score !== undefined) {
+                            shouldUpdate = true;
+                            addLog(`Game vs ${game.opponent} has scores, marking as completed`, 'info');
+                        } else if (game.time) {
+                            // Check if enough time has passed after kickoff
+                            const [hours, minutes] = (game.time || '00:00').split(':').map(Number);
+                            const gameDateTime = new Date(gameDate);
+                            gameDateTime.setHours(hours || 12, minutes || 0, 0, 0);
+                            // Add 4 hours for typical game duration
+                            gameDateTime.setHours(gameDateTime.getHours() + 4);
+
+                            if (new Date() > gameDateTime) {
+                                shouldUpdate = true;
+                                addLog(`Game vs ${game.opponent} (${game.date} ${game.time}) is past kickoff + 4 hours, marking as completed`, 'info');
+                            }
+                        } else {
+                            // No time specified, if date has passed, mark as completed
+                            shouldUpdate = true;
+                            addLog(`Game vs ${game.opponent} (${game.date}) is past date, marking as completed`, 'info');
+                        }
+
+                        if (shouldUpdate) {
+                            updates[`games/${gameId}/status`] = 'completed';
+                            updatedCount++;
+                        }
+                    }
+                });
+
+                if (updatedCount > 0) {
+                    await update(ref(database), updates);
+                    addLog(`Successfully updated ${updatedCount} game(s) to completed status`, 'success');
+
+                    // Reload games after update
+                    setTimeout(() => loadGames(), 1000);
+                } else {
+                    addLog('No games needed status update', 'info');
+                }
+
+            } catch (error) {
+                addLog(`Error updating game statuses: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // Load games on page load
+        loadGames();
+    </script>
+</body>
+</html>

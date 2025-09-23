@@ -1,0 +1,88 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - generic [ref=e7]:
+      - generic [ref=e8]:
+        - generic [ref=e9]: 🔥
+        - heading "Texas Tailgaters" [level=1] [ref=e10]
+      - generic [ref=e11]:
+        - button "Send Feedback" [ref=e12] [cursor=pointer]:
+          - img [ref=e13] [cursor=pointer]
+        - generic [ref=e15]: Admin
+        - button "Sign Out" [ref=e16] [cursor=pointer]
+  - main [ref=e17]:
+    - generic [ref=e18]:
+      - generic [ref=e19]:
+        - heading "Welcome back, Test User! 🤘" [level=1] [ref=e20]
+        - paragraph [ref=e21]: Ready for another great UT football season?
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - generic [ref=e24]: "12"
+          - generic [ref=e25]: Games This Season
+        - generic [ref=e26]:
+          - generic [ref=e27]: "0"
+          - generic [ref=e28]: Planned Tailgates
+      - generic [ref=e29]:
+        - heading "Quick Actions" [level=2] [ref=e30]
+        - generic [ref=e31]:
+          - link "🏈 View Season Schedule See all upcoming games" [ref=e32] [cursor=pointer]:
+            - /url: /games
+            - generic [ref=e33] [cursor=pointer]:
+              - generic [ref=e34] [cursor=pointer]: 🏈
+              - generic [ref=e35] [cursor=pointer]:
+                - heading "View Season Schedule" [level=3] [ref=e36] [cursor=pointer]
+                - paragraph [ref=e37] [cursor=pointer]: See all upcoming games
+          - link "🍖 Manage Potluck Sign up for food items" [ref=e38] [cursor=pointer]:
+            - /url: /potluck
+            - generic [ref=e39] [cursor=pointer]:
+              - generic [ref=e40] [cursor=pointer]: 🍖
+              - generic [ref=e41] [cursor=pointer]:
+                - heading "Manage Potluck" [level=3] [ref=e42] [cursor=pointer]
+                - paragraph [ref=e43] [cursor=pointer]: Sign up for food items
+          - link "⚙️ Admin Dashboard Manage users and settings" [ref=e44] [cursor=pointer]:
+            - /url: /admin
+            - generic [ref=e45] [cursor=pointer]:
+              - generic [ref=e46] [cursor=pointer]: ⚙️
+              - generic [ref=e47] [cursor=pointer]:
+                - heading "Admin Dashboard" [level=3] [ref=e48] [cursor=pointer]
+                - paragraph [ref=e49] [cursor=pointer]: Manage users and settings
+      - generic [ref=e50]:
+        - heading "Recent Activity" [level=2] [ref=e51]
+        - generic [ref=e52]:
+          - generic [ref=e53]:
+            - generic [ref=e54]: ✅
+            - generic [ref=e55]: Schedule synced from UT Athletics
+            - generic [ref=e56]: 2 hours ago
+          - generic [ref=e57]:
+            - generic [ref=e58]: ⚠️
+            - generic [ref=e59]: 12 games need theme assignment
+            - generic [ref=e60]: 1 day ago
+          - generic [ref=e61]:
+            - generic [ref=e62]: ✅
+            - generic [ref=e63]: John signed up for BBQ Brisket
+            - generic [ref=e64]: 2 days ago
+  - navigation [ref=e65]:
+    - generic [ref=e66]:
+      - link "📱 Home" [ref=e67] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e68] [cursor=pointer]: 📱
+        - generic [ref=e69] [cursor=pointer]: Home
+      - link "🏈 Games" [ref=e70] [cursor=pointer]:
+        - /url: /games
+        - generic [ref=e71] [cursor=pointer]: 🏈
+        - generic [ref=e72] [cursor=pointer]: Games
+      - link "🍖 Potluck" [ref=e73] [cursor=pointer]:
+        - /url: /potluck
+        - generic [ref=e74] [cursor=pointer]: 🍖
+        - generic [ref=e75] [cursor=pointer]: Potluck
+      - link "👤 Profile" [ref=e76] [cursor=pointer]:
+        - /url: /profile
+        - generic [ref=e77] [cursor=pointer]: 👤
+        - generic [ref=e78] [cursor=pointer]: Profile
+      - link "⚙️ Admin" [ref=e79] [cursor=pointer]:
+        - /url: /admin
+        - generic [ref=e80] [cursor=pointer]: ⚙️
+        - generic [ref=e81] [cursor=pointer]: Admin
+```

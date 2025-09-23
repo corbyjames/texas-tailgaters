@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Sam Houston Game Score</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #bf5700;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #bf5700;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #9c4600;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .success {
+            color: #28a745;
+            padding: 10px;
+            background-color: #d4edda;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .error {
+            color: #dc3545;
+            padding: 10px;
+            background-color: #f8d7da;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .info {
+            color: #004085;
+            padding: 10px;
+            background-color: #cce5ff;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .game-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🏈 Fix Sam Houston Game Score</h1>
+
+    <div class="section">
+        <h2>Sam Houston Game - September 20, 2025</h2>
+        <div class="info">
+            <strong>Actual Game Result:</strong><br>
+            Texas 55 - Sam Houston State 0<br>
+            Date: September 20, 2025<br>
+            Location: Austin, TX (Home Game)<br>
+            Result: Win (W)
+        </div>
+
+        <div id="current-data" class="game-info"></div>
+
+        <button onclick="checkGame()" id="check-btn">Check Current Game Data</button>
+        <button onclick="updateScore()" id="update-btn">Update Score to 55-0</button>
+        <button onclick="verifyUpdate()" id="verify-btn" style="display:none;">Verify Update</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import {
+            getDatabase,
+            ref,
+            get,
+            update,
+            query,
+            orderByChild,
+            equalTo
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        import {
+            getAuth,
+            signInWithEmailAndPassword
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBJascYs4rXD4uL5Z8F7RDkMOBhQtjehic",
+            authDomain: "texas-tailgaters.firebaseapp.com",
+            databaseURL: "https://texas-tailgaters-default-rtdb.firebaseio.com",
+            projectId: "texas-tailgaters",
+            storageBucket: "texas-tailgaters.appspot.com",
+            messagingSenderId: "517392756353",
+            appId: "1:517392756353:web:texas-tailgaters-web"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const auth = getAuth(app);
+
+        let foundGameId = null;
+
+        async function authenticateUser() {
+            try {
+                const userCredential = await signInWithEmailAndPassword(
+                    auth,
+                    'test@texastailgaters.com',
+                    'TestPassword123!'
+                );
+                console.log('Authentication successful');
+                return true;
+            } catch (error) {
+                console.error('Authentication failed:', error);
+                showMessage(`Authentication failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        function showMessage(message, type = 'info') {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = type;
+            resultDiv.innerHTML = message;
+        }
+
+        window.checkGame = async function() {
+            const btn = document.getElementById('check-btn');
+            btn.disabled = true;
+
+            try {
+                await authenticateUser();
+
+                const gamesRef = ref(database, 'games');
+                const snapshot = await get(gamesRef);
+
+                if (!snapshot.exists()) {
+                    showMessage('No games found in database.', 'error');
+                    return;
+                }
+
+                let samHoustonGame = null;
+
+                snapshot.forEach(childSnapshot => {
+                    const game = childSnapshot.val();
+                    const gameId = childSnapshot.key;
+
+                    // Check for Sam Houston game by opponent name and date
+                    if ((game.opponent && game.opponent.toLowerCase().includes('sam houston')) ||
+                        (game.opponent === 'Sam Houston State') ||
+                        (game.opponent === 'Sam Houston') ||
+                        (game.date === '2025-09-20') ||
+                        (game.date === '2024-08-31')) {
+                        samHoustonGame = {
+                            id: gameId,
+                            ...game
+                        };
+                        foundGameId = gameId;
+                    }
+                });
+
+                if (samHoustonGame) {
+                    const dataDiv = document.getElementById('current-data');
+                    dataDiv.innerHTML = `
+                        <h3>Found Sam Houston Game:</h3>
+                        <pre>${JSON.stringify(samHoustonGame, null, 2)}</pre>
+                        <p><strong>Game ID:</strong> ${samHoustonGame.id}</p>
+                        <p><strong>Status:</strong> ${samHoustonGame.status || 'Not set'}</p>
+                        <p><strong>Home Score:</strong> ${samHoustonGame.home_score !== undefined ? samHoustonGame.home_score : 'Not set'}</p>
+                        <p><strong>Away Score:</strong> ${samHoustonGame.away_score !== undefined ? samHoustonGame.away_score : 'Not set'}</p>
+                        <p><strong>Result:</strong> ${samHoustonGame.result || 'Not set'}</p>
+                    `;
+
+                    if (samHoustonGame.home_score === 55 && samHoustonGame.away_score === 0) {
+                        showMessage('Score is already correct (55-0)! If not displaying, may be a UI issue.', 'success');
+                    } else {
+                        showMessage('Score needs to be updated. Click "Update Score" to fix.', 'info');
+                    }
+                } else {
+                    showMessage('Sam Houston game not found. Checking for games on 2024-08-31...', 'error');
+
+                    // Show all games for debugging
+                    let allGames = [];
+                    snapshot.forEach(childSnapshot => {
+                        const game = childSnapshot.val();
+                        allGames.push({
+                            id: childSnapshot.key,
+                            opponent: game.opponent,
+                            date: game.date
+                        });
+                    });
+
+                    const dataDiv = document.getElementById('current-data');
+                    dataDiv.innerHTML = `
+                        <h3>All Games in Database:</h3>
+                        <pre>${JSON.stringify(allGames, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                showMessage(`Error checking game: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        window.updateScore = async function() {
+            if (!foundGameId) {
+                showMessage('Please check the game first to find its ID.', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('update-btn');
+            btn.disabled = true;
+
+            try {
+                await authenticateUser();
+
+                const updates = {
+                    [`games/${foundGameId}/home_score`]: 55,
+                    [`games/${foundGameId}/away_score`]: 0,
+                    [`games/${foundGameId}/homeScore`]: 55,  // Also update camelCase version
+                    [`games/${foundGameId}/awayScore`]: 0,   // Also update camelCase version
+                    [`games/${foundGameId}/result`]: 'W',
+                    [`games/${foundGameId}/status`]: 'completed'
+                };
+
+                await update(ref(database), updates);
+
+                showMessage(`Successfully updated Sam Houston game score to 55-0!`, 'success');
+
+                // Show verify button
+                document.getElementById('verify-btn').style.display = 'inline-block';
+
+                // Auto-verify after 1 second
+                setTimeout(() => verifyUpdate(), 1000);
+
+            } catch (error) {
+                showMessage(`Error updating score: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        window.verifyUpdate = async function() {
+            const btn = document.getElementById('verify-btn');
+            btn.disabled = true;
+
+            try {
+                const gameRef = ref(database, `games/${foundGameId}`);
+                const snapshot = await get(gameRef);
+
+                if (snapshot.exists()) {
+                    const game = snapshot.val();
+
+                    const verified = game.home_score === 55 &&
+                                   game.away_score === 0 &&
+                                   game.result === 'W' &&
+                                   game.status === 'completed';
+
+                    if (verified) {
+                        showMessage('✅ Score successfully updated and verified! Texas 55 - Sam Houston 0', 'success');
+                    } else {
+                        showMessage('⚠️ Update may not have fully applied. Please try again.', 'error');
+                    }
+
+                    // Update display
+                    const dataDiv = document.getElementById('current-data');
+                    dataDiv.innerHTML = `
+                        <h3>Updated Game Data:</h3>
+                        <pre>${JSON.stringify({
+                            id: foundGameId,
+                            ...game
+                        }, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                showMessage(`Error verifying: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // Auto-check on load
+        setTimeout(() => checkGame(), 500);
+    </script>
+</body>
+</html>

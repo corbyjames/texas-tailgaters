@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Users, Trophy, CheckCircle, XCircle, Send, ChevronDown, ChevronUp, Ban, CalendarOff, Clock, Activity } from 'lucide-react';
+import { ShoppingBag, Users, Trophy, CheckCircle, XCircle, Send, ChevronDown, ChevronUp, Ban, CalendarOff, Clock, Activity, Edit2, Check, X } from 'lucide-react';
 import { Game } from '../../types/Game';
 import { GameHeader } from './GameHeader';
 import PotluckService from '../../services/potluckService';
@@ -18,7 +18,19 @@ interface GameCardProps {
 const GameCard: React.FC<GameCardProps> = ({ game, onGameClick, onInvite, onGameUpdated }) => {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin' || user?.isAdmin;
-  const [isExpanded, setIsExpanded] = useState(game.status !== 'completed');
+  const [isEditingHeadline, setIsEditingHeadline] = useState(false);
+  const [headlineText, setHeadlineText] = useState(game.headline || '');
+  const [isSavingHeadline, setIsSavingHeadline] = useState(false);
+
+  // Check if game is in the past to determine initial expansion state
+  const isGamePast = () => {
+    const gameDate = parseGameDate(game.date);
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    return gameDate < now;
+  };
+
+  const [isExpanded, setIsExpanded] = useState(!isGamePast() && game.status !== 'completed');
   const [isUpdating, setIsUpdating] = useState(false);
   const [potluckStats, setPotluckStats] = useState<{
     totalItems: number;
@@ -98,13 +110,43 @@ const GameCard: React.FC<GameCardProps> = ({ game, onGameClick, onInvite, onGame
     }
   };
 
+  const handleSaveHeadline = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsSavingHeadline(true);
+    try {
+      await GameService.updateGame({
+        id: game.id,
+        headline: headlineText
+      });
+      setIsEditingHeadline(false);
+      if (onGameUpdated) {
+        onGameUpdated();
+      }
+    } catch (error) {
+      console.error('Error saving headline:', error);
+    } finally {
+      setIsSavingHeadline(false);
+    }
+  };
+
+  const handleCancelHeadline = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setHeadlineText(game.headline || '');
+    setIsEditingHeadline(false);
+  };
+
   // Calculate total participants (potluck items + expected attendees)
   const totalParticipants = potluckStats.totalItems + (game.expectedAttendance || 0);
 
-  // For completed games, show collapsed view by default
-  if (game.status === 'completed' && !isExpanded) {
+  // For completed games or past games, show collapsed view by default
+  if ((game.status === 'completed' || isGamePast()) && !isExpanded) {
     return (
       <div className="card p-3 hover:shadow-ut-hover transition-all duration-200 cursor-pointer bg-gray-50">
+        {game.headline && (
+          <div className="mb-2 text-sm font-medium text-yellow-900 bg-yellow-50 px-2 py-1 rounded">
+            {game.headline}
+          </div>
+        )}
         <div className="flex items-center justify-between" onClick={() => setIsExpanded(true)}>
           <div className="flex items-center gap-4">
             {/* Score Display */}
@@ -112,12 +154,14 @@ const GameCard: React.FC<GameCardProps> = ({ game, onGameClick, onInvite, onGame
               {game.result === 'W' && <CheckCircle className="w-5 h-5 text-green-600" />}
               {game.result === 'L' && <XCircle className="w-5 h-5 text-red-600" />}
               {game.result === 'T' && <Trophy className="w-5 h-5 text-yellow-600" />}
+              {!game.result && game.status === 'completed' && <Trophy className="w-5 h-5 text-gray-400" />}
               <span className={`font-bold text-lg ${
-                game.result === 'W' ? 'text-green-600' : 
-                game.result === 'L' ? 'text-red-600' : 
+                game.result === 'W' ? 'text-green-600' :
+                game.result === 'L' ? 'text-red-600' :
+                game.result === 'T' ? 'text-yellow-600' :
                 'text-gray-600'
               }`}>
-                {game.result || '-'}
+                {game.result || (game.status === 'completed' ? 'Final' : '-')}
               </span>
             </div>
             
@@ -160,6 +204,54 @@ const GameCard: React.FC<GameCardProps> = ({ game, onGameClick, onInvite, onGame
       }`}
       onClick={handleClick}
     >
+      {/* Headline Section */}
+      {(game.headline || isAdmin) && (
+        <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          {isEditingHeadline ? (
+            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+              <input
+                type="text"
+                value={headlineText}
+                onChange={(e) => setHeadlineText(e.target.value)}
+                className="flex-grow px-2 py-1 border border-yellow-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                placeholder="Enter headline for this game..."
+                autoFocus
+              />
+              <button
+                onClick={handleSaveHeadline}
+                disabled={isSavingHeadline}
+                className="p-1 text-green-600 hover:bg-green-50 rounded disabled:opacity-50"
+              >
+                <Check className="w-4 h-4" />
+              </button>
+              <button
+                onClick={handleCancelHeadline}
+                className="p-1 text-red-600 hover:bg-red-50 rounded"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-yellow-900">
+                {game.headline || <span className="text-yellow-600 italic">Click to add headline</span>}
+              </p>
+              {isAdmin && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsEditingHeadline(true);
+                  }}
+                  className="p-1 text-yellow-600 hover:bg-yellow-100 rounded"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* No Tailgate Badge */}
       {game.noTailgate && (
         <div className="mb-3 flex items-center justify-between">
@@ -378,6 +470,7 @@ const GameCard: React.FC<GameCardProps> = ({ game, onGameClick, onInvite, onGame
 };
 
 export default GameCard;
+
 
 
 

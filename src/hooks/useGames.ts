@@ -38,14 +38,14 @@ export function useGames() {
   // Fetch games on mount and set up daily sync
   useEffect(() => {
     fetchGames();
-    
+
     // Check if we should sync (once per day)
     const checkAndSync = async () => {
       const lastSyncKey = 'lastScheduleSync';
       const lastSync = localStorage.getItem(lastSyncKey);
       const now = new Date();
       const today = now.toISOString().split('T')[0];
-      
+
       if (lastSync !== today) {
         console.log('Running daily schedule sync...');
         try {
@@ -61,14 +61,25 @@ export function useGames() {
         }
       }
     };
-    
+
     // Run initial check
     checkAndSync();
-    
+
     // Set up interval to check every hour (in case browser stays open)
     const interval = setInterval(checkAndSync, 60 * 60 * 1000); // Check every hour
-    
-    return () => clearInterval(interval);
+
+    // Listen for game updates from the daily update service
+    const handleGamesUpdated = () => {
+      console.log('Games updated by daily service, refreshing...');
+      fetchGames();
+    };
+
+    window.addEventListener('gamesUpdated', handleGamesUpdated);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('gamesUpdated', handleGamesUpdated);
+    };
   }, [fetchGames]);
 
   // Create a new game
@@ -222,6 +233,7 @@ export function useGames() {
     clearMockData,
   };
 }
+
 
 
 

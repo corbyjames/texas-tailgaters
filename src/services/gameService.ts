@@ -1,6 +1,7 @@
 import firebaseService from './firebaseService';
 import { Game, Theme, PotluckItem } from '../types/Game';
 import ScheduleSyncService from './scheduleSync';
+import { parseGameDate } from '../utils/dateUtils';
 
 export interface CreateGameData {
   date: string;
@@ -13,6 +14,7 @@ export interface CreateGameData {
   setupTime?: string;
   expectedAttendance?: number;
   tvNetwork?: string;
+  headline?: string;
 }
 
 export interface UpdateGameData extends Partial<CreateGameData> {
@@ -21,6 +23,7 @@ export interface UpdateGameData extends Partial<CreateGameData> {
   homeScore?: number;
   awayScore?: number;
   noTailgate?: boolean;
+  headline?: string;
 }
 
 export class GameService {
@@ -29,10 +32,45 @@ export class GameService {
     try {
       const games = await firebaseService.getGames();
       const themes = await firebaseService.getThemes();
-      
+
+      // Check and update game statuses based on date
+      await this.updatePastGameStatuses(games);
+
       // Map database fields to frontend format and attach themes
       return games.map((game: any) => {
         const theme = game.theme_id ? themes.find(t => t.id === game.theme_id) : undefined;
+
+        // Determine if game should be marked as completed based on date
+        let status = game.status as 'planned' | 'unplanned' | 'watch-party' | 'completed' | 'in-progress' | 'scheduled';
+
+        // If game date has passed and it's not already marked as completed, update status
+        const gameDate = parseGameDate(game.date);
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+
+        if (gameDate < now && status !== 'completed' && status !== 'in-progress') {
+          // Game is in the past but not marked as completed
+          // Check if we have scores to confirm it's completed
+          if ((game.home_score !== undefined && game.away_score !== undefined) ||
+              (game.homeScore !== undefined && game.awayScore !== undefined)) {
+            status = 'completed';
+          } else if (game.time) {
+            // Check if enough time has passed after kickoff to assume game is complete
+            const [hours, minutes] = (game.time || '00:00').split(':').map(Number);
+            const gameDateTime = new Date(gameDate);
+            gameDateTime.setHours(hours || 12, minutes || 0, 0, 0);
+            // Add 4 hours for typical game duration
+            gameDateTime.setHours(gameDateTime.getHours() + 4);
+
+            if (new Date() > gameDateTime) {
+              status = 'completed';
+            }
+          } else {
+            // No time specified, if date has passed, mark as completed
+            status = 'completed';
+          }
+        }
+
         return {
           id: game.id!,
           date: game.date,
@@ -41,11 +79,12 @@ export class GameService {
           location: game.location,
           isHome: game.is_home,
           themeId: game.theme_id,
-          status: game.status as 'planned' | 'unplanned' | 'watch-party' | 'completed' | 'in-progress' | 'scheduled',
+          status,
           setupTime: game.setup_time,
           expectedAttendance: game.expected_attendance,
           tvNetwork: game.tv_network,
           noTailgate: game.no_tailgate,
+          headline: game.headline,
           homeScore: game.home_score || game.homeScore,
           awayScore: game.away_score || game.awayScore,
           result: (game.result || (game as any).result) as 'W' | 'L' | 'T' | undefined,
@@ -97,6 +136,7 @@ export class GameService {
         expectedAttendance: game.expected_attendance,
         tvNetwork: game.tv_network,
         noTailgate: game.no_tailgate,
+        headline: game.headline,
         homeScore: game.home_score || game.homeScore,
         awayScore: game.away_score || game.awayScore,
         result: (game.result || (game as any).result) as 'W' | 'L' | 'T' | undefined,
@@ -136,7 +176,8 @@ export class GameService {
         status: gameData.status || 'unplanned',
         setup_time: gameData.setupTime,
         expected_attendance: gameData.expectedAttendance || 0,
-        tv_network: gameData.tvNetwork
+        tv_network: gameData.tvNetwork,
+        headline: gameData.headline
       };
 
       const newGame = await firebaseService.createGame(insertData);
@@ -155,6 +196,7 @@ export class GameService {
         expectedAttendance: newGame.expected_attendance,
         tvNetwork: newGame.tv_network,
         noTailgate: newGame.no_tailgate,
+        headline: newGame.headline,
         createdAt: newGame.created_at,
         updatedAt: newGame.updated_at
       };
@@ -185,6 +227,7 @@ export class GameService {
       if (updateData.homeScore !== undefined) dbUpdateData.home_score = updateData.homeScore;
       if (updateData.awayScore !== undefined) dbUpdateData.away_score = updateData.awayScore;
       if (updateData.noTailgate !== undefined) dbUpdateData.no_tailgate = updateData.noTailgate;
+      if (updateData.headline !== undefined) dbUpdateData.headline = updateData.headline;
 
       const updatedGame = await firebaseService.updateGame(id, dbUpdateData);
       
@@ -206,6 +249,7 @@ export class GameService {
         expectedAttendance: updatedGame.expected_attendance,
         tvNetwork: updatedGame.tv_network,
         noTailgate: updatedGame.no_tailgate,
+        headline: updatedGame.headline,
         createdAt: updatedGame.created_at,
         updatedAt: updatedGame.updated_at
       };
@@ -419,6 +463,52 @@ export class GameService {
     } catch (error) {
       console.error('Error clearing all data:', error);
       throw error;
+    }
+  }
+
+    // Update past game statuses to completed
+  static async updatePastGameStatuses(games: any[]): Promise<void> {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    for (const game of games) {
+      if (game.status === 'completed' || game.status === 'in-progress') continue;
+
+      const gameDate = parseGameDate(game.date);
+
+      // If game date has passed
+      if (gameDate < now) {
+        let shouldUpdate = false;
+
+        // Check if we have scores
+        if ((game.home_score !== undefined && game.away_score !== undefined) ||
+            (game.homeScore !== undefined && game.awayScore !== undefined)) {
+          shouldUpdate = true;
+        } else if (game.time) {
+          // Check if enough time has passed after kickoff
+          const [hours, minutes] = (game.time || '00:00').split(':').map(Number);
+          const gameDateTime = new Date(gameDate);
+          gameDateTime.setHours(hours || 12, minutes || 0, 0, 0);
+          // Add 4 hours for typical game duration
+          gameDateTime.setHours(gameDateTime.getHours() + 4);
+
+          if (new Date() > gameDateTime) {
+            shouldUpdate = true;
+          }
+        } else {
+          // No time specified, if date has passed, mark as completed
+          shouldUpdate = true;
+        }
+
+        if (shouldUpdate) {
+          try {
+            await firebaseService.updateGame(game.id, { status: 'completed' });
+            console.log(`Updated game ${game.opponent} status to completed (date: ${game.date})`);
+          } catch (error) {
+            console.error(`Failed to update game ${game.opponent} status:`, error);
+          }
+        }
+      }
     }
   }
 
