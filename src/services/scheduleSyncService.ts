@@ -23,6 +23,18 @@ interface GameUpdate {
 export class ComprehensiveScheduleSyncService {
   private static readonly SYNC_LOG_KEY = 'syncLogs';
   private static readonly GAMES_KEY = 'games';
+
+  /**
+   * Normalize opponent name for better matching
+   */
+  private static normalizeOpponentName(opponent: string): string {
+    return opponent
+      .toLowerCase()
+      .replace(/state/gi, '')
+      .replace(/university/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
   
   /**
    * Main sync function that runs daily
@@ -63,10 +75,23 @@ export class ComprehensiveScheduleSyncService {
       // Process ESPN games
       for (const espnGame of espnGames) {
         if (!espnGame.opponent || !espnGame.date) continue;
-        
-        const gameKey = `${espnGame.date}_${espnGame.opponent}`;
-        const existingGame = gamesMap.get(gameKey);
-        
+
+        // Normalize opponent name for better matching
+        const normalizedOpponent = this.normalizeOpponentName(espnGame.opponent);
+        const gameYear = new Date(espnGame.date).getFullYear();
+
+        // Try multiple matching strategies to avoid duplicates
+        let existingGame = gamesMap.get(`${espnGame.date}_${espnGame.opponent}`);
+
+        if (!existingGame) {
+          // Try to find by opponent and year (handles date mismatches)
+          existingGame = Array.from(gamesMap.values()).find(g => {
+            const gYear = new Date(g.date).getFullYear();
+            const gNormalized = this.normalizeOpponentName(g.opponent);
+            return gYear === gameYear && gNormalized === normalizedOpponent;
+          });
+        }
+
         if (existingGame) {
           // Update existing game
           const gameUpdates = this.compareAndUpdateGame(existingGame, espnGame, 'ESPN');
@@ -76,11 +101,19 @@ export class ComprehensiveScheduleSyncService {
             result.updated++;
           }
         } else {
-          // Add new game (likely a bowl game)
-          const newGame = await this.addNewGame(espnGame);
-          if (newGame) {
-            result.added++;
-            console.log(`Added new game: ${espnGame.opponent} on ${espnGame.date}`);
+          // Only add if it's truly a new game
+          const isDuplicate = Array.from(gamesMap.values()).some(g => {
+            const gNormalized = this.normalizeOpponentName(g.opponent);
+            const gYear = new Date(g.date).getFullYear();
+            return gNormalized === normalizedOpponent && gYear === gameYear;
+          });
+
+          if (!isDuplicate) {
+            const newGame = await this.addNewGame(espnGame);
+            if (newGame) {
+              result.added++;
+              console.log(`Added new game: ${espnGame.opponent} on ${espnGame.date}`);
+            }
           }
         }
       }
@@ -88,10 +121,23 @@ export class ComprehensiveScheduleSyncService {
       // Process UT Athletics games (priority for official info)
       for (const utGame of utGames) {
         if (!utGame.opponent || !utGame.date) continue;
-        
-        const gameKey = `${utGame.date}_${utGame.opponent}`;
-        const existingGame = gamesMap.get(gameKey);
-        
+
+        // Normalize opponent name for better matching
+        const normalizedOpponent = this.normalizeOpponentName(utGame.opponent);
+        const gameYear = new Date(utGame.date).getFullYear();
+
+        // Try multiple matching strategies
+        let existingGame = gamesMap.get(`${utGame.date}_${utGame.opponent}`);
+
+        if (!existingGame) {
+          // Try to find by opponent and year
+          existingGame = Array.from(gamesMap.values()).find(g => {
+            const gYear = new Date(g.date).getFullYear();
+            const gNormalized = this.normalizeOpponentName(g.opponent);
+            return gYear === gameYear && gNormalized === normalizedOpponent;
+          });
+        }
+
         if (existingGame) {
           const gameUpdates = this.compareAndUpdateGame(existingGame, utGame, 'UTAthletics');
           if (gameUpdates.length > 0) {
@@ -136,8 +182,25 @@ export class ComprehensiveScheduleSyncService {
   private static async fetchESPNData(): Promise<Partial<Game>[]> {
     try {
       const games = await ESPNApiService.fetchSchedule();
-      console.log(`Fetched ${games.length} games from ESPN`);
-      return games;
+
+      // Filter to ensure we only get football games
+      const footballGames = games.filter(game => {
+        if (!game.opponent) return false;
+
+        // Exclude non-football sports
+        const nonFootballKeywords = ['Baseball', 'Basketball', 'Soccer', 'Softball',
+                                     'Volleyball', 'Tennis', 'Golf', 'Swimming',
+                                     'Track', 'Gymnastics', 'Wrestling'];
+
+        const isNonFootball = nonFootballKeywords.some(sport =>
+          game.opponent.toLowerCase().includes(sport.toLowerCase())
+        );
+
+        return !isNonFootball;
+      });
+
+      console.log(`Fetched ${footballGames.length} football games from ESPN (filtered from ${games.length} total)`);
+      return footballGames;
     } catch (error) {
       console.error('ESPN fetch failed:', error);
       return [];
@@ -296,13 +359,43 @@ export class ComprehensiveScheduleSyncService {
   }
   
   /**
+   * Validate if a game is a football game
+   */
+  private static isValidFootballGame(gameData: Partial<Game>): boolean {
+    if (!gameData.opponent) return false;
+
+    // List of non-football sports to exclude
+    const nonFootballKeywords = ['Baseball', 'Basketball', 'Soccer', 'Softball',
+                                 'Volleyball', 'Tennis', 'Golf', 'Swimming',
+                                 'Track', 'Gymnastics', 'Wrestling', 'Rowing',
+                                 'Doubleheader', 'Tournament', 'Invitational'];
+
+    const opponent = gameData.opponent.toLowerCase();
+    const location = (gameData.location || '').toLowerCase();
+
+    // Check if it contains any non-football sport keywords
+    const isNonFootball = nonFootballKeywords.some(sport =>
+      opponent.includes(sport.toLowerCase()) ||
+      location.includes(sport.toLowerCase())
+    );
+
+    return !isNonFootball;
+  }
+
+  /**
    * Add a new game to Firebase
    */
   private static async addNewGame(gameData: Partial<Game>): Promise<string | null> {
     try {
+      // Validate it's a football game before adding
+      if (!this.isValidFootballGame(gameData)) {
+        console.warn(`Skipping non-football game: ${gameData.opponent}`);
+        return null;
+      }
+
       const gamesRef = ref(database, this.GAMES_KEY);
       const newGameRef = push(gamesRef);
-      
+
       const newGame: Omit<Game, 'id'> = {
         date: gameData.date || '',
         time: gameData.time || 'TBD',
@@ -319,7 +412,7 @@ export class ComprehensiveScheduleSyncService {
         espnGameId: gameData.espnGameId,
         lastSyncedAt: new Date().toISOString()
       };
-      
+
       await set(newGameRef, newGame);
       return newGameRef.key;
     } catch (error) {

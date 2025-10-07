@@ -366,7 +366,20 @@ export class GameService {
       const newGames: Game[] = [];
       const updatedGames: Game[] = [];
 
-      for (const externalGame of externalGames) {
+      // Filter out non-football games
+      const nonFootballKeywords = ['Baseball', 'Basketball', 'Soccer', 'Softball',
+                                   'Volleyball', 'Tennis', 'Golf', 'Swimming',
+                                   'Track', 'Gymnastics', 'Wrestling', 'Rowing'];
+
+      const footballGames = externalGames.filter(game => {
+        if (!game.opponent) return false;
+        const isNonFootball = nonFootballKeywords.some(sport =>
+          game.opponent.toLowerCase().includes(sport.toLowerCase())
+        );
+        return !isNonFootball;
+      });
+
+      for (const externalGame of footballGames) {
         // Check if game already exists (by opponent and season year)
         // This allows us to update games even if the date is wrong
         const externalYear = new Date(externalGame.date).getFullYear();
