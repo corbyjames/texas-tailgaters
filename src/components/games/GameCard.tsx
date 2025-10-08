@@ -166,15 +166,16 @@ const GameCard: React.FC<GameCardProps> = ({ game, onGameClick, onInvite, onGame
             </div>
             
             {/* Game Info */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <span className="text-sm text-gray-600">
                 {createLocalDate(game.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               </span>
               <span className="font-medium">
                 {game.isHome ? 'vs' : '@'} {game.opponent}
               </span>
+              {/* Score Display for Completed Games */}
               {game.homeScore !== undefined && game.awayScore !== undefined && (
-                <span className="font-semibold text-lg">
+                <span className="font-bold text-lg ml-2">
                   {game.isHome ? (
                     <span className={game.homeScore > game.awayScore ? 'text-green-600' : game.homeScore < game.awayScore ? 'text-red-600' : 'text-gray-600'}>
                       Texas {game.homeScore} - {game.awayScore} {game.opponent}
