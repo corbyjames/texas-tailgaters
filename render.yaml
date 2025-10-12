@@ -1,4 +1,5 @@
 services:
+  # Frontend
   - type: web
     name: texas-tailgaters
     env: static
@@ -16,3 +17,34 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 20
+
+  # Backend - Score Sync Service
+  - type: web
+    name: texas-tailgaters-backend
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: PORT
+        value: 3001
+      - key: NODE_ENV
+        value: production
+      - key: ENABLE_SCHEDULER
+        value: true
+      - key: SYNC_ON_STARTUP
+        value: true
+      - key: FIREBASE_PRIVATE_KEY_ID
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_CLIENT_ID
+        sync: false
+      - key: FIREBASE_CERT_URL
+        sync: false
