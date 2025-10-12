@@ -1,199 +1,221 @@
 const express = require('express');
 const cors = require('cors');
-const { createServer } = require('http');
-const { Server } = require('socket.io');
-const cron = require('node-cron');
-const schedule = require('node-schedule');
-require('dotenv').config();
-
-// Initialize Firebase Admin
-const admin = require('./config/firebase');
+const { syncScoresToFirebase } = require('./espn-sync-service');
+const jobScheduler = require('./services/jobScheduler');
+const enhancedSyncService = require('./services/enhancedSyncService');
 
 const app = express();
-const httpServer = createServer(app);
-const io = new Server(httpServer, {
-  cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-    methods: ['GET', 'POST']
-  }
-});
+const PORT = process.env.PORT || 3001;
 
-// Import services
-const scheduleService = require('./services/scheduleService');
-const scrapingService = require('./services/scrapingService');
-const notificationService = require('./services/notificationService');
-const liveUpdateService = require('./services/liveUpdateService');
-
-// Middleware
+// Enable CORS for all origins (adjust in production)
 app.use(cors());
 app.use(express.json());
 
-// API Routes
+// Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
-});
-
-// Schedule API endpoint - server-side scraping
-app.get('/api/schedule/ut-athletics', async (req, res) => {
-  try {
-    const schedule = await scrapingService.scrapeUTAthleticsSchedule();
-    res.json(schedule);
-  } catch (error) {
-    console.error('Error fetching UT Athletics schedule:', error);
-    res.status(500).json({ error: 'Failed to fetch schedule' });
-  }
-});
-
-// ESPN API endpoint
-app.get('/api/schedule/espn', async (req, res) => {
-  try {
-    const schedule = await scheduleService.fetchESPNSchedule();
-    res.json(schedule);
-  } catch (error) {
-    console.error('Error fetching ESPN schedule:', error);
-    res.status(500).json({ error: 'Failed to fetch schedule' });
-  }
-});
-
-// Sync endpoint for manual triggers
-app.post('/api/schedule/sync', async (req, res) => {
-  try {
-    const result = await scheduleService.performFullSync();
-    res.json(result);
-  } catch (error) {
-    console.error('Error syncing schedule:', error);
-    res.status(500).json({ error: 'Failed to sync schedule' });
-  }
-});
-
-// Push notification subscription endpoint
-app.post('/api/notifications/subscribe', async (req, res) => {
-  try {
-    const { subscription, userId } = req.body;
-    await notificationService.saveSubscription(userId, subscription);
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Error saving subscription:', error);
-    res.status(500).json({ error: 'Failed to save subscription' });
-  }
-});
-
-// WebSocket connection handling
-io.on('connection', (socket) => {
-  console.log('Client connected:', socket.id);
-  
-  // Join room for specific game updates
-  socket.on('join-game', (gameId) => {
-    socket.join(`game-${gameId}`);
-    console.log(`Socket ${socket.id} joined game room: ${gameId}`);
-  });
-  
-  // Leave game room
-  socket.on('leave-game', (gameId) => {
-    socket.leave(`game-${gameId}`);
-    console.log(`Socket ${socket.id} left game room: ${gameId}`);
-  });
-  
-  // Subscribe to all schedule updates
-  socket.on('subscribe-schedule', () => {
-    socket.join('schedule-updates');
-    console.log(`Socket ${socket.id} subscribed to schedule updates`);
-  });
-  
-  socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
+  res.json({
+    status: 'healthy',
+    service: 'Texas Tailgaters Score Sync Service',
+    scheduler: jobScheduler.isRunning ? 'running' : 'stopped',
+    timestamp: new Date().toISOString()
   });
 });
 
-// Cron Jobs
+// ==================== Sync Endpoints ====================
 
-// Daily sync at 6 AM
-cron.schedule('0 6 * * *', async () => {
-  console.log('Running daily schedule sync...');
-  const result = await scheduleService.performFullSync();
-  
-  // Notify all connected clients
-  io.to('schedule-updates').emit('schedule-synced', result);
-  
-  // Check for schedule changes and send push notifications
-  if (result.updated > 0) {
-    await notificationService.sendScheduleUpdateNotifications(result.changes);
+// Legacy sync scores endpoint (kept for backwards compatibility)
+app.post('/api/sync-scores', async (req, res) => {
+  try {
+    console.log('Received request to sync scores (legacy endpoint)');
+    const result = await syncScoresToFirebase();
+
+    if (result.success) {
+      res.json({
+        success: true,
+        message: result.message,
+        updatedGames: result.updates
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: result.message
+      });
+    }
+  } catch (error) {
+    console.error('Error in sync-scores endpoint:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
   }
 });
 
-// Check for live games every 30 seconds during game times
-let liveGameInterval = null;
+// New comprehensive sync endpoint
+app.post('/api/sync', async (req, res) => {
+  try {
+    const { type = 'comprehensive' } = req.body;
+    console.log(`Received request for ${type} sync`);
 
-async function startLiveGameMonitoring() {
-  const activeGames = await liveUpdateService.getActiveGames();
-  
-  if (activeGames.length > 0 && !liveGameInterval) {
-    console.log('Starting live game monitoring...');
-    
-    liveGameInterval = setInterval(async () => {
-      for (const game of activeGames) {
-        const updates = await liveUpdateService.fetchLiveUpdates(game.espnGameId);
-        
-        if (updates) {
-          // Send updates to clients watching this game
-          io.to(`game-${game.id}`).emit('game-update', updates);
-          
-          // Update database
-          await scheduleService.updateGameData(game.id, updates);
-          
-          // Send push notifications for major events (scoring plays, game end)
-          if (updates.majorEvent) {
-            await notificationService.sendGameEventNotification(game, updates);
-          }
-        }
-      }
-      
-      // Check if games are still active
-      const stillActive = await liveUpdateService.getActiveGames();
-      if (stillActive.length === 0 && liveGameInterval) {
-        console.log('Stopping live game monitoring - no active games');
-        clearInterval(liveGameInterval);
-        liveGameInterval = null;
-      }
-    }, 30000); // Every 30 seconds
-  }
-}
+    const result = await jobScheduler.triggerManualSync(type);
 
-// Check for game starts every 5 minutes
-cron.schedule('*/5 * * * *', async () => {
-  await startLiveGameMonitoring();
-});
-
-// TV Network announcement check (every day at 10 AM and 4 PM)
-cron.schedule('0 10,16 * * *', async () => {
-  console.log('Checking for TV network updates...');
-  const updates = await scheduleService.checkNetworkUpdates();
-  
-  if (updates.length > 0) {
-    // Notify clients
-    io.to('schedule-updates').emit('network-updates', updates);
-    
-    // Send push notifications
-    await notificationService.sendNetworkAnnouncementNotifications(updates);
+    res.json({
+      success: result.success !== false,
+      result
+    });
+  } catch (error) {
+    console.error('Error in sync endpoint:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
   }
 });
 
-// Bowl game check (December and January, daily at noon)
-cron.schedule('0 12 * 12,1 *', async () => {
-  console.log('Checking for bowl game announcements...');
-  const bowlGames = await scheduleService.checkForBowlGames();
-  
-  if (bowlGames.length > 0) {
-    // Notify all clients
-    io.emit('bowl-announcement', bowlGames);
-    
-    // Send push notifications
-    await notificationService.sendBowlGameNotifications(bowlGames);
+// Sync schedule only
+app.post('/api/sync/schedule', async (req, res) => {
+  try {
+    console.log('Received request to sync schedule');
+    const result = await enhancedSyncService.syncSchedule();
+
+    res.json({
+      success: true,
+      result
+    });
+  } catch (error) {
+    console.error('Error in schedule sync:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
   }
 });
 
-const PORT = process.env.PORT || 3001;
-httpServer.listen(PORT, () => {
-  console.log(`Backend server running on port ${PORT}`);
-  console.log(`WebSocket server ready for connections`);
+// Sync scores only
+app.post('/api/sync/scores', async (req, res) => {
+  try {
+    console.log('Received request to sync scores');
+    const result = await enhancedSyncService.syncScores();
+
+    res.json({
+      success: true,
+      result
+    });
+  } catch (error) {
+    console.error('Error in scores sync:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
+// ==================== Status & Monitoring Endpoints ====================
+
+// Get scheduler status
+app.get('/api/scheduler/status', (req, res) => {
+  try {
+    const status = jobScheduler.getStatus();
+    res.json({
+      success: true,
+      status
+    });
+  } catch (error) {
+    console.error('Error getting scheduler status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error getting scheduler status',
+      error: error.message
+    });
+  }
+});
+
+// Get job history
+app.get('/api/scheduler/history', (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 20;
+    const history = jobScheduler.getHistory(limit);
+
+    res.json({
+      success: true,
+      history,
+      count: history.length
+    });
+  } catch (error) {
+    console.error('Error getting job history:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error getting job history',
+      error: error.message
+    });
+  }
+});
+
+// ==================== Legacy Endpoints ====================
+
+// Get current scores endpoint (for testing)
+app.get('/api/scores', async (req, res) => {
+  try {
+    const { fetchESPNScores } = require('./espn-sync-service');
+    const scores = await fetchESPNScores();
+    res.json({
+      success: true,
+      scores: scores,
+      count: scores.length
+    });
+  } catch (error) {
+    console.error('Error fetching scores:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching scores',
+      error: error.message
+    });
+  }
+});
+
+// ==================== Server Initialization ====================
+
+const server = app.listen(PORT, async () => {
+  console.log('\n========================================');
+  console.log('Texas Tailgaters Score Sync Service');
+  console.log('========================================');
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log('\nEndpoints:');
+  console.log(`  Health:           GET  http://localhost:${PORT}/health`);
+  console.log(`  Sync (all):       POST http://localhost:${PORT}/api/sync`);
+  console.log(`  Sync Schedule:    POST http://localhost:${PORT}/api/sync/schedule`);
+  console.log(`  Sync Scores:      POST http://localhost:${PORT}/api/sync/scores`);
+  console.log(`  Scheduler Status: GET  http://localhost:${PORT}/api/scheduler/status`);
+  console.log(`  Job History:      GET  http://localhost:${PORT}/api/scheduler/history`);
+  console.log('========================================\n');
+
+  // Initialize job scheduler
+  try {
+    await jobScheduler.initialize();
+  } catch (error) {
+    console.error('Error initializing job scheduler:', error);
+  }
+});
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM signal received: closing HTTP server');
+  await jobScheduler.shutdown();
+  server.close(() => {
+    console.log('HTTP server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', async () => {
+  console.log('SIGINT signal received: closing HTTP server');
+  await jobScheduler.shutdown();
+  server.close(() => {
+    console.log('HTTP server closed');
+    process.exit(0);
+  });
 });

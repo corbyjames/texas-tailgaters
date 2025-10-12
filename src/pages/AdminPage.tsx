@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useGames } from '../hooks/useGames';
-import { Trash2, Users, Calendar, Shield, AlertTriangle, RefreshCw, Activity, MessageSquare, Mail, Send, Clock } from 'lucide-react';
+import { Trash2, Users, Calendar, Shield, AlertTriangle, RefreshCw, Activity, MessageSquare, Mail, Send, Clock, Zap } from 'lucide-react';
 import { FeedbackManager } from '../components/admin/FeedbackManager';
 import { UserManager } from '../components/admin/UserManager';
 import { InviteAllUsersModal } from '../components/admin/InviteAllUsersModal';
+import SyncMonitor from '../components/admin/SyncMonitor';
 import DailyUpdateService from '../services/dailyUpdateService';
 
 const AdminPage: React.FC = () => {
@@ -21,7 +22,7 @@ const AdminPage: React.FC = () => {
   const [syncError, setSyncError] = useState('');
   const [diagnosing, setDiagnosing] = useState(false);
   const [diagnosticResults, setDiagnosticResults] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'feedback'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'sync' | 'users' | 'feedback'>('overview');
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [updatingStatuses, setUpdatingStatuses] = useState(false);
   const [updateSuccess, setUpdateSuccess] = useState('');
@@ -207,6 +208,19 @@ const AdminPage: React.FC = () => {
                 <Activity className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span className="hidden xs:inline">Overview</span>
                 <span className="xs:hidden">View</span>
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('sync')}
+              className={`py-2 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
+                activeTab === 'sync'
+                  ? 'border-orange-500 text-orange-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Zap className="w-3 h-3 sm:w-4 sm:h-4" />
+                Auto Sync
               </div>
             </button>
             <button
@@ -458,6 +472,9 @@ const AdminPage: React.FC = () => {
         </div>
       </div>
       </>
+      ) : activeTab === 'sync' ? (
+        /* Auto Sync Tab */
+        <SyncMonitor />
       ) : activeTab === 'users' ? (
         /* Users Tab */
         <div className="space-y-6">
