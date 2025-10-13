@@ -50,6 +50,14 @@ const ScoreSync: React.FC = () => {
       texasScore: 28,
       opponentScore: 35,
       result: 'L'
+    },
+    {
+      opponent: 'Oklahoma',
+      date: '2025-10-11',
+      isHome: true,
+      texasScore: 23,
+      opponentScore: 6,
+      result: 'W'
     }
   ];
 

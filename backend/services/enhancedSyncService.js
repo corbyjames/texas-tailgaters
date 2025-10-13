@@ -18,7 +18,7 @@ class EnhancedSyncService {
       { date: '2025-09-13', opponent: 'UTEP', location: 'home', texasScore: 42, opponentScore: 10, result: 'W', espnId: '401760619' },
       { date: '2025-09-20', opponent: 'Sam Houston', location: 'home', texasScore: 45, opponentScore: 6, result: 'W', espnId: '401760620' },
       { date: '2025-10-04', opponent: 'Florida', location: 'away', texasScore: 28, opponentScore: 35, result: 'L', espnId: '401760621' },
-      { date: '2025-10-11', opponent: 'Oklahoma', location: 'neutral', texasScore: 34, opponentScore: 3, result: 'W', espnId: '401628397' }
+      { date: '2025-10-11', opponent: 'Oklahoma', location: 'home', texasScore: 23, opponentScore: 6, result: 'W', espnId: '401752736' }
     ];
   }
 
