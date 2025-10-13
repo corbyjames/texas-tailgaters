@@ -9,7 +9,7 @@ const ScoreSync: React.FC = () => {
     message: string;
   } | null>(null);
 
-  // Hardcoded scores as fallback (same as in backend)
+  // Hardcoded scores as fallback (verified from ESPN API 2025-10-12)
   const HARDCODED_SCORES = [
     {
       opponent: 'Ohio State',
@@ -23,32 +23,32 @@ const ScoreSync: React.FC = () => {
       opponent: 'San Jose State',
       date: '2025-09-06',
       isHome: true,
-      texasScore: 59,
-      opponentScore: 17,
+      texasScore: 38,
+      opponentScore: 7,
       result: 'W'
     },
     {
       opponent: 'UTEP',
       date: '2025-09-13',
       isHome: true,
-      texasScore: 42,
+      texasScore: 27,
       opponentScore: 10,
       result: 'W'
     },
     {
       opponent: 'Sam Houston',
-      date: '2025-09-20',
+      date: '2025-09-21',
       isHome: true,
-      texasScore: 45,
-      opponentScore: 6,
+      texasScore: 55,
+      opponentScore: 0,
       result: 'W'
     },
     {
       opponent: 'Florida',
       date: '2025-10-04',
       isHome: false,
-      texasScore: 28,
-      opponentScore: 35,
+      texasScore: 21,
+      opponentScore: 29,
       result: 'L'
     },
     {

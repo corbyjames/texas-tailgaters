@@ -11,13 +11,13 @@ class EnhancedSyncService {
     this.texasTeamId = '251';
     this.db = admin.database();
 
-    // Hardcoded backup scores for 2025 season
+    // Hardcoded backup scores for 2025 season (verified from ESPN API 2025-10-12)
     this.BACKUP_SCORES_2025 = [
       { date: '2025-08-30', opponent: 'Ohio State', location: 'away', texasScore: 7, opponentScore: 14, result: 'L', espnId: '401752677' },
-      { date: '2025-09-06', opponent: 'San Jose State', location: 'home', texasScore: 59, opponentScore: 17, result: 'W', espnId: '401760618' },
-      { date: '2025-09-13', opponent: 'UTEP', location: 'home', texasScore: 42, opponentScore: 10, result: 'W', espnId: '401760619' },
-      { date: '2025-09-20', opponent: 'Sam Houston', location: 'home', texasScore: 45, opponentScore: 6, result: 'W', espnId: '401760620' },
-      { date: '2025-10-04', opponent: 'Florida', location: 'away', texasScore: 28, opponentScore: 35, result: 'L', espnId: '401760621' },
+      { date: '2025-09-06', opponent: 'San Jose State', location: 'home', texasScore: 38, opponentScore: 7, result: 'W', espnId: '401752693' },
+      { date: '2025-09-13', opponent: 'UTEP', location: 'home', texasScore: 27, opponentScore: 10, result: 'W', espnId: '401752706' },
+      { date: '2025-09-21', opponent: 'Sam Houston', location: 'home', texasScore: 55, opponentScore: 0, result: 'W', espnId: '401752723' },
+      { date: '2025-10-04', opponent: 'Florida', location: 'away', texasScore: 21, opponentScore: 29, result: 'L', espnId: '401752727' },
       { date: '2025-10-11', opponent: 'Oklahoma', location: 'home', texasScore: 23, opponentScore: 6, result: 'W', espnId: '401752736' }
     ];
   }
