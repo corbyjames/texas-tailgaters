@@ -143,7 +143,7 @@ const ScoreSync: React.FC = () => {
       setSyncResult(null);
 
       // Try to sync via backend service first
-      const backendUrl = process.env.REACT_APP_SCORE_SYNC_URL || 'http://localhost:3001';
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
       const response = await fetch(`${backendUrl}/api/sync-scores`, {
         method: 'POST',
