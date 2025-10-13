@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "build": "echo 'No build step required'",
     "sync": "node espn-sync-service.js",
     "dev": "nodemon server.js"
   },
