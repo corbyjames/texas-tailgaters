@@ -7,8 +7,8 @@ const admin = require('../config/firebase');
  */
 class EnhancedSyncService {
   constructor() {
-    this.espnBaseUrl = 'https://site.api.espn.com/apis/site/v2/sports/football/college-football';
-    this.texasTeamId = '251';
+    this.espnBaseUrl = process.env.ESPN_BASE_URL || 'https://site.api.espn.com/apis/site/v2/sports/football/college-football';
+    this.texasTeamId = process.env.TEAM_ID || '251'; // Default: Texas Longhorns
     this.db = admin.database();
 
     // Hardcoded backup scores for 2025 season (verified from ESPN API 2025-10-12)
