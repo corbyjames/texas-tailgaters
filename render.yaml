@@ -18,7 +18,7 @@ services:
       - key: NODE_VERSION
         value: 20
 
-  # Backend - Score Sync Service
+  # Backend - Score Sync Service (API only, no internal scheduler)
   - type: web
     name: texas-tailgaters-backend
     env: node
@@ -35,9 +35,75 @@ services:
       - key: NODE_ENV
         value: production
       - key: ENABLE_SCHEDULER
-        value: true
+        value: false
       - key: SYNC_ON_STARTUP
-        value: true
+        value: false
+      - key: FIREBASE_PRIVATE_KEY_ID
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_CLIENT_ID
+        sync: false
+      - key: FIREBASE_CERT_URL
+        sync: false
+
+  # Cron Job - Daily Schedule Sync (6 AM CT = 11 AM UTC)
+  - type: cron
+    name: daily-schedule-sync
+    env: node
+    region: oregon
+    schedule: "0 11 * * *"
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && node cron-schedule-sync.js
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: FIREBASE_PRIVATE_KEY_ID
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_CLIENT_ID
+        sync: false
+      - key: FIREBASE_CERT_URL
+        sync: false
+
+  # Cron Job - Score Sync (Every 30 min during game season)
+  - type: cron
+    name: score-sync
+    env: node
+    region: oregon
+    schedule: "*/30 * * * *"
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && node cron-score-sync.js
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: FIREBASE_PRIVATE_KEY_ID
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_CLIENT_ID
+        sync: false
+      - key: FIREBASE_CERT_URL
+        sync: false
+
+  # Cron Job - Weekly Deep Sync (Sundays 11 PM CT = Mon 4 AM UTC)
+  - type: cron
+    name: weekly-deep-sync
+    env: node
+    region: oregon
+    schedule: "0 4 * * 1"
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && node cron-deep-sync.js
+    envVars:
+      - key: NODE_VERSION
+        value: 20
       - key: FIREBASE_PRIVATE_KEY_ID
         sync: false
       - key: FIREBASE_PRIVATE_KEY
