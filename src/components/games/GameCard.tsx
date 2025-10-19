@@ -173,17 +173,23 @@ const GameCard: React.FC<GameCardProps> = ({ game, onGameClick, onInvite, onGame
               <span className="font-medium">
                 {game.isHome ? 'vs' : '@'} {game.opponent}
               </span>
+              {/* TV Network */}
+              {game.tvNetwork && game.tvNetwork !== 'TBD' && (
+                <span className="text-xs text-gray-500">
+                  📺 {game.tvNetwork}
+                </span>
+              )}
               {/* Score Display for Completed Games */}
               {game.homeScore !== undefined && game.awayScore !== undefined && (
-                <span className="font-bold text-lg ml-2">
+                <span className={`font-bold text-lg ml-2 ${
+                  game.result === 'W' ? 'text-green-600' :
+                  game.result === 'L' ? 'text-red-600' :
+                  'text-gray-600'
+                }`}>
                   {game.isHome ? (
-                    <span className={game.homeScore > game.awayScore ? 'text-green-600' : game.homeScore < game.awayScore ? 'text-red-600' : 'text-gray-600'}>
-                      Texas {game.homeScore} - {game.awayScore} {game.opponent}
-                    </span>
+                    <span>Texas {game.homeScore} - {game.awayScore} {game.opponent}</span>
                   ) : (
-                    <span className={game.awayScore > game.homeScore ? 'text-green-600' : game.awayScore < game.homeScore ? 'text-red-600' : 'text-gray-600'}>
-                      {game.opponent} {game.homeScore} - {game.awayScore} Texas
-                    </span>
+                    <span>{game.opponent} {game.homeScore} - {game.awayScore} Texas</span>
                   )}
                 </span>
               )}
@@ -325,21 +331,25 @@ const GameCard: React.FC<GameCardProps> = ({ game, onGameClick, onInvite, onGame
                     <div className="text-2xl font-bold">
                       {game.isHome ? (
                         <span className="flex items-center gap-2">
-                          <span className={game.homeScore > game.awayScore ? 'text-green-600' : game.homeScore < game.awayScore ? 'text-red-600' : 'text-gray-800'}>
+                          {/* Texas (home) score */}
+                          <span className={game.result === 'W' ? 'text-green-600' : game.result === 'L' ? 'text-red-600' : 'text-gray-800'}>
                             {game.homeScore}
                           </span>
                           <span className="text-gray-400">-</span>
-                          <span className={game.awayScore > game.homeScore ? 'text-green-600' : game.awayScore < game.homeScore ? 'text-red-600' : 'text-gray-800'}>
+                          {/* Opponent (away) score */}
+                          <span className="text-gray-800">
                             {game.awayScore}
                           </span>
                         </span>
                       ) : (
                         <span className="flex items-center gap-2">
-                          <span className={game.homeScore > game.awayScore ? 'text-green-600' : game.homeScore < game.awayScore ? 'text-red-600' : 'text-gray-800'}>
+                          {/* Opponent (home) score */}
+                          <span className="text-gray-800">
                             {game.homeScore}
                           </span>
                           <span className="text-gray-400">-</span>
-                          <span className={game.awayScore > game.homeScore ? 'text-green-600' : game.awayScore < game.homeScore ? 'text-red-600' : 'text-gray-800'}>
+                          {/* Texas (away) score */}
+                          <span className={game.result === 'W' ? 'text-green-600' : game.result === 'L' ? 'text-red-600' : 'text-gray-800'}>
                             {game.awayScore}
                           </span>
                         </span>
@@ -471,6 +481,8 @@ const GameCard: React.FC<GameCardProps> = ({ game, onGameClick, onInvite, onGame
 };
 
 export default GameCard;
+
+
 
 
 
