@@ -325,7 +325,8 @@ class EnhancedSyncService {
 
     const isHome = texasCompetitor.homeAway === 'home';
     const gameDate = new Date(competition.date);
-    const tvNetwork = competition.broadcasts?.[0]?.names?.join(', ') || 'TBD';
+    // Fix: ESPN uses media.shortName, not names array
+    const tvNetwork = competition.broadcasts?.[0]?.media?.shortName || 'TBD';
 
     const timeString = gameDate.toLocaleTimeString('en-US', {
       hour: 'numeric',

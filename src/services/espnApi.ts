@@ -186,7 +186,8 @@ export class ESPNApiService {
       
       const isHome = texasCompetitor.homeAway === 'home';
       const gameDate = new Date(competition.date);
-      const tvNetwork = competition.broadcasts?.[0]?.names?.join(', ') || 'TBD';
+      // Fix: ESPN uses media.shortName, not names array
+      const tvNetwork = competition.broadcasts?.[0]?.media?.shortName || 'TBD';
       
       // Determine game result if completed
       let result: 'W' | 'L' | 'T' | undefined;
